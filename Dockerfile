@@ -27,12 +27,12 @@ RUN apt-get update \
 RUN apt-get install openssh-server iputils-ping -y \
     && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config \
     && echo "root:ys-huang" | chpasswd
-ADD ssh_start.sh /.script/
+ADD container_run/ssh_start.sh /.script/
 RUN chmod +x /.script/*
 
 # shell setup
-ADD shell_setup/ ~/shell_setup
-WORKDIR ~/shell_setup
+ADD imgae_setup/ ~/imgae_setup
+WORKDIR ~/imgae_setup
 RUN chmod +x ./*.sh \
     && ./zsh_ohmyzsh_setup.sh \
     && ./ohmyzsh_config.sh -y \
@@ -40,7 +40,7 @@ RUN chmod +x ./*.sh \
 
 # welcome message
 ADD ttf/*.flf /usr/share/figlet/
-ADD shell_setup/11-logo.sh /etc/profile.d/11-logo.sh
+ADD imgae_setup/11-logo.sh /etc/profile.d/11-logo.sh
 RUN apt-get install figlet lolcat -y \
     && chmod +x /etc/profile.d/11-logo.sh \
     && cat /etc/profile.d/11-logo.sh | sed '1d' >> ~/.zlogin
@@ -51,7 +51,11 @@ RUN ./language_package.sh -y \
     && cp ./config/.tmux.conf ~/.tmux.conf \
     && cp ./config/.vimrc ~/.vimrc
 
-# # git-acc tool
+# git-acc tool
 RUN git clone https://github.com/tw-yshuang/Git_SSH-Account_Switch.git
 WORKDIR Git_SSH-Account_Switch
 RUN chmod +x ./*.sh && ./setup.sh
+
+# create work directory
+RUN mkdir ~/Work
+RUN mkdir ~/Dataset

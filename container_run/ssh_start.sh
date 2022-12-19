@@ -1,4 +1,5 @@
 #!/bin/bash
+
 password='rootpassword'
 if [[ -n $1 ]]; then
     password=$1
