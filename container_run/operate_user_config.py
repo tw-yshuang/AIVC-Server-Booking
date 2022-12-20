@@ -5,22 +5,22 @@ from WordOperator import str_format, ask_yn
 
 
 def get_stdID_config(opts: dict) -> dict:
-    (
-        password,
-        forward_port,
-        image,
-        execute_command,
-        __volume_work_dir,
-        __volume_dataset_dir,
-    ) = opts
+    # (
+    #     password,
+    #     forward_port,
+    #     image,
+    #     extra_command,
+    #     __volume_work_dir,
+    #     __volume_dataset_dir,
+    # ) = opts
 
     return {
-        'password': password,
-        'forward_port': forward_port,
-        'image': image,
-        'execute_command': execute_command,
-        '__volume_work_dir': __volume_work_dir,
-        '__volume_dataset_dir': __volume_dataset_dir,
+        'password': opts[0],
+        'forward_port': opts[1],
+        'image': opts[2],
+        'extra_command': opts[3],
+        '__volume_work_dir': opts[4],
+        '__volume_dataset_dir': opts[5],
     }
 
 
@@ -71,7 +71,7 @@ def main():
     >>> password: str, (required)
     >>> forward_port: int, (required)
     >>> image: str, (required) # The image that already builded.
-    >>> execute_command: str, (required) # Extra command want to put it, follow `bash` order.
+    >>> extra_command: str, (required) # Extra command want to put it.
     >>> __volume_work_dir: str, (required)
     >>> __volume_dataset_dir: str, (required)
     >>> silentUpdate: bool, (optional) # Use silent mode, interactive-update will follow this arg.
@@ -134,3 +134,6 @@ def main():
 
 
 main()
+
+# if __name__ == '__main__':
+#     main()

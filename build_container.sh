@@ -21,7 +21,7 @@
 #-                                  User Guide: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html
 #-    -im, --image                which image you want to use, default: None
 #-                                  if is None and also a new std_id it will use "rober5566a/aivc-server:latest"
-#-    -exec, --execute-script     which image you want to use, default: None
+#-    -e-cmd, --extra-command     the extra command you want to execute when the docker runs it, default: None
 #-
 #-    -s-update, --silent-update          silent mode to update users_config.json, value: None(default) | True | False,
 #-                                                                                 None, interactive mode.
@@ -54,7 +54,7 @@ cpus="8"
 memory="32"
 gpus="2" # https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html
 image=None
-execute_script=None
+extra_command=None
 silentUpdate=None
 silentUseDefault=None
 
@@ -97,7 +97,7 @@ if [ "$#" -gt 0 ]; then
                 shift 2
             ;;
             # how many gpus for container
-            "--gpus")
+            "-gpus")
                 gpus=$2
                 shift 2
             ;;
@@ -106,14 +106,17 @@ if [ "$#" -gt 0 ]; then
                 image=$2
                 shift 2
             ;;
-            "-exec"|"--execute-script")
-                execute_script=$2
+            # 
+            "-e-cmd"|"--extra-command")
+                extra_command=$2
                 shift 2
             ;;
+            # silent mode to update users_config.json
             "-s-update"|"--silent-update")
                 silentUpdate=$2
                 shift 2
             ;;
+            # silent mode to use default user config
             "-s-default"|"--silent-use-default")
                 silentUseDefault=$2
                 shift 2
@@ -185,16 +188,43 @@ else
     mkdir $__volume_work_dir
 fi
 
-python3 container_run/operate_user_config.py $std_id $password $forward_port $image $execute_script $__volume_work_dir $__volume_dataset_dir $__user_config_json $silentUpdate $silentUseDefault .$$ # save result to the .PID
+python3 container_run/operate_user_config.py $std_id $password $forward_port $image $extra_command $__volume_work_dir $__volume_dataset_dir $__user_config_json $silentUpdate $silentUseDefault .$$ # save result to the .PID
+
 
 # update variable from user_config.py
 user_config=($(cat .$$))
 password=${user_config[0]}
 forward_port=${user_config[1]}
 image=${user_config[2]}
-execute_script=${user_config[3]}
+extra_command=${user_config[3]}
 __volume_work_dir=${user_config[4]}
 __volume_dataset_dir=${user_config[5]}
 rm -f .$$ # remove .PID
 
+exec_command="/bin/bash -c '/.script/ssh_start.sh ${password}'"
+if [ $(echo $image | grep "rober5566a/aivc-server") == '' ]; then
+    exec_command="${exec_command} ${extra_command}"
+fi
+
 # TODO: run container
+echo "docker run \
+  -dit \
+  --cpuset-cpus=${cpus} \
+  --memory=${memory}G \
+  --restart=always \
+  -p${forward_port}:22 \
+  --gpus=${gpus} \
+  --name=${std_id} \
+  ${image} \
+  ${exec_command}"
+
+docker run \
+  -dit \
+  --cpuset-cpus=${cpus} \
+  --memory=${memory}G \
+  --restart=always \
+  -p${forward_port}:22 \
+  --gpus=${gpus} \
+  --name=${std_id} \
+  ${image} \
+  ${exec_command}
