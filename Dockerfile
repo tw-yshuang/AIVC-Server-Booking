@@ -23,9 +23,10 @@ RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get install apt-utils vim wget curl git-all htop tmux -y
 
-# ssh-server
+# ssh-server & allow X11 forwarding use.
 RUN apt-get install openssh-server iputils-ping -y \
     && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config \
+    && sed -i 's/#X11UseLocalhost yes/X11UseLocalhost no/g' /etc/ssh/sshd_config \
     && echo "root:ys-huang" | chpasswd
 ADD container_run/ssh_start.sh /.script/
 RUN chmod +x /.script/*
@@ -37,6 +38,9 @@ RUN chmod +x ./*.sh \
     && ./zsh_ohmyzsh_setup.sh \
     && ./ohmyzsh_config.sh -y \
     &&  sed -i 's/# export LANG=en_US.UTF-8/export LANG=C.UTF-8/g' ~/.zshrc
+
+# shell history buckup mechanism
+RUN bash ./zsh_buckup_machanism.sh
 
 # welcome message
 ADD ttf/*.flf /usr/share/figlet/
@@ -56,6 +60,7 @@ RUN git clone https://github.com/tw-yshuang/Git_SSH-Account_Switch.git
 WORKDIR Git_SSH-Account_Switch
 RUN chmod +x ./*.sh && ./setup.sh
 
-# create work directory
-RUN mkdir ~/Work
-RUN mkdir ~/Dataset
+# volume work directory
+VOLUME ~/Work
+VOLUME ~/Dataset
+VOLUME ~/.local/share/virtualenvs

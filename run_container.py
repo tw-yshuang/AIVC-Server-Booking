@@ -2,8 +2,8 @@ import os, json
 import click
 from container_run.WordOperator import str_format, ask_yn
 
-__volume_work_dir = "./test/Users"
-__volume_dataset_dir = './test/Dataset'
+__volume_work_dir = "/home/mspl_ys-huang/Works/ys-huang/Code/Docker/AIVC-Server/test/Users"
+__volume_dataset_dir = '/home/mspl_ys-huang/Works/ys-huang/Code/Docker/AIVC-Server/test/Dataset'
 __user_config_json = './test_users_config.json'
 
 help_dict = {
@@ -50,8 +50,8 @@ def print_user_info(std_id: str, user_dict: dict):
     )
 
     user_know_dict = user_dict.copy()
-    del user_know_dict['__volume_work_dir']
-    del user_know_dict['__volume_dataset_dir']
+    del user_know_dict['volume_work_dir']
+    del user_know_dict['volume_dataset_dir']
     print(f"Please paste {std_id}'s personal config to the user:")
     print(
         str_format(
@@ -89,16 +89,18 @@ def operate_user_config(
     `silent_user_default`: silent mode to use default user config, default is interactive mode. [None(default) | True | Fasle]
     '''
     volume_work_dir = f'{__volume_work_dir}/{student_id}'
+    volume_virtualenvs_dir = f'{volume_work_dir}/virtualenvs'
     isWrite = False
     check2create_dir(volume_work_dir)
+    check2create_dir(volume_virtualenvs_dir)
 
     new_user_dict = {
         'password': password,
         'forward_port': forward_port,
         'image': image,
         'extra_command': extra_command,
-        '__volume_work_dir': volume_work_dir,
-        '__volume_dataset_dir': __volume_dataset_dir,
+        'volume_work_dir': volume_work_dir,
+        'volume_dataset_dir': __volume_dataset_dir,
     }
 
     # load users config
@@ -150,8 +152,8 @@ def run(
     gpus: int = 1,
     image: str = None,
     extra_command: str = '',
-    silent_update: bool or None = None,
-    silent_user_default: bool or None = None,
+    volume_work_dir: str = __volume_work_dir,
+    volume_dataset_dir: str = __volume_dataset_dir,
     *args,
     **kwargs,
 ):
@@ -174,19 +176,24 @@ def run(
     if image == "rober5566a/aivc-server:latest":
         exec_command += f' /bin/bash -c "/.script/ssh_start.sh {password}"'
 
-    os.system(
-        f'docker run\
-            -dit\
-            --restart=always\
-            --cpuset-cpus={cpus}\
-            --memory={memory}G\
-            --gpus={gpus}\
-            --name={student_id}\
-            -p{forward_port}:22\
-            {image}\
-            {exec_command}\
-            '
-    )
+        os.system(
+            f'docker run\
+                -dit\
+                --restart=always\
+                --cpuset-cpus={cpus}\
+                --memory={memory}G\
+                --gpus={gpus}\
+                --name={student_id}\
+                -p{forward_port}:22\
+                -v {volume_work_dir}:/root/Work\
+                -v {volume_work_dir}/virtualenvs:/root/.local/share/virtualenvs\
+                -v {volume_dataset_dir}:/root/Dataset\
+                -v /tmp/.X11-unix:/tmp/.X11-unix\
+                -e DISPLAY=$DISPLAY\
+                {image}\
+                {exec_command}\
+                '
+        )
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
@@ -240,8 +247,8 @@ def cli(
 if __name__ == '__main__':
     cli()
 
-    # ? for test.
+    # # ? for test.
     # user_config_dict = operate_user_config(
-    #     **{'student_id': 'm11007s05', 'password': '1234', 'forward_port': 2222},
+    #     **{'student_id': 'm11007s05', 'password': '0000', 'forward_port': 2222},
     # )
     # run(student_id='m11007s05', cpus=2, memory=8, gpus=1, **user_config_dict)
