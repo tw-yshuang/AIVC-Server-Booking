@@ -89,10 +89,10 @@ def operate_user_config(
     `silent_user_default`: silent mode to use default user config, default is interactive mode. [None(default) | True | Fasle]
     '''
     volume_work_dir = f'{__volume_work_dir}/{student_id}'
-    volume_virtualenvs_dir = f'{volume_work_dir}/virtualenvs'
     isWrite = False
-    check2create_dir(volume_work_dir)
-    check2create_dir(volume_virtualenvs_dir)
+    if check2create_dir(volume_work_dir) is False:
+        check2create_dir(f'{volume_work_dir}/.pyenv-versions')  # create an volume dir to save ~/.pyenv/versions/
+        check2create_dir(f'{volume_work_dir}/.virtualenvs')  #  create an volume dir to save ~/.local/share/virtualenvs
 
     new_user_dict = {
         'password': password,
@@ -186,7 +186,8 @@ def run(
                 --name={student_id}\
                 -p{forward_port}:22\
                 -v {volume_work_dir}:/root/Work\
-                -v {volume_work_dir}/virtualenvs:/root/.local/share/virtualenvs\
+                -v {volume_work_dir}/.pyenv-versions:/root/.pyenv/versions\
+                -v {volume_work_dir}/.virtualenvs:/root/.local/share/virtualenvs\
                 -v {volume_dataset_dir}:/root/Dataset\
                 -v /tmp/.X11-unix:/tmp/.X11-unix\
                 -e DISPLAY=$DISPLAY\

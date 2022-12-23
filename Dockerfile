@@ -21,7 +21,7 @@ RUN echo 'export LANG="C.UTF-8"' >> /etc/profile \
 
 RUN apt-get update \
     && apt-get upgrade -y \
-    && apt-get install apt-utils vim wget curl git-all htop tmux -y
+    && apt-get install apt-utils locales vim wget curl git-all htop tmux -y
 
 # ssh-server & allow X11 forwarding use.
 RUN apt-get install openssh-server iputils-ping -y \
@@ -63,4 +63,5 @@ RUN chmod +x ./*.sh && ./setup.sh
 # volume work directory
 VOLUME ~/Work
 VOLUME ~/Dataset
+VOLUME ~/.pyenv/versions
 VOLUME ~/.local/share/virtualenvs
