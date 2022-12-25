@@ -188,7 +188,7 @@ def run(
                 -v {volume_work_dir}:/root/Work\
                 -v {volume_work_dir}/.pyenv-versions:/root/.pyenv/versions\
                 -v {volume_work_dir}/.virtualenvs:/root/.local/share/virtualenvs\
-                -v {volume_dataset_dir}:/root/Dataset\
+                -v {volume_dataset_dir}:/root/Dataset:ro\
                 -v /tmp/.X11-unix:/tmp/.X11-unix\
                 -e DISPLAY=$DISPLAY\
                 {image}\

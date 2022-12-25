@@ -1,7 +1,7 @@
 
 #!/usr/bin/env bash
 
-FILES=(.zshrc .zsh_history)
+FILES=(.zshrc .zsh_history .p10k.zsh)
 
 for key in ${!FILES[*]}; do
     echo "if [ -f '/root/Work/${FILES[$key]}' ]; then cp /root/Work/${FILES[$key]} ~/${FILES[$key]} ; fi" >> ~/.zlogin

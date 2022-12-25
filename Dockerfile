@@ -55,13 +55,17 @@ RUN ./language_package.sh -y \
     && cp ./config/.tmux.conf ~/.tmux.conf \
     && cp ./config/.vimrc ~/.vimrc
 
+# cuda setting
+RUN ./cuda_path.sh
+
 # git-acc tool
 RUN git clone https://github.com/tw-yshuang/Git_SSH-Account_Switch.git
 WORKDIR Git_SSH-Account_Switch
 RUN chmod +x ./*.sh && ./setup.sh
 
 # volume work directory
-VOLUME ~/Work
-VOLUME ~/Dataset
-VOLUME ~/.pyenv/versions
-VOLUME ~/.local/share/virtualenvs
+# VOLUME ~/Work
+# VOLUME ~/Dataset
+# VOLUME ~/.pyenv/versions
+# VOLUME ~/.local/share/virtualenvs
+
