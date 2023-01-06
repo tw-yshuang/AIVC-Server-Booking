@@ -2,9 +2,13 @@ import os, json
 import click
 from container_run.WordOperator import str_format, ask_yn
 
-__volume_work_dir = "/home/mspl_ys-huang/Works/ys-huang/Code/Docker/AIVC-Server/test/Users"
-__volume_dataset_dir = '/home/mspl_ys-huang/Works/ys-huang/Code/Docker/AIVC-Server/test/Dataset'
+__volume_work_dir = ''  # work_dir
+__volume_dataset_dir = ''  # data_dir
 __user_config_json = './test_users_config.json'
+
+__total_ram = 30
+__total_swap_size = 30
+__shm_rate = __total_ram / __total_swap_size if __total_swap_size != 0 else 1
 
 help_dict = {
     'std_id': 'student ID.',
@@ -176,12 +180,18 @@ def run(
     if image == "rober5566a/aivc-server:latest":
         exec_command += f' /bin/bash -c "/.script/ssh_start.sh {password}"'
 
+        ram_size = memory * __shm_rate
+
+        # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
         os.system(
             f'docker run\
                 -dit\
                 --restart=always\
+                --pid=host\
                 --cpuset-cpus={cpus}\
-                --memory={memory}G\
+                --memory={ram_size}G\
+                --memory-swap={memory}G\
+                --shm-size={memory}G\
                 --gpus={gpus}\
                 --name={student_id}\
                 -p{forward_port}:22\
@@ -214,7 +224,7 @@ def cli(
     forward_port: int,
     cpus: int = 2,
     memory: int = 8,
-    gpus: int = 1,
+    gpus: int or str = 1,
     image: str = None,
     extra_command: str = '',
     silent_update: bool or None = None,
