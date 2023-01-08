@@ -1,0 +1,6 @@
+volume_work_dir : ./Users  # users work_dir
+volume_dataset_dir : ./Dataset  # data_dir
+user_config_json : ./users_config.json
+
+total_ram : 16 # the actual DRAM size
+total_swap_size : 2 # the actual SWAP size

@@ -1,14 +1,10 @@
 import os, json
 import click
-from container_run.WordOperator import str_format, ask_yn
 
-__volume_work_dir = ''  # work_dir
-__volume_dataset_dir = ''  # data_dir
-__user_config_json = './test_users_config.json'
+from lib.WordOperator import str_format, ask_yn
+from container_run.HostDeployInfo import HostDeployInfo
 
-__total_ram = 30
-__total_swap_size = 30
-__shm_rate = __total_ram / __total_swap_size if __total_swap_size != 0 else 1
+HostDI = HostDeployInfo('host_deploy-test.yaml')
 
 help_dict = {
     'std_id': 'student ID.',
@@ -92,11 +88,11 @@ def operate_user_config(
     `silent_update`: silent mode to update users_config.json, default is interactive mode. [None(default) | True | Fasle]\n
     `silent_user_default`: silent mode to use default user config, default is interactive mode. [None(default) | True | Fasle]
     '''
-    volume_work_dir = f'{__volume_work_dir}/{student_id}'
+    volume_work_dir = f'{HostDI.volume_work_dir}/{student_id}'
     isWrite = False
     if check2create_dir(volume_work_dir) is False:
         check2create_dir(f'{volume_work_dir}/.pyenv-versions')  # create an volume dir to save ~/.pyenv/versions/
-        check2create_dir(f'{volume_work_dir}/.virtualenvs')  #  create an volume dir to save ~/.local/share/virtualenvs
+        check2create_dir(f'{volume_work_dir}/.virtualenvs')  # create an volume dir to save ~/.local/share/virtualenvs
 
     new_user_dict = {
         'password': password,
@@ -104,17 +100,17 @@ def operate_user_config(
         'image': image,
         'extra_command': extra_command,
         'volume_work_dir': volume_work_dir,
-        'volume_dataset_dir': __volume_dataset_dir,
+        'volume_dataset_dir': HostDI.volume_dataset_dir,  #! not allow users to define yet.
     }
 
     # load users config
-    with open(__user_config_json, 'r') as f:
+    with open(HostDI.user_config_json, 'r') as f:
         users_dict = json.load(f)
 
     if silent_update is None:  # interactive mode
         if student_id not in users_dict:  # new account
             users_dict[student_id] = new_user_dict
-            isWrite = write_user_config(__user_config_json, users_dict)
+            isWrite = write_user_config(HostDI.user_config_json, users_dict)
 
         elif list(users_dict[student_id].values()) == list(new_user_dict.values()):
             print(str_format(f"{student_id}'s personal config is all the same~", fore='g'))
@@ -123,11 +119,11 @@ def operate_user_config(
         elif ask_yn(f"Do you want to update {student_id}'s personal configuration?(it will update all the variable)", 'y'):
             users_dict[student_id] = new_user_dict
             print(str_format("Done !!", fore='g'))
-            isWrite = write_user_config(__user_config_json, users_dict)
+            isWrite = write_user_config(HostDI.user_config_json, users_dict)
 
     elif silent_update is True:
         users_dict[student_id] = new_user_dict
-        isWrite = write_user_config(__user_config_json, users_dict)
+        isWrite = write_user_config(HostDI.user_config_json, users_dict)
 
     # get user_dict stage
     user_dict = users_dict[student_id]
@@ -156,8 +152,8 @@ def run(
     gpus: int = 1,
     image: str = None,
     extra_command: str = '',
-    volume_work_dir: str = __volume_work_dir,
-    volume_dataset_dir: str = __volume_dataset_dir,
+    volume_work_dir: str = HostDI.volume_work_dir,
+    volume_dataset_dir: str = HostDI.volume_dataset_dir,
     *args,
     **kwargs,
 ):
@@ -180,7 +176,7 @@ def run(
     if image == "rober5566a/aivc-server:latest":
         exec_command += f' /bin/bash -c "/.script/ssh_start.sh {password}"'
 
-        ram_size = memory * __shm_rate
+        ram_size = memory * HostDI.shm_rate
 
         # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
         os.system(
