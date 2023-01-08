@@ -188,7 +188,7 @@ def run(
                 -dit\
                 --restart=always\
                 --pid=host\
-                --cpuset-cpus={cpus}\
+                --cpus={cpus}\
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
                 --shm-size={memory}G\
