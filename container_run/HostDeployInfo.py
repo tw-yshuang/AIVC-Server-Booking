@@ -22,5 +22,5 @@ class HostDeployInfo:
 
 
 if __name__ == '__main__':
-    host_info = HostDeployInfo('host_deploy-test.yaml')
+    host_info = HostDeployInfo('./cfg/host_deploy-test.yaml')
     print(dir(host_info))

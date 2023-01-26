@@ -4,7 +4,7 @@ import click
 from lib.WordOperator import str_format, ask_yn
 from container_run.HostDeployInfo import HostDeployInfo
 
-HostDI = HostDeployInfo('host_deploy-test.yaml')
+HostDI = HostDeployInfo('cfg/host_deploy-test.yaml')
 
 help_dict = {
     'std_id': 'student ID.',

@@ -43,7 +43,7 @@ RUN chmod +x ./*.sh \
 RUN bash ./zsh_buckup_machanism.sh
 
 # welcome message
-ADD ttf/*.flf /usr/share/figlet/
+ADD fonts/*.flf /usr/share/figlet/
 ADD imgae_setup/11-logo.sh /etc/profile.d/11-logo.sh
 RUN apt-get install figlet lolcat -y \
     && chmod +x /etc/profile.d/11-logo.sh \
