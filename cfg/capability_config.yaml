@@ -1,0 +1,25 @@
+allow_stdID:
+  - m11007s05
+  - m11007s05-1
+  - m11007s05-2
+
+max_general_capability:
+  cpus: 8
+  ram: 32
+  gpus: 1
+
+max_custom_capability:
+  m11007s05:
+    cpus: true # true means full capability
+    ram: true
+    gpus: true
+
+  m11007s05-1:
+    cpus: true
+    ram: true
+    # if there is not parameter, follow by max_general_capability
+
+  m11007s05-2:
+    cpus: 12
+    ram: 64
+    gpus: 4
