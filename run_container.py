@@ -1,10 +1,10 @@
-import os, json
+import os
 import click
 
 from lib.WordOperator import str_format, ask_yn
-from container_run.HostDeployInfo import HostDeployInfo
+from container_run.HostInfo import dump_yaml, load_yaml, HostDeployInfo, CapabilityConfig
 
-HostDI = HostDeployInfo('cfg/host_deploy-test.yaml')
+HostDI = HostDeployInfo('cfg/test_host_deploy.yaml')
 
 help_dict = {
     'std_id': 'student ID.',
@@ -31,13 +31,6 @@ def check2create_dir(dir: str):
             return True
     except OSError:
         raise OSError(str_format(f"Fail to create the directory {dir} !", fore='r'))
-
-
-def write_user_config(__user_config_json: str, users_dict: dict):
-    with open(__user_config_json, 'w') as f:
-        json.dump(users_dict, f, indent=4)
-
-    return True
 
 
 def print_user_info(std_id: str, user_dict: dict):
@@ -103,14 +96,12 @@ def operate_user_config(
         'volume_dataset_dir': HostDI.volume_dataset_dir,  #! not allow users to define yet.
     }
 
-    # load users config
-    with open(HostDI.user_config_json, 'r') as f:
-        users_dict = json.load(f)
+    users_dict = load_yaml(HostDI.users_config_yaml)
 
     if silent_update is None:  # interactive mode
         if student_id not in users_dict:  # new account
             users_dict[student_id] = new_user_dict
-            isWrite = write_user_config(HostDI.user_config_json, users_dict)
+            isWrite = dump_yaml(users_dict, HostDI.users_config_yaml)
 
         elif list(users_dict[student_id].values()) == list(new_user_dict.values()):
             print(str_format(f"{student_id}'s personal config is all the same~", fore='g'))
@@ -119,11 +110,11 @@ def operate_user_config(
         elif ask_yn(f"Do you want to update {student_id}'s personal configuration?(it will update all the variable)", 'y'):
             users_dict[student_id] = new_user_dict
             print(str_format("Done !!", fore='g'))
-            isWrite = write_user_config(HostDI.user_config_json, users_dict)
+            isWrite = dump_yaml(users_dict, HostDI.users_config_yaml)
 
     elif silent_update is True:
         users_dict[student_id] = new_user_dict
-        isWrite = write_user_config(HostDI.user_config_json, users_dict)
+        isWrite = dump_yaml(users_dict, HostDI.users_config_yaml)
 
     # get user_dict stage
     user_dict = users_dict[student_id]
@@ -175,8 +166,8 @@ def run(
 
     if image == "rober5566a/aivc-server:latest":
         exec_command += f' /bin/bash -c "/.script/ssh_start.sh {password}"'
-
-        ram_size = memory * HostDI.shm_rate
+        CapCig = CapabilityConfig(HostDI.capability_config_yaml)
+        ram_size = memory * CapCig.max.shm_rate
 
         # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
         os.system(
@@ -252,10 +243,10 @@ def cli(
 
 
 if __name__ == '__main__':
-    cli()
+    # cli()
 
-    # # ? for test.
-    # user_config_dict = operate_user_config(
-    #     **{'student_id': 'm11007s05', 'password': '0000', 'forward_port': 2222},
-    # )
-    # run(student_id='m11007s05', cpus=2, memory=8, gpus=1, **user_config_dict)
+    # ? for test.
+    user_config_dict = operate_user_config(
+        **{'student_id': 'm11007s05-1', 'password': '0000', 'forward_port': 2224},
+    )
+    run(student_id='m11007s05-1', cpus=2, memory=8, gpus=1, **user_config_dict)
