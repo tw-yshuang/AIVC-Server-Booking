@@ -98,6 +98,7 @@ def operate_user_config(
         check2create_dir(f'{volume_work_dir}/.pyenv-versions')  # create an volume dir to save ~/.pyenv/versions/
         check2create_dir(f'{volume_work_dir}/.virtualenvs')  # create an volume dir to save ~/.local/share/virtualenvs
 
+    # TODO: use backup_dir to backup envs
     if check2create_dir(volume_backup_dir) is False:
         pass
 
@@ -156,6 +157,7 @@ def run(
     extra_command: str = '',
     volume_work_dir: str = HostDI.volume_work_dir,
     volume_dataset_dir: str = HostDI.volume_dataset_dir,
+    volume_backup_dir: str = HostDI.volume_backup_dir,
     *args,
     **kwargs,
 ):
@@ -180,6 +182,7 @@ def run(
         CapCig = CapabilityConfig(HostDI.capability_config_yaml)
         ram_size = memory * CapCig.max.shm_rate
 
+        # TODO: add backup_dir
         # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
         os.system(
             f'docker run\
