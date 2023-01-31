@@ -1,6 +1,6 @@
-volume_work_dir : ./Users  # users work_dir
-volume_dataset_dir : ./Dataset  # data_dir
-user_config_json : ./users_config.json
+volume_work_dir: /mnt/Users # users work_dir
+volume_dataset_dir: /mnt/Dataset # data_dir
+volume_backup_dir: /mnt/Backup # backup_dir
 
-total_ram : 16 # the actual DRAM size
-total_swap_size : 2 # the actual SWAP size
+users_config_yaml: ./cfg/users_config.yaml
+capability_config_yaml: ./cfg/capability_config.yaml
