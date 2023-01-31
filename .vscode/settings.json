@@ -1,3 +1,16 @@
 {
+  "editor.tabSize": 4,
+  "editor.wordWrapColumn": 135,
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": [
+    "--line-length",
+    "135",
+    "--skip-string-normalization"
+  ],
+  "markdownlint.config": {
+    "MD024": {
+      "allow_different_nesting": true
+    }
+  },
   "cSpell.words": ["cpus"]
 }
