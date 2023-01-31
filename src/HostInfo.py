@@ -1,7 +1,10 @@
-from dataclasses import dataclass, asdict
 from pathlib import Path
-from typing import Dict, List
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple
+from dataclasses import dataclass, asdict
+
 import yaml
+import pandas as pd
 
 # https://github.com/yaml/pyyaml/issues/127#issuecomment-525800484
 class CustomDumper(yaml.SafeDumper):
@@ -24,6 +27,23 @@ def dump_yaml(info_dict: dict, filename: str):
 
 
 @dataclass
+class BookingTime:
+    '''
+    The time to book in the schedule.
+    '''
+
+    start: datetime = datetime.now()
+    end: datetime = datetime.now() + timedelta(hours=1)
+
+    def to_dict(self):
+        if hasattr(self, 'dict'):
+            del self.dict
+
+        self.dict = asdict(self)
+        return self.dict
+
+
+@dataclass
 class UserConfig:
     password: str = None
     forward_port: int = None  # which forward port you want to connect to port: 22(SSH).
@@ -34,6 +54,9 @@ class UserConfig:
     volume_backup_dir: Path = None
 
     def to_dict(self):
+        if hasattr(self, 'dict'):
+            del self.dict
+
         self.dict = asdict(self)
         return self.dict
 
@@ -41,11 +64,11 @@ class UserConfig:
 class UsersConfig:
     ids: Dict[str, UserConfig]
 
-    def __init__(self, yaml_file='users_config.yaml') -> None:
+    def __init__(self, yaml_file='cfg/users_config.yaml') -> None:
         self.ids = self.get_users_config(yaml_file)
 
     @staticmethod
-    def get_users_config(yaml_file='users_config.yaml') -> Dict[str, UserConfig]:
+    def get_users_config(yaml_file='cfg/users_config.yaml') -> Dict[str, UserConfig]:
         users_dict = load_yaml(yaml_file)
         users_config = {}
         for k, v in users_dict.items():
@@ -107,7 +130,7 @@ class CapabilityConfig:
     max_default_capability: BasicCapability
     max_custom_capability: Dict[str, BasicCapability]
 
-    def __init__(self, yaml='capability_config.yaml') -> None:
+    def __init__(self, yaml='cfg/capability_config.yaml') -> None:
         for k, v in load_yaml(yaml).items():
             if k == 'max':
                 setattr(self, k, MaxCapability(v))
@@ -123,16 +146,63 @@ class CapabilityConfig:
 
 
 class HostDeployInfo:
-    capability_config_yaml: str
-    users_config_yaml: str
+    volume_work_dir: Path
+    volume_dataset_dir: Path
+    volume_backup_dir: Path
 
-    volume_work_dir: str
-    volume_dataset_dir: str
-    volume_backup_dir: str
+    capability_config_yaml: Path
+    users_config_yaml: Path
 
     def __init__(self, yaml_file='host_deploy.yaml') -> None:
         for k, v in load_yaml(yaml_file).items():
             setattr(self, k, v)
+
+
+class ScheduleDF:
+    path: Path
+    df: pd.DataFrame
+
+    def __init__(self, csv_path: Path) -> None:
+        self.csv_path = csv_path
+        self.df = pd.read_csv(self.csv_path)
+
+    @staticmethod
+    def concat(df1: pd.DataFrame, df2: pd.DataFrame, *args):
+        cat_ls = [df1, df2, *args] if tuple(args) == Tuple[pd.DataFrame] else [df1, df2]
+        return pd.concat(cat_ls)
+
+
+class HostInfo:
+    deploy_info: HostDeployInfo
+    cap_config: CapabilityConfig
+    users_config: UsersConfig
+
+    booking: ScheduleDF
+    using: ScheduleDF
+    used: ScheduleDF
+
+    booked_df: pd.DataFrame
+
+    def __init__(
+        self,
+        deploy_yaml: Path = Path('cfg/host_deploy.yaml'),
+        booking_csv: Path = Path('jobs/booking.csv'),
+        using_csv: Path = Path('jobs/using.csv'),
+        used_csv: Path = Path('jobs/used.csv'),
+        *args,
+        **kwargs
+    ) -> None:
+        super(HostInfo, self).__init__(*args, **kwargs)
+
+        self.deploy_info = HostDeployInfo(deploy_yaml)
+        self.cap_config = CapabilityConfig(self.deploy_info.capability_config_yaml)
+        self.users_config = UsersConfig(self.deploy_info.users_config_yaml)
+
+        self.booking = ScheduleDF(booking_csv)
+        self.using = ScheduleDF(using_csv)
+        self.used = ScheduleDF(used_csv)
+
+        self.booked_df = ScheduleDF.concat(self.booking, self.using)
 
 
 if __name__ == '__main__':

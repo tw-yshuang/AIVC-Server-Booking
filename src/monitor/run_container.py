@@ -2,16 +2,13 @@ import os
 import click
 from dataclasses import asdict
 
-if __name__ != '__main__':
-    from lib.WordOperator import str_format, ask_yn
-    from src.HostInfo import dump_yaml, HostDeployInfo, CapabilityConfig, UserConfig, UsersConfig
-else:
+if __name__ == '__main__':
     import sys
 
     sys.path.extend('../../')
-    from lib.WordOperator import str_format, ask_yn
-    from src.HostInfo import dump_yaml, HostDeployInfo, CapabilityConfig, UserConfig, UsersConfig
 
+from lib.WordOperator import str_format, ask_yn
+from src.HostInfo import dump_yaml, HostDeployInfo, CapabilityConfig, UserConfig, UsersConfig
 
 HostDI = HostDeployInfo('cfg/test_host_deploy.yaml')
 
@@ -162,7 +159,6 @@ def run(
     **kwargs,
 ):
     '''
-
     `student_id`: student ID.\n
     `password`: password.\n
     `forward_port`: which forward port you want to connect to port: 2(SSH).\n
