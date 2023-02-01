@@ -84,7 +84,7 @@ class UsersConfig:
 
 
 class MaxCapability:
-    cpus: int
+    cpus: float
     ram: int
     swap_size: int
     gpus: int
@@ -101,13 +101,13 @@ class MaxCapability:
 
 
 class BasicCapability:
-    cpus: int
+    cpus: float
     memory: int
     gpus: int
 
     def __init__(
         self,
-        cpus: int or str = None,
+        cpus: float or str = None,
         memory: int or str = None,
         gpus: int or str = None,
         defaultCap: object = None,
@@ -152,6 +152,7 @@ class HostDeployInfo:
 
     capability_config_yaml: Path
     users_config_yaml: Path
+    images: List[str]
 
     def __init__(self, yaml_file='host_deploy.yaml') -> None:
         for k, v in load_yaml(yaml_file).items():
@@ -165,6 +166,9 @@ class ScheduleDF:
     def __init__(self, csv_path: Path) -> None:
         self.csv_path = csv_path
         self.df = pd.read_csv(self.csv_path)
+
+    def update_csv(self) -> None:
+        self.df.to_csv(self.path, index=False)
 
     @staticmethod
     def concat(df1: pd.DataFrame, df2: pd.DataFrame, *args):

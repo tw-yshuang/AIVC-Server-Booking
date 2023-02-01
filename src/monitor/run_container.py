@@ -1,6 +1,5 @@
 import os
 import click
-from dataclasses import asdict
 
 if __name__ == '__main__':
     import sys
@@ -147,7 +146,7 @@ def run(
     student_id: str,
     password: str,
     forward_port: int,
-    cpus: int = 2,
+    cpus: float = 2,
     memory: int = 8,
     gpus: int = 1,
     image: str = None,
@@ -171,9 +170,9 @@ def run(
     exec_command = extra_command if extra_command is not None else ''
 
     if image is None:
-        image = "rober5566a/aivc-server:latest"
+        image = 'rober5566a/aivc-server:latest'
 
-    if image == "rober5566a/aivc-server:latest":
+    if 'rober5566a/aivc-server' in image:
         exec_command += f' /bin/bash -c "/.script/ssh_start.sh {password}"'
         CapCig = CapabilityConfig(HostDI.capability_config_yaml)
         ram_size = memory * CapCig.max.shm_rate
@@ -219,7 +218,7 @@ def cli(
     student_id: str,
     password: str,
     forward_port: int,
-    cpus: int = 2,
+    cpus: float = 2,
     memory: int = 8,
     gpus: int or str = 1,
     image: str = None,

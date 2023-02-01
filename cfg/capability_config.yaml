@@ -1,25 +1,34 @@
+max:
+  cpus: 62
+  ram: 30
+  swap_size: 30
+  gpus: 8
+
+  shm_rate: ram / swap_size if swap_size != 0 else 1
+  memory: ram + swap_size
+
 allow_stdID:
   - m11007s05
   - m11007s05-1
   - m11007s05-2
 
-max_general_capability:
+max_default_capability:
   cpus: 8
-  ram: 32
+  memory: 32
   gpus: 1
 
 max_custom_capability:
   m11007s05:
-    cpus: true # true means full capability
-    ram: true
-    gpus: true
+    cpus: max.cpus
+    memory: max.memory
+    gpus: max.gpus
 
   m11007s05-1:
-    cpus: true
-    ram: true
-    # if there is not parameter, follow by max_general_capability
+    cpus: max.cpus
+    memory: max.memory
+    # if there is not parameter, follow by max_default_capability
 
   m11007s05-2:
     cpus: 12
-    ram: 64
+    memory: 64
     gpus: 4
