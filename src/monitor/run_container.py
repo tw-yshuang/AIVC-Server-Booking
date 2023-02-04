@@ -65,7 +65,7 @@ def print_user_info(std_id: str, user_dict: dict):
 
 
 def operate_user_config(
-    student_id: str,
+    user_id: str,
     password: str,
     forward_port: int,
     image: str = None,
@@ -79,7 +79,7 @@ def operate_user_config(
     operate user config
     This function will compare the user's current config & default it the same or not. In most of case, we all just use one container, so this function is like a Fool-proof mechanism to check the you really want to use this user_config, and also update the user_config.
 
-    `student_id`: student ID.\n
+    `user_id`: student ID.\n
     `password`: password.\n
     `forward_port`: which forward port you want to connect to port: 2(SSH).\n
     `image`: which image you want to use.\n
@@ -87,8 +87,8 @@ def operate_user_config(
     `silent_update`: silent mode to update users_config.json, default is interactive mode. [None(default) | True | Fasle]\n
     `silent_user_default`: silent mode to use default user config, default is interactive mode. [None(default) | True | Fasle]
     '''
-    volume_work_dir = f'{HostDI.volume_work_dir}/{student_id}'
-    volume_backup_dir = f'{HostDI.volume_backup_dir}/{student_id}'
+    volume_work_dir = f'{HostDI.volume_work_dir}/{user_id}'
+    volume_backup_dir = f'{HostDI.volume_backup_dir}/{user_id}'
     isWrite = False
     if check2create_dir(volume_work_dir) is False:
         check2create_dir(f'{volume_work_dir}/.pyenv-versions')  # create an volume dir to save ~/.pyenv/versions/
@@ -106,31 +106,31 @@ def operate_user_config(
     users_config = UsersConfig(HostDI.users_config_yaml)
 
     if silent_update is None:  # interactive mode
-        if student_id not in users_config.ids:  # new account
-            users_config.ids[student_id] = new_user_config
+        if user_id not in users_config.ids:  # new account
+            users_config.ids[user_id] = new_user_config
             isWrite = dump_yaml(users_config.to_dict(), HostDI.users_config_yaml)
 
-        elif users_config.ids[student_id] == new_user_config:
-            print(str_format(f"{student_id}'s personal config is all the same~", fore='g'))
+        elif users_config.ids[user_id] == new_user_config:
+            print(str_format(f"{user_id}'s personal config is all the same~", fore='g'))
             isWrite = True
 
-        elif ask_yn(f"Do you want to update {student_id}'s personal configuration?(it will update all the variable)", 'y'):
-            users_config.ids[student_id] = new_user_config
+        elif ask_yn(f"Do you want to update {user_id}'s personal configuration?(it will update all the variable)", 'y'):
+            users_config.ids[user_id] = new_user_config
             print(str_format("Done !!", fore='g'))
             isWrite = dump_yaml(users_config.to_dict(), HostDI.users_config_yaml)
 
     elif silent_update is True:
-        users_config.ids[student_id] = new_user_config
+        users_config.ids[user_id] = new_user_config
         isWrite = dump_yaml(users_config.to_dict(), HostDI.users_config_yaml)
 
     # get user_config stage
-    user_config = users_config.ids[student_id]
+    user_config = users_config.ids[user_id]
     user_dict = user_config.to_dict()
     if silent_user_default or isWrite:
         pass
     elif (
         silent_user_default is False
-        or ask_yn(f"Use {student_id}'s default configuration?(if is not, it will combine new config)", 'y') is False
+        or ask_yn(f"Use {user_id}'s default configuration?(if is not, it will combine new config)", 'y') is False
     ):
         user_dict = {
             **user_dict,
@@ -138,12 +138,12 @@ def operate_user_config(
         }
 
     if silent_update == None and silent_user_default == None:
-        print_user_info(student_id, user_dict)
+        print_user_info(user_id, user_dict)
     return user_dict
 
 
 def run(
-    student_id: str,
+    user_id: str,
     password: str,
     forward_port: int,
     cpus: float = 2,
@@ -158,7 +158,7 @@ def run(
     **kwargs,
 ):
     '''
-    `student_id`: student ID.\n
+    `user_id`: student ID.\n
     `password`: password.\n
     `forward_port`: which forward port you want to connect to port: 2(SSH).\n
     `image`: which image you want to use, new std_id will use "rober5566a/aivc-server:latest"\n
@@ -189,7 +189,7 @@ def run(
                 --memory-swap={memory}G\
                 --shm-size={memory}G\
                 --gpus={gpus}\
-                --name={student_id}\
+                --name={user_id}\
                 -p{forward_port}:22\
                 -v {volume_work_dir}:/root/Work\
                 -v {volume_work_dir}/.pyenv-versions:/root/.pyenv/versions\
@@ -201,6 +201,37 @@ def run(
                 {exec_command}\
                 '
         )
+
+
+def run_container(
+    user_id: str,
+    password: str,
+    forward_port: int,
+    cpus: float = 2,
+    memory: int = 8,
+    gpus: int or str = 1,
+    image: str = None,
+    extra_command: str = '',
+    silent_update: bool or None = None,
+    silent_user_default: bool or None = None,
+    *args,
+    **kwargs,
+):
+    user_config_dict = operate_user_config(
+        user_id,
+        password,
+        forward_port,
+        image,
+        extra_command,
+        silent_update,
+        silent_user_default,
+        *args,
+        **kwargs,
+    )
+    # print(user_config_dict)
+    # exit()
+
+    run(user_id=user_id, cpus=cpus, memory=memory, gpus=gpus, **user_config_dict)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
@@ -215,7 +246,7 @@ def run(
 @click.option('-s-update', '--silent-update', show_default=True, default=None, type=bool, help=help_dict['s-update'])
 @click.option('-s-default', '--silent-user-default', show_default=True, default=None, type=bool, help=help_dict['s-default'])
 def cli(
-    student_id: str,
+    user_id: str,
     password: str,
     forward_port: int,
     cpus: float = 2,
@@ -234,10 +265,13 @@ def cli(
 
     >>> python3 ./run_container.py -std-id m11007s05 -pw IamNo1handsome! -fp 2222  -s-update False -s-default True'''
 
-    user_config_dict = operate_user_config(
-        student_id,
+    run_container(
+        user_id,
         password,
         forward_port,
+        cpus,
+        memory,
+        gpus,
         image,
         extra_command,
         silent_update,
@@ -245,10 +279,6 @@ def cli(
         *args,
         **kwargs,
     )
-    # print(user_config_dict)
-    # exit()
-
-    run(student_id=student_id, cpus=cpus, memory=memory, gpus=gpus, **user_config_dict)
 
 
 if __name__ == '__main__':
@@ -256,6 +286,6 @@ if __name__ == '__main__':
 
     # # ? for test.
     # user_config_dict = operate_user_config(
-    #     **{'student_id': 'm11007s05-1', 'password': '0000', 'forward_port': 2224},
+    #     **{'user_id': 'm11007s05-1', 'password': '0000', 'forward_port': 2224},
     # )
-    # run(student_id='m11007s05-1', cpus=2, memory=8, gpus=1, **user_config_dict)
+    # run(user_id='m11007s05-1', cpus=2, memory=8, gpus=1, **user_config_dict)

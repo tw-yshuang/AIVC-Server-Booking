@@ -1,0 +1,15 @@
+# Under the Backup
+Dir: # use volume method from docker
+  - - /root/.pyenv/versions # container's dir_path
+    - .default/pyenv-verions # to Backup's dir_path
+  - - /root/.local/share/virtualenvs
+    - .default/virtualenvs
+
+# TODO: code a `backup` command for image
+File: # write cp command from /root/.zlogout
+  - - /root/.zshrc # container's file_path
+    - .default/.zshrc # to Backup's file_path
+  - - /root/.zsh_history
+    - .default/.zsh_history
+  - - /root/.p10k.zsh
+    - .default/.p10k.zsh
