@@ -1,3 +1,5 @@
+Error 804: forward compatibility was attempted on non supported HW.md
+
 This error may happen because the except nvidia-driver version in the nvidia/cuda image is not the same as the host driver.
 if your intrested, please check this link: https://zhuanlan.zhihu.com/p/361545761
 
@@ -10,7 +12,7 @@ please follow the setps:
 ls -l /usr/lib/x86_64-linux-gnu | grep libcuda
 ```
 
-2. And re-link libcuda.so.1 to the current libcuda.so.<nvidia-driver-ver>
+2. And re-link libcuda.so.1 to the current libcuda.so.`<nvidia-driver-ver>`
 
 ```sh
 [container]
