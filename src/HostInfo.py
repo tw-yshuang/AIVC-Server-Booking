@@ -178,6 +178,19 @@ class ScheduleColumnNames:
     image = 'image'
     extra_command = 'extra_command'
 
+    @staticmethod
+    def get_column_types():
+        column_types = {
+            ScheduleColumnNames.user_id: str,
+            ScheduleColumnNames.cpus: int,
+            ScheduleColumnNames.gpus: object,
+            ScheduleColumnNames.forward_port: int,
+            ScheduleColumnNames.image: str,
+            ScheduleColumnNames.extra_command: str,
+        }
+
+        return column_types
+
 
 class ScheduleDF:
     path: Path
@@ -185,11 +198,10 @@ class ScheduleDF:
 
     def __init__(self, csv_path: Path) -> None:
         self.path = csv_path
-        self.df = pd.read_csv(self.path)
+        self.df = pd.read_csv(
+            self.path, parse_dates=[ScheduleColumnNames.start, ScheduleColumnNames.end], dtype=ScheduleColumnNames.get_column_types()
+        )
 
-        self.df[[ScheduleColumnNames.start, ScheduleColumnNames.end]] = self.df[
-            [ScheduleColumnNames.start, ScheduleColumnNames.end]
-        ].astype('datetime64[ns]')
         self.df[ScheduleColumnNames.gpus] = self.df[ScheduleColumnNames.gpus].apply(ast.literal_eval)
 
     def update_csv(self) -> None:
@@ -217,7 +229,7 @@ class HostInfo:
         using_csv: Path = Path('jobs/using.csv'),
         used_csv: Path = Path('jobs/used.csv'),
         *args,
-        **kwargs
+        **kwargs,
     ) -> None:
         super(HostInfo, self).__init__(*args, **kwargs)
 
@@ -251,6 +263,5 @@ if __name__ == '__main__':
     # print(id(user_config), id(users_config))
     # print(users_config.ids['m11007s05'] == user_config)
 
-    # sch_df = ScheduleDF('./cfg/template/test_schedule.csv')
-    # print(sch_df[ScheduleColumnNames])
+    # sch_df = ScheduleDF('./cfg/templates/test_schedule.csv')
     # print('aa')
