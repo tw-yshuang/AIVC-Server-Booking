@@ -73,7 +73,7 @@ This function interactive with the users.
 
 ```python
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
-@click.option('-std-id', '--student-id', help="user's account.")
+@click.option('-id', '--user-id', help="user's account.")
 @click.option('-use-opt', '--use-options', default=False, help="use extra options.")
 @click.option('-ls', '--list-schedule', default=False, help="list schedule that already booking.")
 def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False) -> bool:
