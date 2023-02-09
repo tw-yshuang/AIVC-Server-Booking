@@ -143,6 +143,7 @@ if use_options is True:
 - <font color=#CE9178>"Your Maximum Capability Information: cpus=xx memory=xx gpus=xx"</font>, show this message first, the maximum cap_info can find it from *`Checker.cap_config.max_default_capability`* / *`Checker.cap_config.max_custom_capability`*.
 - <font color=#CE9178>"Please enter the capability information 'cpus(float) memory(int) gpus(int)': "</font>.
 - If over the maximum required, then send (red-font)<font color=#CE9178>"Over the maximum required."</font>, back to the [Q.2](#2-cap_info).
+- If is lower than 1 than, then send (red-font)<font color=#CE9178>"The value can not lower than 1."</font>, back to the [Q.2](#2-cap_info).
 
 #### 3. `booking_time`
 
@@ -361,7 +362,7 @@ Search cap_info for user_id from the *`self.cap_config.max_default_capability`* 
 ### *`Checker.check_booking_info()`*
 
 ```python
-def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
+def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> BasicCapability:
 ```
 
 Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
@@ -438,15 +439,15 @@ The GPU is being utilized by multiple users simultaneously.
 ** Only design this warning, not complete!!
 <!-- TODO -->
 
-### *`MonitorMassage`*
+### *`MonitorMessage`*
 
 ** The better way is using `logging` module, but I don't know how to use it, it is welcome to change the API if result won't be change.
 
 ```python
-class MonitorMassage():
+class MonitorMessage():
 ```
 
-Control the massage for `Monitor`, and record it to the `self.log_path`.
+Control the message for `Monitor`, and record it to the `self.log_path`.
 
 #### **Attributes**
 
@@ -456,16 +457,16 @@ Control the massage for `Monitor`, and record it to the `self.log_path`.
 - `log_path`: the path for record the `Monitor` action for host maintainer & MLOps to check.
 
 ```python
-class MonitorMassage():
+class MonitorMessage():
     '''
-    Control the `Monitor` massage
+    Control the `Monitor` message
     '''
     ERROR: str = '[ERROR]'
     WARNING: str = '[WARNING]'
     INFO: str = '[INFO]'
 ```
 
-### *`MonitorMassage.__init__()`*
+### *`MonitorMessage.__init__()`*
 
 ```python
 def __init__(self, path: Path = Path('jobs/monitor.log')) -> None:
@@ -480,7 +481,7 @@ def __init__(self, path: Path = Path('jobs/monitor.log')) -> None:
 
 - `None`
 
-### *`update_log()`*
+### *`MonitorMessage.update_log()`*
 
 ```python
 def update_log(self, status: str, msg:str, sign:str=None) -> bool
@@ -510,7 +511,7 @@ e.g.
 
 note: [INFO] has no SIGN.
 
-### *`warning()`*
+### *`MonitorMessage.warning()`*
 
 ```python
 def warning(self, sign: Warning, msg:str) -> None
@@ -519,7 +520,7 @@ def warning(self, sign: Warning, msg:str) -> None
 Warning message use this function to send it.
 
 ```python
-def warning(self, msg:str) -> None
+def warning(self, sign: Warning, msg:str) -> None
     send_msg:str
     ...
     str_format(send_msg, fore='y')
@@ -530,7 +531,7 @@ def warning(self, msg:str) -> None
 e.g.
 "<font color=#FFFF00>20230101 13:30 [WARNING] SpaceWarning, m11007s05 is over-use the work_dir 10GB, and backup_dir 2GB.</font>"
 
-### *`info()`*
+### *`MonitorMessage.info()`*
 
 ```python
 def info(self, msg:str) -> None
@@ -539,7 +540,7 @@ def info(self, msg:str) -> None
 Warning message use this function to send it.
 
 ```python
-def warning(self, msg:str) -> None
+def info(self, msg:str) -> None
     send_msg:str
     ...
     print(sen_msg)
@@ -564,7 +565,7 @@ class Monitor(HostInfo):
 - `booking`: the booking schedule frame that from csv file.
 - `using`: the using data schedule frame that from csv file.
 - `used`: the used data schedule frame that from csv file.
-- `msg`: control the massage and record it to the log file.
+- `msg`: control the message and record it to the log file.
 
 ```python
 class Monitor(HostInfo):
@@ -575,7 +576,7 @@ class Monitor(HostInfo):
     `booking`: the booking schedule frame that from csv file.
     `using`: the using data schedule frame that from csv file.
     `used`: the used data schedule frame that from csv file.
-    `msg`: control the massage and record it to the log file.
+    `msg`: control the message and record it to the log file.
     '''
     deploy_info: HostInfo.deploy_info
     cap_config: HostInfo.cap_config
@@ -585,7 +586,7 @@ class Monitor(HostInfo):
     using: HostInfo.using
     used: HostInfo.used
 
-    msg: MonitorMassage
+    msg: MonitorMessage
 ```
 
 ### *`Monitor.__init__()`*
@@ -601,7 +602,7 @@ def __init__(
 ) -> None:
     super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
     
-    self.msg = MonitorMassage(log_path)
+    self.msg = MonitorMessage(log_path)
 
     self.exec()
 ```
