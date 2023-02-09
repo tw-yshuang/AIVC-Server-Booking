@@ -4,6 +4,8 @@ from typing import Tuple, Dict,List
 
 import pandas as pd
 
+import sys
+sys.path.extend('../../')
 from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig
 
@@ -81,4 +83,5 @@ class Checker(HostInfo):
         a=1
 
 if __name__ == '__main__':
-    print(123)
+    aa = Checker(deploy_yaml=Path('cfg/test_host_deploy.yaml'))
+    print('123')
