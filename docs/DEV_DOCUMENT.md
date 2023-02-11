@@ -10,6 +10,7 @@ This Data-Flow Chart shows that `HostInfo.py` control all the `*.yaml` & `*.csv`
 ![Service-Flow](Service-Flow.drawio.svg)
 
 ---
+
 ---
 
 # `src/booking`
@@ -115,67 +116,66 @@ if use_options is True:
 
 #### 1. `password`
 
-- <font color=#CE9178>"Please enter the password: "</font>, the entry must be secret.
-- If the user types the wrong password, show this: <font color=#CE9178>"Wrong password, please enter the password: "</font>, the user will have 2 times changes, over that send <font color=#CE9178>"ByeBye~~"</font>, end the program.
+- `<font color=#CE9178>`"Please enter the password: "`</font>`, the entry must be secret.
+- If the user types the wrong password, show this: `<font color=#CE9178>`"Wrong password, please enter the password: "`</font>`, the user will have 2 times changes, over that send `<font color=#CE9178>`"ByeBye~~"`</font>`, end the program.
 
 #### 2. `cap_info`
 
-- <font color=#CE9178>"Your Maximum Capability Information: cpus=xx memory=xx gpus=xx"</font>, show this message first, the maximum cap_info can find it from *`Checker.cap_config.max_default_capability`* / *`Checker.cap_config.max_custom_capability`*.
-- <font color=#CE9178>"Please enter the capability information 'cpus(float) memory(int) gpus(int)': "</font>.
-- If over the maximum required, then send (red-font)<font color=#CE9178>"Over the maximum required."</font>, back to the [Q.2](#2-cap_info).
+- `<font color=#CE9178>`"Your Maximum Capability Information: cpus=xx memory=xx gpus=xx"`</font>`, show this message first, the maximum cap_info can find it from *`Checker.cap_config.max_default_capability`* / *`Checker.cap_config.max_custom_capability`*.
+- `<font color=#CE9178>`"Please enter the capability information 'cpus(float) memory(int) gpus(int)': "`</font>`.
+- If over the maximum required, then send (red-font)`<font color=#CE9178>`"Over the maximum required."`</font>`, back to the [Q.2](#2-cap_info).
 
 #### 3. `booking_time`
 
-- `start`, <font color=#CE9178>"Please enter the start time 'YYYY MM DD hh mm': "</font>
+- `start`, `<font color=#CE9178>`"Please enter the start time 'YYYY MM DD hh mm': "`</font>`
 
   - The start time must not in the past, and during 2 weeks.
-  - If is wrong, send the message (red-font)<font color=#CE9178>"Wrong Input!"</font>, back to the [Q.3.start](#3-booking_time).
-- `end`, <font color=#CE9178>"Please enter the end time 'YYYY MM DD hh mm': "</font>.
+  - If is wrong, send the message (red-font)`<font color=#CE9178>`"Wrong Input!"`</font>`, back to the [Q.3.start](#3-booking_time).
+- `end`, `<font color=#CE9178>`"Please enter the end time 'YYYY MM DD hh mm': "`</font>`.
+
   - The maximum end time is 2 weeks from the start time.
-  - If is wrong, send the message (red-font)<font color=#CE9178>"Wrong Input!"</font>, back to the [Q.3.end](#3-booking_time).
+  - If is wrong, send the message (red-font)`<font color=#CE9178>`"Wrong Input!"`</font>`, back to the [Q.3.end](#3-booking_time).
 - If *`Checker.check_booking_info()`* return:
 
-  - `True`, then send (green-font)<font color=#CE9178>"Booking successful!"</font>.
-  - `False`, then send (red-font)<font color=#CE9178>"There is not enough computing power for the time you need, book again."</font>, back to the [Q.2](#2-cap_info).
-
+  - `True`, then send (green-font)`<font color=#CE9178>`"Booking successful!"`</font>`.
+  - `False`, then send (red-font)`<font color=#CE9178>`"There is not enough computing power for the time you need, book again."`</font>`, back to the [Q.2](#2-cap_info).
 - The user must follow the rules:
 
-  - The user can type [*Time_Flags*](#time_flags) and datetime, the datetime format must be <font color=#CE9178>'YYYY MM DD hh mm'</font>.
-  - <font color=#CE9178>'mm'</font> must be "00" or "30".
-
+  - The user can type [*Time_Flags*](#time_flags) and datetime, the datetime format must be `<font color=#CE9178>`'YYYY MM DD hh mm'`</font>`.
+  - `<font color=#CE9178>`'mm'`</font>` must be "00" or "30".
 - #### Time_Flags
 
-  | Flag                                  | Description                                                                                                                                                  |
-  | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-  | <font color=#CE9178>now</font>        | `start` use, the booking information will be active immediately if the usage is available, and the "mm" will discard unconditionally record to the schedule. |
-  | <font color=#CE9178>{num}-day</font>  | `end` use, the range of the <font color=#CE9178>num</font> is `1~14`, 24 hrs for a unit.                                                                     |
-  | <font color=#CE9178>{num}-week</font> | `end` use, the range of the <font color=#CE9178>num</font> is `1~2`, 7 days for a unit.                                                                      |
+  | Flag                                          | Description                                                                                                                                                    |
+  | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | `<font color=#CE9178>`now`</font>`        | `start` use, the booking information will be active immediately if the usage is available, and the "mm" will discard unconditionally record to the schedule. |
+  | `<font color=#CE9178>`{num}-day`</font>`  | `end` use, the range of the `<font color=#CE9178>`num`</font>` is `1~14`, 24 hrs for a unit.                                                           |
+  | `<font color=#CE9178>`{num}-week`</font>` | `end` use, the range of the `<font color=#CE9178>`num`</font>` is `1~2`, 7 days for a unit.                                                            |
 
 #### 4. Optional(use_options=True)
 
 #### 4.1. `forward_port`
 
-- <font color=#CE9178>"Please enter the forward port(default: xxxxx, none by default): "</font>, the default forward_port can find it from *`Checker.users_config.ids[student_id].forward_port`*.
+- `<font color=#CE9178>`"Please enter the forward port(default: xxxxx, none by default): "`</font>`, the default forward_port can find it from *`Checker.users_config.ids[student_id].forward_port`*.
 - The forward port only can assign port: `10000~11000`, consideration for application service port. please check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
 - The forward port can not duplicate assigned with other users.
 
 #### 4.2. `image`
 
 - Using *`Checker.deploy_info.images`* to show the docker images first.
-- <font color=#CE9178>"Please enter the image 'repository/tag'(default: xxx, none by default): "</font>, the default image can find it from *`Checker.users_config.ids[student_id].image`*, if is `None`, then show the image <font color=#CE9178>"rober5566a/aivc-server:latest"</font>.
-- If the response is <font color=#CE9178>""</font>, then `Checker.users_config.ids[student_id].image = None`.
+- `<font color=#CE9178>`"Please enter the image 'repository/tag'(default: xxx, none by default): "`</font>`, the default image can find it from *`Checker.users_config.ids[student_id].image`*, if is `None`, then show the image `<font color=#CE9178>`"rober5566a/aivc-server:latest"`</font>`.
+- If the response is `<font color=#CE9178>`""`</font>`, then `Checker.users_config.ids[student_id].image = None`.
 
 #### 4.3. `extra_command`
 
-- <font color=#CE9178>"Please enter the extra command when running the image. (default: None, none by default): "</font>, no need to check.
-- Note: if the image repository is <font color=#CE9178>"rober5566a/aivc-server"</font> actually it has an extra command: `/bin/bash -c "/.script/ssh_start.sh {password}"`, see [monitor.run_container](TODO).<!-- TODO -->
+- `<font color=#CE9178>`"Please enter the extra command when running the image. (default: None, none by default): "`</font>`, no need to check.
+- Note: if the image repository is `<font color=#CE9178>`"rober5566a/aivc-server"`</font>` actually it has an extra command: `/bin/bash -c "/.script/ssh_start.sh {password}"`, see [monitor.run_container](TODO).`<!-- TODO -->`
 
 #### 4.4. Update Password
 
-- <font color=#CE9178>"Do you want to update the password?"</font>, using `ask_yn()` to ask, return:
+- `<font color=#CE9178>`"Do you want to update the password?"`</font>`, using `ask_yn()` to ask, return:
   - `False`, pass it.
-  - `True`, <font color=#CE9178>"Please enter the new password: "</font>, after entering, <font color=#CE9178>"Please enter the new password again: "</font>, both new_password must be same.
-    - If there are not the same, (red-font)<font color=#CE9178>"Incorrect!!"</font>, back to [Q.4.4.](#44-update-password)
+  - `True`, `<font color=#CE9178>`"Please enter the new password: "`</font>`, after entering, `<font color=#CE9178>`"Please enter the new password again: "`</font>`, both new_password must be same.
+    - If there are not the same, (red-font)`<font color=#CE9178>`"Incorrect!!"`</font>`, back to [Q.4.4.](#44-update-password)
 
 ### *`booking()`*
 
@@ -219,7 +219,7 @@ def booking(student_id:str, cap_info: BasicCapability, booking_time: BookingTime
 #### Update booking.csv
 
 - Using *`Schedule_DF.update_csv()`* to update it.
-- If the `booking_time.start` is at the now-time unit, then write <font color=#CE9178>"now"</font> to the `jobs/monitor_exec`.
+- If the `booking_time.start` is at the now-time unit, then write `<font color=#CE9178>`"now"`</font>` to the `jobs/monitor_exec`.
 
 ---
 
@@ -321,7 +321,7 @@ Check student_id that has in the *`self.users_config.id`*.
 ### *`Checker.get_user_max_cap()`*
 
 ```python
-def get_user_max_cap(self, student_id: str) -> bool:
+def get_user_max_cap(self, student_id: str) -> BasicCapability:
 ```
 
 Search cap_info for student_id from the *`self.cap_config.max_default_capability`* / *`self.cap_config.max_custom_capability`*.
@@ -370,12 +370,17 @@ Search the fewer usages gpu_ids from *`self.booked_df`* in the `booking_time`.
 - `List[int]`: the available gpu devices id list.
 
 ---
+
 ---
+
 <!-- TODO -->
+
 # `src/monitor`
 
 ## *`monitor.py`*
+
 <!-- TODO -->
+
 ---
 
 ## *`run_container.py`*
