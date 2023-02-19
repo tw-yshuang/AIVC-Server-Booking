@@ -9,6 +9,12 @@ sys.path.extend('../../')
 from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig
 
+#! csv readed formate
+#! gpus saving formate
+#! tasting
+#! get_best_gpu_ids queation
+#! get_best_gpu_ids search using gpus while booking_time
+
 class Checker(HostInfo):
     '''
     `deploy_info`: the deploy information that from yaml file.
@@ -54,7 +60,7 @@ class Checker(HostInfo):
         ### **Return**
         - `boolean`
         '''
-        
+        return self.users_config.ids[student_id] != None
         if self.users_config.ids[student_id] != None:
             return True
         else:
@@ -70,7 +76,10 @@ class Checker(HostInfo):
         '''
         cpus = self.cap_config.max_default_capability.cpus/self.cap_config.max_custom_capability[student_id].cpus
         memory = self.cap_config.max_default_capability.memory/self.cap_config.max_custom_capability[student_id].memory
-        gpus = self.cap_config.max_default_capability.gpus/self.cap_config.max_custom_capability[student_id].gpus
+        gpus = self.cap_config.max_default_capability.gpus
+        #self.cap_config.max_custom_capability[student_id].gpus
+        for i in len(self.cap_config.max_custom_capability[student_id].gpus):
+            gpus.remove(self.cap_config.max_custom_capability[student_id].gpus[i])
         result = BasicCapability(cpus,memory,gpus)
         return result
 
@@ -98,6 +107,7 @@ class Checker(HostInfo):
             using_cpus = using_cpus + df['cpus'][i]
             using_memory = using_memory + df['memory'][i]
             using_gpus = using_gpus + df['gpus'][i]
+        return self.cap_config.max.cpus - using_cpus >= cap_info.cpus and self.cap_config.max.memory - using_memory >= cap_info.memory and self.cap_config.max.gpus - using_gpus >= cap_info.gpus
         if self.cap_config.max.cpus - using_cpus >= cap_info.cpus and self.cap_config.max.memory - using_memory >= cap_info.memory and self.cap_config.max.gpus - using_gpus >= cap_info.gpus:
             return True
         else:
@@ -112,7 +122,12 @@ class Checker(HostInfo):
         ### **Return**
         - `List[int]`: the available gpu devices id list.
         '''
-        a=1
+        self.booked_df = pd.read_csv('jobs/booking.csv')
+        df = self.booked_df['gpus']
+        gpu_id = [0,1,2,3,4,5,6,7]
+        #search booking_time using gpu and remove
+        gpu_id.remove(df)
+        return gpu_id
 
 if __name__ == '__main__':
     aa = Checker(deploy_yaml=Path('cfg/test_host_deploy.yaml'))
