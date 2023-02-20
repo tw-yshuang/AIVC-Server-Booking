@@ -172,36 +172,67 @@ if use_options is True:
   | <font color=#CE9178>{num}-day</font>  | The range of the <font color=#CE9178>num</font> is `1~14`, 24 hrs for a unit.                                                                     |
   | <font color=#CE9178>{num}-week</font> | The range of the <font color=#CE9178>num</font> is `1~2`, 7 days for a unit.                                                                      |
 
-#### 4. Optional(use_options=True)
+#### 4. New User Config
 
-#### 4.1. `forward_port`
+- If user has config in the `users_config.yaml` then pass it.
+
+- If user has no config in the `users_config.yaml`(`Checker.users_config` has no this `user_id` attribute) it will generate an `auto_config` for the user and send it and write it to the `users_config.yaml`.
+
+  - `auto_config`, the problem in here is `forward_port`, assign a random forward_port, the range for the port is `10000~11000`, and use *`Checker.check_forward_port_empty()`* to check the forward port is not duplicated.
+
+  - Write the user's config to the `users_config.yaml` the format is like:
+
+    ```yaml
+    {user_id}:
+      password: "0000"
+      forward_port: XXXXX
+      image: null
+      extra_command: null
+      volume_work_dir: "{`Checker.deploy_info.volume_work_dir`}/{user_id}"
+      volume_dataset_dir: "{`Checker.deploy_info.volume_dataset_dir`}/{user_id}"
+      volume_backup_dir: "{`Checker.deploy_info.volume_backup_dir`}/{user_id}"
+    ```
+  
+  - Sent the message:
+
+    ```bash
+    {user_id}:
+      password: "0000"
+      forward_port: XXXXX
+      image: null
+      extra_command: null
+    ```
+
+#### 5. Optional(use_options=True)
+
+#### 5.1. `forward_port`
 
 - <font color=#CE9178>"Please enter the forward port(default: xxxxx, none by default): "</font>, the default forward_port can find it from *`Checker.users_config.ids[user_id].forward_port`*.
 - The forward port only can assign port: `10000~11000`, due to application service port. please check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
 <!-- - The forward port can not duplicate assigned with other users. -->
 - Use *`Checker.check_forward_port_empty()`* to check the forward port is not duplicated.
-  - `False`, sent message (red-font)<font color=#CE9178>"Forward Port Duplicated!!"</font>, back to [Q.4.1.](#41-forward_port).
+  - `False`, sent message (red-font)<font color=#CE9178>"Forward Port Duplicated!!"</font>, back to [Q.5.1.](#51-forward_port).
 
-#### 4.2. `image`
+#### 5.2. `image`
 
 - Using *`Checker.deploy_info.images`* to show the docker images first.
 - <font color=#CE9178>"Please enter the image 'repository/tag'(default: xxx, none by default): "</font>, the default image can find it from *`Checker.users_config.ids[user_id].image`*, if is `None`, then show the image <font color=#CE9178>"rober5566a/aivc-server:latest"</font>.
 - If the response is <font color=#CE9178>""</font>, then `Checker.users_config.ids[user_id].image = None`.
 
-#### 4.3. `extra_command`
+#### 5.3. `extra_command`
 
 - <font color=#CE9178>"Please enter the extra command when running the image. (default: None, none by default): "</font>, no need to check.
 - Note: if the image repository is <font color=#CE9178>"rober5566a/aivc-server"</font> actually it has an extra command: `/bin/bash -c "/.script/ssh_start.sh {password}"`, see [monitor.run_container](TODO).<!-- TODO -->
 
-#### 4.4. Update Password
+#### 5.4. Update Password
 
 - <font color=#CE9178>"Do you want to update the password?"</font>, using `ask_yn()` to ask, return:
   - `False`, pass it.
   - `True`, <font color=#CE9178>"Please enter the new password: "</font>, after entering, <font color=#CE9178>"Please enter the new password again: "</font>, both new_password must be same.
-    - If there are not the same, (red-font)<font color=#CE9178>"Incorrect!!"</font>, back to [Q.4.4.](#44-update-password)
+    - If there are not the same, (red-font)<font color=#CE9178>"Incorrect!!"</font>, back to [Q.5.4.](#54-update-password)
     - Only update the password in `users_config.yaml`, (green-font)<font color=#CE9178>"Update default Password!"</font>
 
-#### 4.5. Update `users_config.yaml`
+#### 5.5. Update `users_config.yaml`
 
 - <font color=#CE9178>"The previous setting is for the once, do you want to update the default config?"</font>, using `ask_yn()` to ask, return:
   - `False`, pass it.
