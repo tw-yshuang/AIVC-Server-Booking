@@ -5,8 +5,7 @@
 `AIVC-Server-Booking` aims to let user easily get required computing resouces such as : 
 * RAM 
 * GPU 
-* CPU 
-* HDD.
+* CPU. 
 
 Simultaneously, this system will efficiently magange server's resources between different users without conflicts. 
 
@@ -36,16 +35,70 @@ Before booking AIVC server, there are somthing you should know ......
 
 2. You will be forbidden to access server if your used space is out of range. You must sort out your memory space before using server.
 
-3. Every container is deleted after it run out of time to release the computing resources being utilized.
+3. Every container is removed after it run out of time to release the computing resources being utilized.
 
 4. There are three main directories in each container,  which those directories will be volumed to corresponding ones in host. Let's take a look for their purpose: 
-    * `backup_dir` :  Aims to store the configs costimized by the user. Next time, when you want to book server again, you can use configs backed up in backup_dir to build the customization.  
+    * `backup_dir` :  Aims to store the configs costimized by the user. Next time, when you want to book server again, you can use configs backed up in backup_dir to build the customization. `未來會增加一些東東`  
     * `work_dir` :  Store user's projects and  personal dataset. Because booking system will automatically delete container with empty work_dir, you should ensure the work_dir has projects in itself to avoid your container from being removed.
-    * `data_dir` :  It is a read-only folder and supports some common public dataset to every user such as coco dataset. If you have demands about public dataset, you can ask the host maintainer for it. The host maintainer will search it and add it into the directroy. With the management, all users can access the public dataset and no need to download again.
+    * `dataset_dir` :  It is a read-only folder and supports some common public dataset to every user such as coco dataset. If you have demands about public dataset, you can ask the host maintainer for it. The host maintainer will search it and add it into the directroy. With the management, all users can access the public dataset and no need to download again.
 
 
 ---
 ## **`3. Booking Usage`**
+In this topic, I will instruct the operations of booking step by step including booking method and etral options.  
+
+###  `I. First time to book server`  
+Before booking, you can add `-h` option after `booking.py` command. Then you can get an introduction about system.
+
+```zsh
+python3 booking.py -h
+```
+
+If you are the first time to access this system, you can use the command :  
+
+```zsh
+python3 booking.py -id <user_id>
+```
+
+Booking system will allow you to create an account. Then you need to key in following informations :  
+
+* *password*
+* *forward_port*
+* *image*
+* *extra_command*  
+
+### 這裡有個問題是，帳號的config是自動生成？還是使用者輸入？以使用者可以輸入為，有問題在改。  
+
+There are some premise you should know :  
+
+*  *`forward_port`* is **`limited within`** <ins>**`10000~11000`**</ins>. Besides, The system will automatically detect which *forward_port* is duplicated.
+*  The option, *`image`*, is that if you have customized docker image, you can submit the path of image, which the system will build the container based on your image.
+* *`extra_command`* is a arguemnet which will be executed before building container. Customize it to set the environment you want.
+
+### `II. Booking`
+Now you have a booking account. Type a command shown as following to start booking :  
+*(Adding options will do extral operation to setting the user config. They will be introduced in next topic.)*
+
+```zsh
+python3 booking.py <student_id> -<options>
+```
+
+Assume that you don't add any options, this system will ask you to input the password and you have two chances to input :
+
+```zsh 
+Password:
+```
+
+After that, describe how many resouces the container will have :
+
+```zsh
+Your Maximum Capability Information: cpus=xx memory=xx gpus=xx
+Please enter the capability information 'cpus(float) memory(int) gpus(int)': 
+```
+
+As shown above, the first line show the maximum limitations of CPUs, Memories and GPUs. 
+
+
 介紹功能...
 Use command, `booking`, to start book server. There are several CMD options you can use as follow:
 |CMD options| Description |
@@ -54,6 +107,7 @@ Use command, `booking`, to start book server. There are several CMD options you 
 |"-id" & "--user-id"||
 |"-use-opt" & "--use-options"||
 |"-ls" & "--list-schedule"||
+
 1. 輸入 學號、密碼、開始時間、結束時間以及所需要的GPU、CPU、Memory的數量完成預約，以上為必填項目。CPU至少 >=1
 2. 亦可選填 changed passwd、forward port、image、 extra_command，使用附加功能。
 3. Setting the time that you want to use the server.  
@@ -70,7 +124,7 @@ After instructions, I recommend you to some packages and commands, which are use
 *( I will give you a brief introduction. If you want to realize more, you can click the name of package to browse the detail.)*
 
 ### `Environment Setting`
-Every project have its own required package. The better way to develop is to build a independent environment for each project. Every project can customize its own *Spec.* based on its requirement.  
+Every project have its own required packages. The better way to develop is to build a independent environment for each project. Every project can customize its own *Spec.* based on its requirement.  
 Here are some packages which can help you manage your environment : 
 
 ### [*pipenv & pyenv*](https://medium.com/ntust-aivc/how-to-install-pyenv-pipenv-in-ubuntu-and-use-multiple-versions-of-python-and-its-suites-3514099a6e05)
@@ -79,7 +133,7 @@ With *pyenv*, you can install different versions of python in host and select th
 ### [*docker*](https://tw-yshuang.notion.site/Docker-Basic-Introduction-657f817e15a3490d83b84c8a143d6207) 
 *docker* can help packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another.
 
-### `CLI Commands`
+### `CLI Tools`
 ### [*git*](https://medium.com/ntust-aivc/introduction-to-git-66473777b9b3)  
 *git* is a **distributed version control system**. In this system, Every coworker has a full copy of the project and project histroy. According to the project histroy, you can check who contribute the project and what kind of contribution he added so evey coworker can have an effective communication without barrier. No matter how many people you work with, *git* is a excellent tool to help you realize the whole process of project. It's worth familiarizing.
 ### [*htop*](https://www.ionos.com/digitalguide/server/tools/htop-the-task-manager-for-linux-mac-os-x-and-bsd/) 
@@ -95,6 +149,10 @@ You see that tmux basically offers two big features:
 2. Session management
 
 There are some commands related to operate *tmux*. You can open the website to search tutorials of *tmux* commands. 
+
+按鍵有更改！！ 說明Prefix 滑鼠 垂直水平分割
+列出來怎麼使用
+
 ### `Vscode Extensions`
 ### [Git Graph](https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph)  
 This extention give a GUI of *git*. Let you easily operate functions of *git* without commands. Especially, one of the benefits is that you can check the history of project with visualized graphic. Click the title to browse more detail.
@@ -104,20 +162,27 @@ This extension supports user-friendly methods to give a comment in code file. Cl
 
 ### [Remote Development](https://code.visualstudio.com/docs/remote/remote-overview)
 It allows you to use a **container**, **remote machine**, or the **Windows Subsystem for Linux** as a full-featured development environment. You can remotely work on the deployed operating system. When you book a container, you can work on the container with vscode by means of this extensoins.
-
+要在多說一點
 ## `5. FAQ`
 ---
 Link 到 ../docs/tips/Error 
 
 # `Contributor`
 
-### 110 Postgraduate 
-* [Yue-Shien Huang](https://github.com/tw-yshuang)
-### 109 Undergraduate Researcher  
+### **110 Postgraduate Researcher** 
+* [Yu-Shun Huang](https://github.com/tw-yshuang)
+### **109 Undergraduate Researcher**  
+* [Tai-Cyuan Ciou](https://github.com/happy91512)
+* [Yun-Ching Yeh](https://github.com/ccLLy1n)
+* [Jeffrey Chen](https://github.com/Jeffrey0524)
 * [Yi-Xiang Yang](https://github.com/Sean053047)
-* []()
-* []()
-* []()
+
+
+
+
+
+
+
 
 # 撰寫時備註：
 yaml 不允許更改，程式是只動到CSV  
