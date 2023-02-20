@@ -28,7 +28,7 @@ Besides integrating Docker, our team try to make this system more usable so that
 Now, let's start the intructions of AIVC-Server-Booking system.
 
 ---
-## **`2. Before booking......`**
+## **`2. Before Booking......`**
 
 Before booking AIVC server, there are somthing you should know ......
 
@@ -63,25 +63,47 @@ Use command, `booking`, to start book server. There are several CMD options you 
 7. 可使用個人的 Docker Image and the initial command  
 8. 使用者可透過 CLI 修改 password、forward port、image、extra command
 9.
-## 
 
-## `4. Extral Usful Packages Introduction`
+## **`4. Extral Useful Packages Introduction`**
 ---
+After instructions, I recommend you to some packages and commands, which are useful for development.  
+*( I will give you a brief introduction. If you want to realize more, you can click the name of package to browse the detail.)*
 
-介紹一些酷酷有趣的功能
+### `Environment Setting`
+Every project have its own required package. The better way to develop is to build a independent environment for each project. Every project can customize its own *Spec.* based on its requirement.  
+Here are some packages which can help you manage your environment : 
 
-### **Environment setting**
-### pipenv & pyenv (link)
-### docker (link)
-### **Useful package** 
-### htop (Intro)
-### tmux (link)
-### git  (link)
-### docker (link)
+### [*pipenv & pyenv*](https://medium.com/ntust-aivc/how-to-install-pyenv-pipenv-in-ubuntu-and-use-multiple-versions-of-python-and-its-suites-3514099a6e05)
+With *pyenv*, you can install different versions of python in host and select the certain version which the project need. After that, use *pipenv* to create a clean virtual environment which is the developed environment. You can download the needed packages in virtual environment without messing up the host. 
 
-### **Vscode extensions**
+### [*docker*](https://tw-yshuang.notion.site/Docker-Basic-Introduction-657f817e15a3490d83b84c8a143d6207) 
+*docker* can help packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another.
 
+### `CLI Commands`
+### [*git*](https://medium.com/ntust-aivc/introduction-to-git-66473777b9b3)  
+*git* is a **distributed version control system**. In this system, Every coworker has a full copy of the project and project histroy. According to the project histroy, you can check who contribute the project and what kind of contribution he added so evey coworker can have an effective communication without barrier. No matter how many people you work with, *git* is a excellent tool to help you realize the whole process of project. It's worth familiarizing.
+### [*htop*](https://www.ionos.com/digitalguide/server/tools/htop-the-task-manager-for-linux-mac-os-x-and-bsd/) 
+*htop* is a tools that can check the consumptions of computing resources such as **CPU & Memory occupancy**, **Load average**, **total number of tasks and working thread**, and **information of every process**. By means of veiwing the state of computr, you can realize which process cost large amount of resources and kill the one which have bad effects to computer. Checking computing resources help you analyze the efficacy of programs. It's worthwhile to use.
+### [*tmux*](https://www.hamvocke.com/blog/a-quick-and-easy-guide-to-tmux/)
+***tmux* is a terminal multiplexer.** 
+It lets you switch easily between several programs in one terminal. When you detach session, the programs are still running at the background. You can re-access the old programs after retach. Because of this property, you can run programs on background of remote service even though you have detached from that. If you want to access old programs, you can connect to the service with *ssh* and retach the programs by means of *tmux*. That is one of benefits of *tmux*.
 
+*tmux* also can allow you to open multiple *windows* and *panes* in one terminal. Each *pane* contains its own, independtly running shell instance (bash, zsh, ...). You can operate multiple terminal commands and run applications side by side without creating multiple terminals. 
+
+You see that tmux basically offers two big features:
+1. Window management in your terminal
+2. Session management
+
+There are some commands related to operate *tmux*. You can open the website to search tutorials of *tmux* commands. 
+### `Vscode Extensions`
+### [Git Graph](https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph)  
+This extention give a GUI of *git*. Let you easily operate functions of *git* without commands. Especially, one of the benefits is that you can check the history of project with visualized graphic. Click the title to browse more detail.
+
+### [Better Comments](https://marketplace.visualstudio.com/items?itemName=aaron-bond.better-comments)  
+This extension supports user-friendly methods to give a comment in code file. Click the title to see a example.
+
+### [Remote Development](https://code.visualstudio.com/docs/remote/remote-overview)
+It allows you to use a **container**, **remote machine**, or the **Windows Subsystem for Linux** as a full-featured development environment. You can remotely work on the deployed operating system. When you book a container, you can work on the container with vscode by means of this extensoins.
 
 ## `5. FAQ`
 ---
@@ -89,9 +111,13 @@ Link 到 ../docs/tips/Error
 
 # `Contributor`
 
-
+### 110 Postgraduate 
+* [Yue-Shien Huang](https://github.com/tw-yshuang)
 ### 109 Undergraduate Researcher  
-Yi-Xiang Yang: 
+* [Yi-Xiang Yang](https://github.com/Sean053047)
+* []()
+* []()
+* []()
 
 # 撰寫時備註：
 yaml 不允許更改，程式是只動到CSV  
