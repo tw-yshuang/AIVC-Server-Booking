@@ -135,7 +135,8 @@ if use_options is True:
 
 #### 1. `password`
 
-- <font color=#CE9178>"Please enter the password: "</font>, the entry must be secret.
+- <font color=#CE9178>"If you are a new user, the default password: 0000"</font>
+- <font color=#CE9178>"Password: "</font>, the entry must be secret.
 - If the user types the wrong password, show this: <font color=#CE9178>"Wrong password, please enter the password: "</font>, the user will have 2 times changes, over that send <font color=#CE9178>"ByeBye~~"</font>, end the program.
 
 #### 2. `cap_info`
