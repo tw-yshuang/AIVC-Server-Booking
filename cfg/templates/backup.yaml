@@ -1,9 +1,11 @@
 # Under the Backup
 Dir: # use volume method from docker
-  - - /root/.pyenv/versions # container's dir_path
-    - .default/pyenv-verions # to Backup's dir_path
+  - - /root/.pyenv # container's dir_path
+    - .default/pyenv # to Backup's dir_path
   - - /root/.local/share/virtualenvs
     - .default/virtualenvs
+  - - /root/.vscode-server
+    - .default/.vscode-server
 
 # TODO: code a `backup` command for image
 File: # write cp command from /root/.zlogout
@@ -13,3 +15,5 @@ File: # write cp command from /root/.zlogout
     - .default/.zsh_history
   - - /root/.p10k.zsh
     - .default/.p10k.zsh
+  - - /tmp/.X11-unix
+    - .default/.X11-unix

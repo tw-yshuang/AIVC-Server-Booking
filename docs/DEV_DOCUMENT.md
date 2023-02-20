@@ -199,6 +199,13 @@ if use_options is True:
   - `False`, pass it.
   - `True`, <font color=#CE9178>"Please enter the new password: "</font>, after entering, <font color=#CE9178>"Please enter the new password again: "</font>, both new_password must be same.
     - If there are not the same, (red-font)<font color=#CE9178>"Incorrect!!"</font>, back to [Q.4.4.](#44-update-password)
+    - Only update the password in `users_config.yaml`, (green-font)<font color=#CE9178>"Update default Password!"</font>
+
+#### 4.5. Update `users_config.yaml`
+
+- <font color=#CE9178>"The previous setting is for the once, do you want to update the default config?"</font>, using `ask_yn()` to ask, return:
+  - `False`, pass it.
+  - `True`, update the user's config for the `users_config.yaml`.
 
 ### *`booking()`*
 
