@@ -5,7 +5,8 @@ from typing import Tuple, Dict,List
 import pandas as pd
 
 import sys
-sys.path.extend('../../')
+if __name__ == '__main__':
+    sys.path.extend('../../')
 from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig,ScheduleDF
 
@@ -50,8 +51,8 @@ class Checker(HostInfo):
         #### **Return**
         - `None`
         '''
-        self.booked_df = ScheduleDF.concat(self.booking, self.using)
         super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
+        self.booked_df = ScheduleDF.concat(HostInfo.booking, HostInfo.using)
 
     def check_student_id(self, student_id:str) -> bool:
         '''
@@ -134,6 +135,6 @@ class Checker(HostInfo):
         return gpu_id
 
 if __name__ == '__main__':
-    sys.path.extend('../../')
-    aa = Checker(deploy_yaml=Path('cfg/test_host_deploy.yaml'))
+    HostInfo = HostInfo(deploy_yaml=Path('cfg/test_host_deploy.yaml'))
+    Checker = Checker(HostInfo)
     print('123')
