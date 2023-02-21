@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu20.04
+FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
 LABEL author="tw-yshuang" version="1.0" description="I'm writing server image!"
 
@@ -28,23 +28,20 @@ RUN apt-get install openssh-server iputils-ping -y \
     && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config \
     && sed -i 's/#X11UseLocalhost yes/X11UseLocalhost no/g' /etc/ssh/sshd_config \
     && echo "root:ys-huang" | chpasswd
-ADD container_run/ssh_start.sh /.script/
+ADD image_setup/run_exec /.script/
 RUN chmod +x /.script/*
 
 # shell setup
-ADD imgae_setup/ ~/imgae_setup
-WORKDIR ~/imgae_setup
+ADD image_setup/ ~/image_setup
+WORKDIR ~/image_setup
 RUN chmod +x ./*.sh \
     && ./zsh_ohmyzsh_setup.sh \
     && ./ohmyzsh_config.sh -y \
     &&  sed -i 's/# export LANG=en_US.UTF-8/export LANG=C.UTF-8/g' ~/.zshrc
 
-# shell history buckup mechanism
-RUN bash ./zsh_buckup_machanism.sh
-
 # welcome message
 ADD fonts/*.flf /usr/share/figlet/
-ADD imgae_setup/11-logo.sh /etc/profile.d/11-logo.sh
+ADD image_setup/11-logo.sh /etc/profile.d/11-logo.sh
 RUN apt-get install figlet lolcat -y \
     && chmod +x /etc/profile.d/11-logo.sh \
     && cat /etc/profile.d/11-logo.sh | sed '1d' >> ~/.zlogin
@@ -63,9 +60,13 @@ RUN git clone https://github.com/tw-yshuang/Git_SSH-Account_Switch.git
 WORKDIR Git_SSH-Account_Switch
 RUN chmod +x ./*.sh && ./setup.sh
 
+# install package for AIVC-Server-Booking used.
+RUN pip3 install pyyaml
+
+ENTRYPOINT ["/.script/entrypoint.sh"]
+
 # volume work directory
 # VOLUME ~/Work
 # VOLUME ~/Dataset
-# VOLUME ~/.pyenv/versions
-# VOLUME ~/.local/share/virtualenvs
+# VOLUME ~/Backup
 
