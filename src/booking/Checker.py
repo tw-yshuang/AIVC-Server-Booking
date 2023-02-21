@@ -7,11 +7,11 @@ import pandas as pd
 import sys
 sys.path.extend('../../')
 from lib.WordOperator import str_format, ask_yn
-from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig
+from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig,ScheduleDF
 
+#! tasting
 #! csv readed formate
 #! gpus saving formate
-#! tasting
 #! get_best_gpu_ids queation
 #! get_best_gpu_ids search using gpus while booking_time
 
@@ -24,13 +24,13 @@ class Checker(HostInfo):
     `using`: the using data schedule frame that from csv file.
     `used`: the used data schedule frame that from csv file.
     '''
-    deploy_info: HostInfo.deploy_info
-    cap_config: HostInfo.cap_config
-    users_config: HostInfo.users_config
+    # deploy_info: HostInfo.deploy_info
+    # cap_config: HostInfo.cap_config
+    # users_config: HostInfo.users_config
 
-    booking: HostInfo.booking
-    using: HostInfo.using
-    used: HostInfo.used
+    # booking: HostInfo.booking
+    # using: HostInfo.using
+    # used: HostInfo.used
 
     booked_df: pd.DataFrame
 
@@ -50,6 +50,7 @@ class Checker(HostInfo):
         #### **Return**
         - `None`
         '''
+        self.booked_df = ScheduleDF.concat(self.booking, self.using)
         super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
 
     def check_student_id(self, student_id:str) -> bool:
@@ -74,6 +75,8 @@ class Checker(HostInfo):
         # **Return**
         - `BasicCapability`
         '''
+        #!打掉重作
+        #!搞錯API了
         cpus = self.cap_config.max_default_capability.cpus/self.cap_config.max_custom_capability[student_id].cpus
         memory = self.cap_config.max_default_capability.memory/self.cap_config.max_custom_capability[student_id].memory
         gpus = self.cap_config.max_default_capability.gpus
@@ -93,9 +96,10 @@ class Checker(HostInfo):
         ### **Return**
         - `boolean`
         '''
+        #只比gpu就好
         #!csv read collon need change
         #self.booked_df 存了預約資料
-        self.booked_df = pd.read_csv('jobs\using.csv')
+        #self.booked_df = pd.read_csv('jobs\using.csv')
         df = self.booked_df['end']
         for i in len(df['end']):
             if df['end'][i] > booking_time.start :
@@ -122,7 +126,7 @@ class Checker(HostInfo):
         ### **Return**
         - `List[int]`: the available gpu devices id list.
         '''
-        self.booked_df = pd.read_csv('jobs/booking.csv')
+        #self.booked_df = pd.read_csv('jobs/booking.csv')
         df = self.booked_df['gpus']
         gpu_id = [0,1,2,3,4,5,6,7]
         #search booking_time using gpu and remove
@@ -130,5 +134,6 @@ class Checker(HostInfo):
         return gpu_id
 
 if __name__ == '__main__':
+    sys.path.extend('../../')
     aa = Checker(deploy_yaml=Path('cfg/test_host_deploy.yaml'))
     print('123')
