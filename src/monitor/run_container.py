@@ -1,7 +1,6 @@
 import os, shutil
 from pathlib import Path
 from typing import List
-from dataclasses import asdict
 
 import click
 
