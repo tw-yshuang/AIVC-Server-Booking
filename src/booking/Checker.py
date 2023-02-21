@@ -8,7 +8,8 @@ import sys
 if __name__ == '__main__':
     sys.path.extend('../../')
 from lib.WordOperator import str_format, ask_yn
-from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig,ScheduleDF
+from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF
+#? 新增加import ScheduleDF
 
 #! tasting
 #! csv readed formate
@@ -51,7 +52,9 @@ class Checker(HostInfo):
         #### **Return**
         - `None`
         '''
+        #HostInfo.__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
+        #?self. change to HostInfo.
         self.booked_df = ScheduleDF.concat(HostInfo.booking, HostInfo.using)
 
     def check_student_id(self, student_id:str) -> bool:
@@ -63,10 +66,6 @@ class Checker(HostInfo):
         - `boolean`
         '''
         return self.users_config.ids[student_id] != None
-        if self.users_config.ids[student_id] != None:
-            return True
-        else:
-            return False
     
     def get_user_max_cap(self, student_id: str) -> BasicCapability:
         '''
@@ -76,16 +75,10 @@ class Checker(HostInfo):
         # **Return**
         - `BasicCapability`
         '''
-        #!打掉重作
-        #!搞錯API了
-        cpus = self.cap_config.max_default_capability.cpus/self.cap_config.max_custom_capability[student_id].cpus
-        memory = self.cap_config.max_default_capability.memory/self.cap_config.max_custom_capability[student_id].memory
-        gpus = self.cap_config.max_default_capability.gpus
-        #self.cap_config.max_custom_capability[student_id].gpus
-        for i in len(self.cap_config.max_custom_capability[student_id].gpus):
-            gpus.remove(self.cap_config.max_custom_capability[student_id].gpus[i])
-        result = BasicCapability(cpus,memory,gpus)
-        return result
+        if self.cap_config.max_custom_capability[student_id] != None:
+            return self.cap_config.max_custom_capability[student_id]
+        else:
+            return self.cap_config.max_default_capability
 
     def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
         '''
@@ -97,10 +90,9 @@ class Checker(HostInfo):
         ### **Return**
         - `boolean`
         '''
-        #只比gpu就好
+        #*只比gpu就好
         #!csv read collon need change
         #self.booked_df 存了預約資料
-        #self.booked_df = pd.read_csv('jobs\using.csv')
         df = self.booked_df['end']
         for i in len(df['end']):
             if df['end'][i] > booking_time.start :
@@ -113,10 +105,6 @@ class Checker(HostInfo):
             using_memory = using_memory + df['memory'][i]
             using_gpus = using_gpus + df['gpus'][i]
         return self.cap_config.max.cpus - using_cpus >= cap_info.cpus and self.cap_config.max.memory - using_memory >= cap_info.memory and self.cap_config.max.gpus - using_gpus >= cap_info.gpus
-        if self.cap_config.max.cpus - using_cpus >= cap_info.cpus and self.cap_config.max.memory - using_memory >= cap_info.memory and self.cap_config.max.gpus - using_gpus >= cap_info.gpus:
-            return True
-        else:
-            return False
     
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
         '''
@@ -127,7 +115,7 @@ class Checker(HostInfo):
         ### **Return**
         - `List[int]`: the available gpu devices id list.
         '''
-        #self.booked_df = pd.read_csv('jobs/booking.csv')
+        #* 將前幾張gpu先塞滿 所以編號小的gpu 先提供
         df = self.booked_df['gpus']
         gpu_id = [0,1,2,3,4,5,6,7]
         #search booking_time using gpu and remove
@@ -137,4 +125,5 @@ class Checker(HostInfo):
 if __name__ == '__main__':
     HostInfo = HostInfo(deploy_yaml=Path('cfg/test_host_deploy.yaml'))
     Checker = Checker(HostInfo)
+    print(Checker.booked_df)
     print('123')
