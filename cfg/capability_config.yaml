@@ -42,3 +42,4 @@ max_custom_capability:
     gpus: 4
     # if there is not parameter, follow by max_default_capability
     work_space: max
+

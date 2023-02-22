@@ -93,7 +93,7 @@ def str_format(word: str, style: str = 'default', fore: str = 'default', backgro
     if error_msg != '':
         print(str_format(error_msg, fore='r'))
 
-    return f'\033[{word_setting}{word}\033[0m'
+    return f'\033[{word_setting}{word}\033[93m'
 
 
 def replace_keyword(filename: str, target_word: str, replace_word: str, isRegular=True):

@@ -219,7 +219,7 @@ class HostInfo:
         *args,
         **kwargs
     ) -> None:
-        super(HostInfo, self).__init__(*args, **kwargs)
+        # super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv, *args, **kwargs)
 
         self.deploy_info = HostDeployInfo(deploy_yaml)
         self.cap_config = CapabilityConfig(self.deploy_info.capability_config_yaml)
@@ -231,8 +231,10 @@ class HostInfo:
 
 
 if __name__ == '__main__':
-    host_info = HostDeployInfo('./cfg/test_host_deploy.yaml')
+    import sys
 
+    host_info = HostDeployInfo('./cfg/test_host_deploy.yaml')
+    # print(HostInfo.deploy_info)
     # CapCfg = CapabilityConfig(
     #     host_info.capability_config_yaml,
     # )
