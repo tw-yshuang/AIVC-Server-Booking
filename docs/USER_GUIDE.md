@@ -79,17 +79,17 @@ In this topic, I will instruct the operations of booking step by step including 
 
 ### `I. Auxiliary tools`  
 
-#### **-h or --help**
-
-Before booking, you can add `-h` option after `booking.py` command. Then you can get an introduction about system.
+Before booking, you can add `-h` or `--help` option after `booking.py` command. Then you can get an manpage about this system.
 
   ```zsh
   python3 booking.py -h
   ```
 
-#### **-ls or --list-schedule**
+Add `-ls` or `--list-schedule` option will let CLI  output the schedule already booked.
 
-With this options, CLI will output the schedule already booked.
+  ```zsh
+  python3 booking.py -ls
+  ```
 
 Notice that you should ask the host maintainer for an account first then you can access this system.
 
@@ -144,7 +144,7 @@ After system has already checked that computing resources is affordable and ther
 
 ### `III. Update Account Setting`
 
-Use following command to start update config. Notice that either `-use-opt` or `--use-options` is acceptable.
+Use following command to start update config. Notice that both  `-use-opt` and `--use-options` are acceptable.
 
 ```zsh
 python3 booking.py -use-opt <user_id>
@@ -156,7 +156,7 @@ python3 booking.py -use-opt <user_id>
   Please enter the forward port(default: xxxxx, none by default):
   ```
 
-  The forward port only can assign port: `10000~11000`, due to application service port. Besides, the system will automatically check whether the *forward_port* you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
+  The *forward_port* only can assign port: `10000~11000`, due to application service port. Besides, the system will automatically check whether the *forward_port* you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
 
 * Second, you can set which docker images you want to use. The system will build the container based on your image.
 
@@ -305,32 +305,19 @@ If you want to change the name of container shown in the list. You can open conf
 
 ## `5. FAQ`
 
-Link 到 ../docs/tips/Error  
+There are some common errors you will meet in this system. You can click [here](tips/Error%20804%3A%20forward%20compatibility%20was%20attempted%20on%20non%20supported%20HW.md) to view those issues and solutions.
 
 ---
 
-# `Contributor`
+## **`Contributor`**
 
-## **110 Postgraduate Researcher**
+### **110 Postgraduate Researcher**
 
 * [Yu-Shun Huang](https://github.com/tw-yshuang)
 
-## **109 Undergraduate Researcher**  
+### **109 Undergraduate Researcher**  
 
 * [Tai-Cyuan Ciou](https://github.com/happy91512)
 * [Yun-Ching Yeh](https://github.com/ccLLy1n)
 * [Jeffrey Chen](https://github.com/Jeffrey0524)
 * [Yi-Xiang Yang](https://github.com/Sean053047)
-
-
-
-
-
-
-
-
-# 撰寫時備註：
-yaml 不允許更改，程式是只動到CSV  
-users_config.yaml : 使用者資訊，密碼、forward port、image、volume address，使用者可透過 CLI 修改 password、forward port、image、extra command
-capability_config.yaml : 設備限制資訊
-swap_size can't be setting. It can only be change by host.
