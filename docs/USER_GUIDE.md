@@ -1,8 +1,8 @@
 # **AIVC-Server-Booking User Manual**
 
-## **1. Introduction**  
+## **`1. Introduction`**  
 
-**AIVC-Server-Booking** aims to let user easily get required computing resouces such as :  
+`AIVC-Server-Booking` aims to let user easily get required computing resouces such as :  
 
 * RAM  
 * GPU  
@@ -12,24 +12,26 @@ Simultaneously, this system will efficiently magange server's resources between 
 
 Our team use the package, `Docker`, as an important tool to help us distribute resources. Why we use Docker is because it has some characteristic which will be briefly introduce as following article :  
 
-> With Docker, you can easily package and deploy your applicatoins. It will collect the infrastructure resouces and applications, which are needs to functions.
->
-> Those evironmental setting are dictated by Docker file which has instructions of how to build the environment (container). You can customize it on your will.  
->
->After running the docker file, Docker will create a corresponding container that is the environment you need to run applications. The last and important property is that Docker allows different containers operating simultaneously without affecting to other containers.
+```
+With Docker, you can easily package and  deploy your applicatoins. It will collect the infrastructure resouces and applications, which are needs to functions. 
+
+Those evironmental setting are dictated by Docker file which has instructions of how to build the environment (container). You can customize it on your will. 
+
+After running the docker file, Docker will create a corresponding container that is the environment you need to run applications. The last and important property is that Docker allows different containers operating simultaneously without affecting to other containers.
+```
 
 Because of those properties, when a user want to take advantage of server's computing capability, he no more worries about problems caused by different environments and he can focus on his project.  
 
 Besides integrating Docker, our team try to make this system more usable so that we add additional functions to it. For example:  
 
-1. User can customize their required resources with CLI.
-2. The host maintainer can supervise the usage of server easily.
+1. `User can customize their required resources with CLI.`  
+2. `The host maintainer can supervise the usage of server easily.`  
 
 Now, let's start the intructions of AIVC-Server-Booking system.
 
 ---
 
-## **2. Before Booking......**
+## **`2. Before Booking......`**
 
 Before booking AIVC server, there are somthing you should know ......
 
@@ -40,8 +42,6 @@ Before booking AIVC server, there are somthing you should know ......
 3. Every container is removed after it run out of time to release the computing resources being utilized.
 
 4. There are three main directories in each container,  which those directories will be volumed to corresponding ones in host. Let's take a look for their purposes :  
-    * `work_dir` :  Store user's projects and  personal dataset. Because booking system will automatically delete container with empty work_dir, you should ensure the work_dir has projects in itself to avoid your container from being removed.
-    * `dataset_dir` :  It is a read-only folder and supports some common public dataset to every user such as coco dataset. If you have demands about public dataset, you can ask the host maintainer for it. The host maintainer will search it and add it into the directroy. With the management, all users can access the public dataset and no need to download again.
     * `backup_dir` :  Aims to store the configs customized by the user. Next time, when you want to book server again, the booking system will build the container based on your configs, which are already backed up in `backup_dir`, to build the customization.  
     When you want to backup files or directories, you should write down you needs in `backup.yaml` and follow the form shown below :  
 
@@ -67,13 +67,17 @@ Before booking AIVC server, there are somthing you should know ......
           - /root/.zshrc 
         ```
 
+    * `work_dir` :  Store user's projects and  personal dataset. Because booking system will automatically delete container with empty work_dir, you should ensure the work_dir has projects in itself to avoid your container from being removed.
+    * `dataset_dir` :  It is a read-only folder and supports some common public dataset to every user such as coco dataset. If you have demands about public dataset, you can ask the host maintainer for it. The host maintainer will search it and add it into the directroy. With the management, all users can access the public dataset and no need to download again.
+
 ---
 
-## **3. Booking Usage**
+## **`3. Booking Usage`**
 
 In this topic, I will instruct the operations of booking step by step including booking method and describe extra options.  
 
-#### I. CLI command  
+
+### `I. Auxiliary tools`  
 
 Before booking, you can add `-h` or `--help` option after `booking.py` command. Then you can get an manpage about this system.
 
@@ -89,10 +93,10 @@ Add `-ls` or `--list-schedule` option will let CLI  output the schedule already 
 
 Notice that you should ask the host maintainer for an account first then you can access this system.
 
-#### II. Log in
+### `II. Log in`
 
 Type a command shown as following to start booking :  
-*(Adding `-id` or `--user-id` options is necessary to log in.)*
+*(Adding `-id or --user-id` options is necessary to log in.)*
 
 ```zsh
 python3 booking.py -id <user_id>
@@ -113,12 +117,12 @@ Please enter the capability information 'cpus(float) memory(int) gpus(int)':
 ```
 
 As shown above, the first line shows the maximum limitations of CPUs, Memories and GPUs.  
-
- All input numbers **cannot lower than 1**, lower number is forbidden
+The input value of all of them `cannot lower than 1`, lower number is forbidden.
 
 After input the required computing resouces, you'll need to key in when you need this container and its end time.
 
-The final step is to select when you want the container and when the container is expired. There are some limits you should know :
+
+The final step is to select when you want the container. There are some limits you should know :
 
 * The input value should follow the `datetime format` or use `Time_Flags`.  
 * `mm` format must be `"00"` or `"30"`.
@@ -138,7 +142,7 @@ Usable `Time_Flags` are shown in below form :
 
 After system has already checked that computing resources is affordable and there isn't any problems, your booking is successfully.
 
-#### III. Update Account Setting
+### `III. Update Account Setting`
 
 Use following command to start update config. Notice that both  `-use-opt` and `--use-options` are acceptable.
 
@@ -146,49 +150,49 @@ Use following command to start update config. Notice that both  `-use-opt` and `
 python3 booking.py -use-opt <user_id>
 ```
 
-1. The system will ask you whether you want to change forward port.
+* First, The system will ask you whether you want to change forward port.  
 
-    ```zsh
-    Please enter the forward port(default: xxxxx, none by default):
-    ```
+  ```zsh
+  Please enter the forward port(default: xxxxx, none by default):
+  ```
 
-    The *forward_port* only can assign port: `10000~11000`, due to application service port. Besides, the system will automatically check whether the *forward_port* you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
+  The *forward_port* only can assign port: `10000~11000`, due to application service port. Besides, the system will automatically check whether the *forward_port* you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
 
-2. you can set which docker images you want to use. The system will build the container based on your image.
+* Second, you can set which docker images you want to use. The system will build the container based on your image.
 
-    ```zsh
-    Please enter the image 'repository/tag'(default: xxx, none by default): 
-    ```
+  ```zsh
+  Please enter the image 'repository/tag'(default: xxx, none by default): 
+  ```
 
-3. Third, you can customize your extra commands which will be executed before building container. Customize it to set the environment you want.
+* Third, you can customize your extra commands which will be executed before building container. Customize it to set the environment you want.
 
-    ```zsh
-    Please enter the extra command when running the image. (default: None, none by default):
-    ```
+  ```zsh
+  Please enter the extra command when running the image. (default: None, none by default):
+  ```
 
-4. in this part, the system will ask you whether you want to update your password.  
+* Fourth, in this part, the system will ask you whether you want to update your password.  
 
-    ```zsh
-    Do you want to update the password?
-    ```
+  ```zsh
+  Do you want to update the password?
+  ```
 
-5. double check your changes. Make sure you want to update the config.
+* Final, double check your changes. Make sure you want to update the config.
 
-    ```zsh
-    The previous setting is for the once, do you want to update the default config?
-    ```
+  ```zsh
+  The previous setting is for the once, do you want to update the default config?
+  ```
 
 ---
 
-## **4. Extra Useful Packages Introduction**  
+## **`4. Extra Useful Packages Introduction`**  
 
 After instructions, I recommend you to some packages and commands, which are useful for development.  
 *( I will give you a brief introduction. If you want to realize more, you can click the name of package to browse the detail.)*
 
-### **Environment Setting**
+### `Environment Setting`
 
 Every project have its own required packages. The better way to develop is to build a independent environment for each project. Every project can customize its own *Spec.* based on its requirement.  
-Here are some packages which can help you manage your environment :
+Here are some packages which can help you manage your environment : 
 
 ### [*pipenv & pyenv*](https://medium.com/ntust-aivc/how-to-install-pyenv-pipenv-in-ubuntu-and-use-multiple-versions-of-python-and-its-suites-3514099a6e05)
 
@@ -198,7 +202,7 @@ With *pyenv*, you can install different versions of python in host and select th
 
 *docker* can help packages up code and all its dependencies so the application runs quickly and reliably from one computing environment to another.
 
-### **CLI Tools**
+### `CLI Tools`
 
 ### [*git*](https://medium.com/ntust-aivc/introduction-to-git-66473777b9b3)  
 
@@ -222,28 +226,29 @@ You see that tmux basically offers two major features:
 
 There are some commands related to operate *tmux*. In this system, we have customized some configigurations you should know :
 
-* **Allow using mouse** to change working place between different panes and windows.
-* **Prefix hotkey has been turned into Ctrl+a ( C-a )**.
+* `Allow using mouse` to change working place between different panes and windows.
+* `Prefix hotkey has been turned into` **`Ctrl+a ( C-a )`**. 
 
 Some of hotkeys have been changed by *tmux_config* as follow :  
 
 |Key|Description|
-|:--:|:--|
-|<font color=#CE9178>C-a</font> |prefix|
-|<font color=#CE9178>prefix + \|</font> | split-window horizontally ()|
-|<font color=#CE9178>prefix +  -</font> | split-window vertically |
+|:--:|:--| 
+|**`C-a`**|prefix|
+|`prefix + \|` | split-window horizontally ()|
+|`prefix +  -` | split-window vertically |
+
 
 For reference, I list other useful hotkeys when you use *tmux* :
 
 |Key|Description|
 |:--:|:--|
-|<font color=#CE9178>prefix + {</font>  | rotate the pane clockwise|
-|<font color=#CE9178>prefix + }</font>  | rotate the pane counterclockwise|
-|<font color=#CE9178>prefix + c</font>  | create a new window |
-|<font color=#CE9178>prefix + n</font>  | switch to next window |
-|<font color=#CE9178>prefix + p</font>  | switch to previous window |
-|<font color=#CE9178>prefix + d</font>  | detach session |
-|<font color=#CE9178>C-d</font>         | kill the working pane|
+|`prefix + {`  | rotate the pane clockwise|
+|`prefix + }`  | rotate the pane counterclockwise|
+|`prefix + c`  | create a new window |
+|`prefix + n`  | switch to next window |
+|`prefix + p`  | switch to previous window |
+|`prefix + d`  | detach session |
+|`C-d`         | kill the working pane|
 
 Also that there are some useful commands you can use in CLI :  
 
@@ -269,7 +274,7 @@ tmux rename-session -t <original_session_name> <new_session_name>
 
 You can go to the website to search for more tutorials of *tmux* commands.  
 
-### **Vscode Extensions**
+### `Vscode Extensions`
 
 ### [Git Graph](https://marketplace.visualstudio.com/items?itemName=mhutchie.git-graph)  
 
@@ -289,22 +294,22 @@ Following pictures show the steps of using *Remote Development*.
 
 * Choose "Connect to Host..." to use ssh and add a new SSH HOST.
 ![step_2](Remote_development2.png)
-![step_3]()
+![step_3](Remote_development3.png)
 
 * Type the username and ip of your container. After that you have the config of container, you can access the container remotely.
-![step_4]()
+![step_4](Remote_development4.png)
 If you want to change the name of container shown in the list. You can open configure and change the variable, `Host`, as follow :  
-![step_5]()
+![step_5](Remote_development5.png)
 
 ---
 
-## **5. FAQ**
+## `5. FAQ`
 
 There are some common errors you will meet in this system. You can click [here](tips/Error%20804%3A%20forward%20compatibility%20was%20attempted%20on%20non%20supported%20HW.md) to view those issues and solutions.
 
 ---
 
-## **Contributor**
+## **`Contributor`**
 
 ### **110 Postgraduate Researcher**
 

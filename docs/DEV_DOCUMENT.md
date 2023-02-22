@@ -732,7 +732,7 @@ def close_containers(self, user_ids:List[str]) -> List[bool or Error]:
 def run_containers(self, run_df: pd.DataFrame) -> List[bool or Error]:
 ```
 
-Run containers, using `run_container()`. Send message by using `self.msg.info()`
+Run containers, using `run_container()`. Send message by using `self.msg.info()
 
 #### **Parameters**
 
