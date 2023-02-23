@@ -4,9 +4,9 @@
 
 AIVC-Server-Booking aims to let user easily get required computing resouces such as :  
 
-* RAM  
-* GPU  
-* CPU.  
+* **RAM**  
+* **GPU**  
+* **CPU**.  
 
 Simultaneously, this system will efficiently magange server's resources between different users without conflicts.  
 
@@ -41,34 +41,37 @@ Before booking AIVC server, there are somthing you should know ......
 
 4. There are three main directories in each container,  which those directories will be volumed to corresponding ones in host. Let's take a look for their purposes :  
 
->`backup_dir` :  Aims to store the configs customized by the user. Next time, when you want to book server again, the booking system will build the container based on your configs, which are already backed up in `backup_dir`, to build the customization.  
->When you want to backup files or directories, you should write down your needs in `backup.yaml` and follow the form shown below :  
+    > `backup_dir`  
+    > Aims to store the configs customized by the user. Next time, when you want to book server again, the booking system will build the container based on your configs, which are already backed up in `backup_dir`, to build the customization.  
+    > When you want to backup files or directories, you should write down your needs in `backup.yaml` and follow the form shown below :  
+    > 
+    > ```yaml  
+    > # Under the Backup
+    > Dir: 
+    >   - - < Backup's dir_path>    # Backup is a folder in host
+    >     - < container's dir_path> # must be absolute path  
+    > 
+    > File: 
+    >   - - < Backup's file_path>    # Backup is a folder in host
+    >     - < container's file_path> # must be absolute path
+    > ```  
+    > 
+    > For example :
+    > 
+    > ```yaml  
+    > Dir: 
+    > - - .default/.pyenv 
+    >   - /root/.pyenv 
+    > File: 
+    > - - .zshrc 
+    >   - /root/.zshrc 
+    > ```
 
-```yaml  
-# Under the Backup
-Dir: 
-  - - < Backup's dir_path>    # Backup is a folder in host
-    - < container's dir_path> # must be absolute path  
+    > `work_dir`  
+    > Store user's projects and  personal dataset. Because booking system will automatically remove container with empty `work_dir`, you should ensure the `work_dir` has projects in it to avoid your container from being removed.
 
-File: 
-  - - < Backup's file_path>    # Backup is a folder in host
-    - < container's file_path> # must be absolute path
-```  
-
-For example :
-
-```yaml  
-Dir: 
-- - .default/.pyenv 
-  - /root/.pyenv 
-File: 
-- - .zshrc 
-  - /root/.zshrc 
-```
-
->`work_dir` :  Store user's projects and  personal dataset. Because booking system will automatically remove container with empty `work_dir`, you should ensure the `work_dir` has projects in it to avoid your container from being removed.
-
->`dataset_dir` :  It is a read-only folder and supports some common public dataset to every user such as coco dataset. If you have demands about public dataset, you can ask the host maintainer for it. The host maintainer will add it into the directroy. With the management, all users can access the public dataset and no need to download again.
+    > `dataset_dir`  
+    > It is a read-only folder and supports some common public dataset to every user such as coco dataset. If you have demands about public dataset, you can ask the host maintainer for it. The host maintainer will add it into the directroy. With the management, all users can access the public dataset and no need to download again.
 
 ---
 
@@ -285,12 +288,12 @@ Following pictures show the steps of using *Remote Development*.
 > 
 > ![step_1](show1.png)
 > 
-> Choose "Connect to Host..." to use ssh and add a new SSH HOST.
+> Choose "Connect to Host..." to use ssh and add a new SSH Host.
 > 
 > ![step_2](show2.png)
 > ![step_3](show3.png)
 > 
-> Type the username and ip of your container. After that you have the config of container, you can access the container remotely. As you can see in the list, the name of remote device is its ip.
+> Type the username and ip of remote device. After that you have the config of container, you can access the container remotely. As you can see in the list, the name of remote device is its ip.
 ![step_4](show4.png)
 ![step_4_supplement](show5.png)
 > 
