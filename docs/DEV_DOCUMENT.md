@@ -224,7 +224,7 @@ if use_options is True:
 #### 5.3. `extra_command`
 
 - <font color=#CE9178>"Please enter the extra command when running the image. (default: None, none by default): "</font>, no need to check.
-- Note: if the image repository is <font color=#CE9178>"rober5566a/aivc-server"</font> actually it has an extra command: `/.script/ssh_start.sh {password}`, see [monitor.run_container](TODO).<!-- TODO -->
+- Note: if the image repository is <font color=#CE9178>"rober5566a/aivc-server"</font> actually it has an extra command: `/.script/ssh_start.sh {password}`, see [monitor/run_container.py](#run_containerpy).
 
 #### 5.4. Update Password
 
@@ -728,10 +728,6 @@ def close_containers(self, user_ids:List[str]) -> List[bool or Error]:
 
 Stop and remove containers, use (shell)`docker container stop {user_id} && docker container remove {user_id}`, and send message by using `self.msg.info()`.
 
-<!-- TODO -->
-(shell)`decker exec {user_id} backup`
-wait for tw-yshuang to code it for image.
-
 #### **Parameters**
 
 - `user_ids`, list of the user_id that need to be stop & remove.
@@ -832,8 +828,7 @@ def exec(self) -> None:
 ```
 
 ---
-** Not complete!!
-<!-- TODO -->
+
 ## *`run_container.py`*
 
 ### *`BackupInfo()`*
