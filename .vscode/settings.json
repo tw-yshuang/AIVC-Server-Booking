@@ -14,6 +14,9 @@
     "MD024": {
       "allow_different_nesting": true
     },
+    "MD025": {
+      "level": 1
+    },
     "MD033": {
       "allowed_elements": ["font"]
     },

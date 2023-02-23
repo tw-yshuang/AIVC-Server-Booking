@@ -1,0 +1,20 @@
+# Under the Backup
+Dir:
+  - - .default/.pyenv # to Backup's dir_path, must related path
+    - /root/.pyenv # container's dir_path, must absolute path
+  - - .default/virtualenvs
+    - /root/.local/share/virtualenvs
+  - - .default/.oh-my-zsh
+    - /root/.oh-my-zsh
+  - - .default/.vscode-server
+    - /root/.vscode-server
+
+File:
+  - - .default/.zshrc # to Backup's file_path, must related path
+    - /root/.zshrc # container's file_path, must absolute path
+  - - .default/.zsh_history
+    - /root/.zsh_history
+  - - .default/.p10k.zsh
+    - /root/.p10k.zsh
+  - - .default/.X11-unix
+    - /tmp/.X11-unix

@@ -1,4 +1,7 @@
-import os
+import os, shutil
+from pathlib import Path
+from typing import List
+
 import click
 
 if __name__ == '__main__':
@@ -6,13 +9,18 @@ if __name__ == '__main__':
 
     sys.path.extend('../../')
 
-from lib.WordOperator import str_format, ask_yn
-from src.HostInfo import dump_yaml, HostDeployInfo, CapabilityConfig, UserConfig, UsersConfig
+from lib.WordOperator import str_format
+from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig
 
-HostDI = HostDeployInfo('cfg/test_host_deploy.yaml')
+default_backup_dir = Path('cfg/templates/Backup')
+default_backup_yaml_path = Path('cfg/templates/Backup/backup.yaml')
+
+container_work_dir = '/root/Work'
+container_backup_dir = '/root/Backup'
+container_dataset_dir = '/root/Dataset'
 
 help_dict = {
-    'std_id': 'student ID.',
+    'user_id': 'User ID.',
     'pw': 'password.',
     'fp': 'which forward port you want to connect to port: 22(SSH).',
     'cpus': 'number of cpus for container.',
@@ -21,12 +29,19 @@ help_dict = {
     User Guide: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/user-guide.html',
     'im': 'which image you want to use, new std_id will use "rober5566a/aivc-server:latest"',
     'e-cmd': 'the extra command you want to execute when the docker runs.',
-    's-update': f'silent mode to update users_config.json, default is interactive mode. {str_format("[None(default) | True | Fasle]",fore="y")}',
-    's-default': f'silent mode to use default user config, default is interactive mode. {str_format("[None(default) | True | Fasle]",fore="y")}',
 }
 
 
-def check2create_dir(dir: str):
+class BackupInfo:
+    Dir: List[List[str]] = [[]]
+    File: List[List[str]] = [[]]
+
+    def __init__(self, yaml='cfg/templates/backup.yaml') -> None:
+        for k, v in load_yaml(yaml).items():
+            setattr(self, k, v)
+
+
+def check2create_dir(dir: Path):
     try:
         if not os.path.exists(dir):
             os.mkdir(dir)
@@ -38,193 +53,143 @@ def check2create_dir(dir: str):
         raise OSError(str_format(f"Fail to create the directory {dir} !", fore='r'))
 
 
-def print_user_info(std_id: str, user_dict: dict):
-    print(
-        # regularize format
-        f"'{std_id}': {user_dict}\n".replace("'", '"')
-        .replace('{', '{\n        ')
-        .replace(', ', ',\n        ')
-        .replace('}', '\n}')
-    )
-
-    user_know_dict = user_dict.copy()
-    del user_know_dict['volume_work_dir']
-    del user_know_dict['volume_dataset_dir']
-    del user_know_dict['volume_backup_dir']
-    print(f"Please paste {std_id}'s personal config to the user:")
-    print(
-        str_format(
-            # regularize format
-            f"'{std_id}': {user_know_dict}\n".replace("'", '"')
-            .replace('{', '{\n        ')
-            .replace(', ', ',\n        ')
-            .replace('}', '\n}'),
-            fore='y',
-        )
-    )
-
-
-def operate_user_config(
-    student_id: str,
-    password: str,
-    forward_port: int,
-    image: str = None,
-    extra_command: str = '',
-    silent_update: bool or None = None,
-    silent_user_default: bool or None = None,
-    *args,
-    **kwargs,
+def prepare_deploy(
+    user_config: UserConfig,
+    cap_max: CapabilityConfig().max,
+    memory: int,
+    image: str or None,
+    extra_command: str or None,
 ):
     '''
-    operate user config
-    This function will compare the user's current config & default it the same or not. In most of case, we all just use one container, so this function is like a Fool-proof mechanism to check the you really want to use this user_config, and also update the user_config.
-
-    `student_id`: student ID.\n
-    `password`: password.\n
-    `forward_port`: which forward port you want to connect to port: 2(SSH).\n
-    `image`: which image you want to use.\n
-    `extra_command`: the extra command you want to execute when the docker runs.\n
-    `silent_update`: silent mode to update users_config.json, default is interactive mode. [None(default) | True | Fasle]\n
-    `silent_user_default`: silent mode to use default user config, default is interactive mode. [None(default) | True | Fasle]
+    `user_config`: The user_config from users_config.yaml, for docker volume used.
+    `cap_max`: The maximum capability information, for memory used.
+    `image`: The image from booking.csv.
+    `extra_command`: The extra_command from booking.csv.
     '''
-    volume_work_dir = f'{HostDI.volume_work_dir}/{student_id}'
-    volume_backup_dir = f'{HostDI.volume_backup_dir}/{student_id}'
-    isWrite = False
-    if check2create_dir(volume_work_dir) is False:
-        check2create_dir(f'{volume_work_dir}/.pyenv-versions')  # create an volume dir to save ~/.pyenv/versions/
-        check2create_dir(f'{volume_work_dir}/.virtualenvs')  # create an volume dir to save ~/.local/share/virtualenvs
-
-    # TODO: use backup_dir to backup envs
-    if check2create_dir(volume_backup_dir) is False:
-        pass
-
-    new_user_config = UserConfig(
-        password, forward_port, image, extra_command, volume_work_dir, HostDI.volume_dataset_dir, volume_backup_dir
-    )
-    new_user_config.to_dict()
-
-    users_config = UsersConfig(HostDI.users_config_yaml)
-
-    if silent_update is None:  # interactive mode
-        if student_id not in users_config.ids:  # new account
-            users_config.ids[student_id] = new_user_config
-            isWrite = dump_yaml(users_config.to_dict(), HostDI.users_config_yaml)
-
-        elif users_config.ids[student_id] == new_user_config:
-            print(str_format(f"{student_id}'s personal config is all the same~", fore='g'))
-            isWrite = True
-
-        elif ask_yn(f"Do you want to update {student_id}'s personal configuration?(it will update all the variable)", 'y'):
-            users_config.ids[student_id] = new_user_config
-            print(str_format("Done !!", fore='g'))
-            isWrite = dump_yaml(users_config.to_dict(), HostDI.users_config_yaml)
-
-    elif silent_update is True:
-        users_config.ids[student_id] = new_user_config
-        isWrite = dump_yaml(users_config.to_dict(), HostDI.users_config_yaml)
-
-    # get user_config stage
-    user_config = users_config.ids[student_id]
-    user_dict = user_config.to_dict()
-    if silent_user_default or isWrite:
-        pass
-    elif (
-        silent_user_default is False
-        or ask_yn(f"Use {student_id}'s default configuration?(if is not, it will combine new config)", 'y') is False
-    ):
-        user_dict = {
-            **user_dict,
-            **new_user_config.dict,
-        }
-
-    if silent_update == None and silent_user_default == None:
-        print_user_info(student_id, user_dict)
-    return user_dict
-
-
-def run(
-    student_id: str,
-    password: str,
-    forward_port: int,
-    cpus: float = 2,
-    memory: int = 8,
-    gpus: int = 1,
-    image: str = None,
-    extra_command: str = '',
-    volume_work_dir: str = HostDI.volume_work_dir,
-    volume_dataset_dir: str = HostDI.volume_dataset_dir,
-    volume_backup_dir: str = HostDI.volume_backup_dir,
-    *args,
-    **kwargs,
-):
-    '''
-    `student_id`: student ID.\n
-    `password`: password.\n
-    `forward_port`: which forward port you want to connect to port: 2(SSH).\n
-    `image`: which image you want to use, new std_id will use "rober5566a/aivc-server:latest"\n
-    `extra_command`: the extra command you want to execute when the docker runs.\n
-    `silent_update`: silent mode to update users_config.json, default is interactive mode. [None(default) | True | Fasle]\n
-    `silent_user_default`: silent mode to use default user config, default is interactive mode. [None(default) | True | Fasle]
-    '''
-
-    exec_command = extra_command if extra_command is not None else ''
 
     if image is None:
         image = 'rober5566a/aivc-server:latest'
 
+    exec_command = extra_command if extra_command is not None else ''
     if 'rober5566a/aivc-server' in image:
-        exec_command += f' /bin/bash -c "/.script/ssh_start.sh {password}"'
-        CapCig = CapabilityConfig(HostDI.capability_config_yaml)
-        ram_size = memory * CapCig.max.shm_rate
+        if exec_command != '':
+            exec_command += ' && '
+        exec_command += f'/.script/ssh_start.sh {user_config.password}'
+        ram_size: int = int(memory * cap_max.shm_rate)
 
-        # TODO: add backup_dir
-        # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
-        os.system(
-            f'docker run\
+    # volumes_ls = [[host_dir, container_dir, operate_flag(Optional)]...]
+    volumes_ls: List[List[str]] = [
+        [user_config.volume_work_dir, container_work_dir],
+        [user_config.volume_backup_dir, container_backup_dir],
+        [user_config.volume_dataset_dir, container_dataset_dir, 'ro'],
+    ]
+
+    if not os.path.exists(user_config.volume_backup_dir):
+        shutil.copytree(default_backup_dir, user_config.volume_backup_dir)
+    else:
+        backup_info = BackupInfo(default_backup_yaml_path)
+        for backup_dir, container_dir in backup_info.Dir:
+            backup_dir = f'{user_config.volume_backup_dir}/{backup_dir}'
+            if os.path.exists(backup_dir):
+                volumes_ls.append([backup_dir, container_dir])
+
+        for backup_path, container_path in backup_info.File:
+            backup_path = f'{user_config.volume_backup_dir}/{backup_path}'
+            if os.path.exists(backup_path):
+                volumes_ls.append([backup_path, container_path])
+
+    return image, exec_command, ram_size, volumes_ls
+
+
+def run(
+    user_id: str,
+    forward_port: int,
+    cpus: float,
+    memory: int,
+    gpus: List[int] or str,
+    image: str or None,
+    exec_command: str or None,
+    ram_size: int,
+    volumes_ls: List[List[str]],
+):
+    '''
+    `user_id`: student ID.\n
+    `forward_port`: which forward port you want to connect to port: 2(SSH).\n
+    `cpus`: Number of CPU utilities.\n
+    `memory`: Number of memory utilities.\n
+    `gpus`: List of gpu id used for the container.\n
+    `image`: Which image you want to use, new std_id will use "rober5566a/aivc-server:latest"\n
+    `exec_command`: The exec command you want to execute when the docker runs.\n
+    `ram_size`: The DRAM size that you want to assign to this container,\n
+    `volumes_ls`: List of volume information, format: [[host, container, ]...]
+    '''
+
+    volume_info = ' -v '.join(':'.join(volume_ls) for volume_ls in volumes_ls)
+
+    if type(gpus) is list:
+        if len(gpus) == 1:
+            gpus = gpus[0]
+        else:
+            gpus = ','.join(gpus)
+
+    # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
+    os.system(
+        f'docker run\
                 -dit\
                 --restart=always\
                 --pid=host\
                 --cpus={cpus}\
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
-                --shm-size={memory}G\
+                --shm-size={ram_size}G\
                 --gpus={gpus}\
-                --name={student_id}\
+                --name={user_id}\
                 -p{forward_port}:22\
-                -v {volume_work_dir}:/root/Work\
-                -v {volume_work_dir}/.pyenv-versions:/root/.pyenv/versions\
-                -v {volume_work_dir}/.virtualenvs:/root/.local/share/virtualenvs\
-                -v {volume_dataset_dir}:/root/Dataset:ro\
-                -v /tmp/.X11-unix:/tmp/.X11-unix\
+                -v {volume_info}\
                 -e DISPLAY=$DISPLAY\
                 {image}\
                 {exec_command}\
                 '
-        )
+    )
+
+
+def run_container(
+    user_id: str,
+    forward_port: int,
+    cpus: float = 2,
+    memory: int = 8,
+    gpus: List[int] = 1,
+    image: str or None = None,
+    extra_command: str = '',
+    user_config: UserConfig = None,
+    cap_max: CapabilityConfig().max = None,
+    *args,
+    **kwargs,
+):
+
+    image, exec_command, ram_size, volumes_ls = prepare_deploy(user_config, cap_max, memory, image, extra_command)
+
+    run(user_id, forward_port, cpus, memory, gpus, image, exec_command, ram_size, volumes_ls)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
-@click.option('-std-id', '--student-id', help=help_dict['std_id'], required=True)
+@click.option('-id', '--user-id', help=help_dict['user_id'], required=True)
 @click.option('-pw', '--password', help=help_dict['pw'], required=True)
 @click.option('-fp', '--forward-port', help=help_dict['fp'], required=True)
 @click.option('-cpus', show_default=True, default=8, help=help_dict['cpus'])
 @click.option('-mem', '--memory', show_default=True, default=32, help=help_dict['mem'])
-@click.option('-gpus', show_default=True, default=1, help=help_dict['gpus'])
+@click.option('-gpus', show_default=True, default='0', help=help_dict['gpus'])
 @click.option('-im', '--image', show_default=True, default=None, help=help_dict['im'])
 @click.option('-e-cmd', '--extra-command', default=None, help=help_dict['e-cmd'])
-@click.option('-s-update', '--silent-update', show_default=True, default=None, type=bool, help=help_dict['s-update'])
-@click.option('-s-default', '--silent-user-default', show_default=True, default=None, type=bool, help=help_dict['s-default'])
 def cli(
-    student_id: str,
+    user_id: str,
     password: str,
     forward_port: int,
     cpus: float = 2,
     memory: int = 8,
-    gpus: int or str = 1,
+    gpus: int or str = '0',
     image: str = None,
     extra_command: str = '',
-    silent_update: bool or None = None,
-    silent_user_default: bool or None = None,
     *args,
     **kwargs,
 ):
@@ -232,30 +197,50 @@ def cli(
 
     EXAMPLES
 
-    >>> python3 ./run_container.py -std-id m11007s05 -pw IamNo1handsome! -fp 2222  -s-update False -s-default True'''
+    >>> python3 ./run_container.py -std-id m11007s05 -pw IamNo1handsome! -fp 2222'''
 
-    user_config_dict = operate_user_config(
-        student_id,
-        password,
-        forward_port,
-        image,
-        extra_command,
-        silent_update,
-        silent_user_default,
-        *args,
-        **kwargs,
+    user_config = UserConfig(
+        password=password,
+        forward_port=forward_port,
+        volume_work_dir=f'{HostDI.volume_work_dir}/{user_id}',
+        volume_backup_dir=f'{HostDI.volume_backup_dir}/{user_id}',
+        volume_dataset_dir=HostDI.volume_dataset_dir,
     )
-    # print(user_config_dict)
-    # exit()
 
-    run(student_id=student_id, cpus=cpus, memory=memory, gpus=gpus, **user_config_dict)
+    run_container(
+        user_id,
+        user_config.forward_port,
+        cpus=cpus,
+        memory=memory,
+        gpus=gpus,
+        image=image,
+        extra_command=extra_command,
+        user_config=user_config,
+        cap_max=CapabilityConfig(HostDI.capability_config_yaml).max,
+    )
 
 
 if __name__ == '__main__':
+    HostDI = HostDeployInfo('cfg/test_host_deploy.yaml')
     cli()
 
     # # ? for test.
-    # user_config_dict = operate_user_config(
-    #     **{'student_id': 'm11007s05-1', 'password': '0000', 'forward_port': 2224},
+
+    # user_id = 'm11007s05-4'
+    # user_config = UserConfig(
+    #     password='0000',
+    #     forward_port='2224',
+    #     volume_work_dir=f'{HostDI.volume_work_dir}/{user_id}',
+    #     volume_backup_dir=f'{HostDI.volume_backup_dir}/{user_id}',
+    #     volume_dataset_dir=HostDI.volume_dataset_dir,
     # )
-    # run(student_id='m11007s05-1', cpus=2, memory=8, gpus=1, **user_config_dict)
+
+    # run_container(
+    #     user_id,
+    #     user_config.forward_port,
+    #     cpus=8,
+    #     memory=16,
+    #     gpus=[0],
+    #     user_config=user_config,
+    #     cap_max=CapabilityConfig(HostDI.capability_config_yaml).max,
+    # )
