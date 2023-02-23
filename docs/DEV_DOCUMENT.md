@@ -219,11 +219,12 @@ if use_options is True:
 - Using *`Checker.deploy_info.images`* to show the docker images first.
 - <font color=#CE9178>"Please enter the image 'repository/tag'(default: xxx, none by default): "</font>, the default image can find it from *`Checker.users_config.ids[user_id].image`*, if is `None`, then show the image <font color=#CE9178>"rober5566a/aivc-server:latest"</font>.
 - If the response is <font color=#CE9178>""</font>, then `Checker.users_config.ids[user_id].image = None`.
+- Using *`Checker.check_image_isexists()`* to check image is exists.
 
 #### 5.3. `extra_command`
 
 - <font color=#CE9178>"Please enter the extra command when running the image. (default: None, none by default): "</font>, no need to check.
-- Note: if the image repository is <font color=#CE9178>"rober5566a/aivc-server"</font> actually it has an extra command: `/bin/bash -c "/.script/ssh_start.sh {password}"`, see [monitor.run_container](TODO).<!-- TODO -->
+- Note: if the image repository is <font color=#CE9178>"rober5566a/aivc-server"</font> actually it has an extra command: `/.script/ssh_start.sh {password}`, see [monitor.run_container](TODO).<!-- TODO -->
 
 #### 5.4. Update Password
 
@@ -299,7 +300,7 @@ from typing import Tuple, Dict
 import pandas as pd
 
 from lib.WordOperator import str_format, ask_yn
-from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig
+from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF
 ```
 
 ### *`Checker`*
@@ -328,13 +329,13 @@ class Checker(HostInfo):
     `using`: the using data schedule frame that from csv file.
     `used`: the used data schedule frame that from csv file.
     '''
-    deploy_info: HostInfo.deploy_info
-    cap_config: HostInfo.cap_config
-    users_config: HostInfo.users_config
+    # deploy_info: HostInfo.deploy_info
+    # cap_config: HostInfo.cap_config
+    # users_config: HostInfo.users_config
 
-    booking: HostInfo.booking
-    using: HostInfo.using
-    used: HostInfo.used
+    # booking: HostInfo.booking
+    # using: HostInfo.using
+    # used: HostInfo.used
 
     booked_df: pd.DataFrame
 ```
@@ -349,9 +350,9 @@ def __init__(
     using_csv: Path = Path('jobs/using.csv'),
     used_csv: Path = Path('jobs/used.csv'),
 ) -> None:
-    super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
+    super(Checker, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
 
-    self.booked_df = ScheduleDF.concat(self.booking, self.using)
+    self.booked_df = ScheduleDF.concat(self.booking.df, self.using.df)
 
 ```
 
@@ -372,11 +373,43 @@ def __init__(
 def check_user_id(self, user_id:str) -> bool:
 ```
 
-Check user_id that has in the *`self.cap_config.allow_userID`*.
+Check user_id that has in the *`self.cap_config.allow_userIDs`*.
 
 #### **Parameters**
 
 - `user_id` : user's account.
+
+#### **Return**
+
+- `boolean`
+
+### *`Checker.check_forward_port_empty()`*
+
+```python
+def check_forward_port_empty(self, forward_port: int) -> bool:
+```
+
+Check forward_port that is not exists in *`self.users_config[*].forward_port`*.
+
+#### **Parameters**
+
+- `forward_port` : the forward port that wants to assign.
+
+#### **Return**
+
+- `boolean`
+
+### *`Checker.check_image_isexists()`*
+
+```python
+def check_image_isexists(self, image: str) -> bool:
+```
+
+Check image that is exists from the *`self.deploy_info.images`*.
+
+#### **Parameters**
+
+- `image` : the image that wants to assign.
 
 #### **Return**
 
@@ -617,13 +650,13 @@ class Monitor(HostInfo):
     `used`: the used data schedule frame that from csv file.
     `msg`: control the message and record it to the log file.
     '''
-    deploy_info: HostInfo.deploy_info
-    cap_config: HostInfo.cap_config
-    users_config: HostInfo.users_config
+    # deploy_info: HostInfo.deploy_info
+    # cap_config: HostInfo.cap_config
+    # users_config: HostInfo.users_config
 
-    booking: HostInfo.booking
-    using: HostInfo.using
-    used: HostInfo.used
+    # booking: HostInfo.booking
+    # using: HostInfo.using
+    # used: HostInfo.used
 
     msg: MonitorMessage
 ```
@@ -639,7 +672,7 @@ def __init__(
     used_csv: Path = Path('jobs/used.csv'),
     log_path: Path = Path('jobs/monitor.log'),
 ) -> None:
-    super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
+    super(Monitor, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
     
     self.msg = MonitorMessage(log_path)
 
@@ -803,61 +836,230 @@ def exec(self) -> None:
 <!-- TODO -->
 ## *`run_container.py`*
 
-### *`load_files2container()`*
+### *`BackupInfo()`*
 
-<https://stackoverflow.com/questions/22907231/how-to-copy-files-from-host-to-docker-container>
-copy files from host 2 container
-<!-- TODO -->
-** Note, need to
+```python
+class BackupInfo:
+```
+
+This is for the [backup.yaml](../cfg/templates/Backup/backup.yaml) used, for convert the format to the `BackupInfo` object.
+
+#### **Attributes**
+
+- `Dir`: The backup information for the directories.
+- `File`: The backup information for the files.
+
+```python
+class BackupInfo:
+    '''
+    `Dir`: The backup information for the directories.
+    `File`: The backup information for the files.
+    '''
+    Dir: List[List[str]]
+    File: List[List[str]]
+```
+
+### *`BackupInfo.__init__()`*
+
+```python
+def __init__(self, yaml='cfg/templates/backup.yaml') -> None:
+    for k, v in load_yaml(yaml).items():
+        setattr(self, k, v)
+```
+
+#### **Parameters**
+
+- `yaml`, The file path for the user's `backup.yaml`.
+
+#### **Return**
+
+- `None`
+
+### *`prepare_deploy()`*
+
+```python
+def prepare_deploy(user_config: UserConfig, cap_max: MaxCapability, memory: int, image: str, extra_command: str) -> Tuple[str, str, int, List[List[str]]]
+```
+
+Setting & generate the related dirs/files and information; prepared for the `run()`.
+
+#### **Parameters**
+
+- `user_config`: The `UserConfig` object, it contains the user default setting.
+- `cap_max`: The `MaxCapability` object, it contains the maximum capability setting for this computing device.
+- `memory`: The memory size you want to used for this time, unit: GB.
+- `image`: The image/tag name for the docker image.
+- `extra_command`: The extra command that user want to execute  for this time.
+
+#### **Return**
+
+- `str`: the image/tag name for running container.
+- `str`: the command for running container.
+- `int`: the DRAM size assign for the container.
+- `List[List[str]]]`: the volumes information for running container, format: `[[host_dir, container_dir, operate_flag(Optional)]...]`.
 
 ### *`run()`*
 
 ```python
 def run(
     user_id: str,
-    password: str,
     forward_port: int,
-    cpus: float = 2,
-    memory: int = 8,
-    gpus: int = 1,
-    image: str = None,
-    extra_command: str = '',
-    volume_work_dir: str = HostDI.volume_work_dir,
-    volume_dataset_dir: str = HostDI.volume_dataset_dir,
-    volume_backup_dir: str = HostDI.volume_backup_dir,
-    *args,
-    **kwargs,
-):
-```
-
-Search the fewer usages gpu_ids from *`self.booked_df`* in the `booking_time`.
-
-#### **Parameters**
-
-- `gpus` : number of gpus required.
-- `booking_time`: the user requires start time & end time.
-
-#### **Return**
-
-- `List[int]`: the available gpu devices id list.
-
-### *`exec()`*
-
-```python
-def exec(host_info: HostInfo=None) -> None:
+    cpus: float,
+    memory: int,
+    gpus: List[int] or str,
+    image: str or None,
+    exec_command: str or None,
+    ram_size: int,
+    volumes_ls: List[List[str]]
+) -> None:
 ```
 
 #### **Parameters**
 
-- `host_info`: default `None`, input must be `HostInfo`.
+- `user_id`: user ID.
+- `forward_port`: which forward port you want to connect to port: 2(SSH).
+- `cpus`: Number of CPU utilities.
+- `memory`: The memory size you want to used for this time, unit: GB.
+- `gpus`: List of gpu id used for the container.
+- `image`: Which image you want to use, new std_id will use "rober5566a/aivc-
+- `exec_command`: The exec command you want to execute when the docker runs.
+- `ram_size`: The DRAM size that you want to assign to this container,
+- `volumes_ls`: List of volume information, format: [[host, container, ]...]
 
 #### **Return**
 
 - `None`
 
 ```python
-def exec(host_info: HostInfo=None) -> None:
-    if host_info is None:
-        host_info = HostInfo()
+def run(
+    user_id: str,
+    forward_port: int,
+    cpus: float,
+    memory: int,
+    gpus: List[int] or str,
+    image: str or None,
+    exec_command: str or None,
+    ram_size: int,
+    volumes_ls: List[List[str]],
+) -> None:
+    '''
+    `user_id`: student ID.\n
+    `forward_port`: which forward port you want to connect to port: 2(SSH).\n
+    `cpus`: Number of CPU utilities.\n
+    `memory`: Number of memory utilities.\n
+    `gpus`: List of gpu id used for the container.\n
+    `image`: Which image you want to use, new std_id will use "rober5566a/aivc-server:latest"\n
+    `exec_command`: The exec command you want to execute when the docker runs.\n
+    `ram_size`: The DRAM size that you want to assign to this container,\n
+    `volumes_ls`: List of volume information, format: [[host, container, ]...]
+    '''
+    ...
+```
+
+### *`run_container()`*
+
+```python
+def run_container(
+    user_id: str,
+    forward_port: int,
+    cpus: float = 2,
+    memory: int = 8,
+    gpus: List[int] = 1,
+    image: str or None = None,
+    extra_command: str = '',
+    user_config: UserConfig = None,
+    cap_max: MaxCapability = None,
+    *args,
+    **kwargs,
+) -> None:
+```
+
+#### **Parameters**
+
+- `user_id`: user ID.
+- `forward_port`: which forward port you want to connect to port: 2(SSH).
+- `cpus`: Number of CPU utilities.
+- `memory`: The memory size you want to used for this time, unit: GB.
+- `gpus`: List of gpu id used for the container.
+- `image`: The image/tag name for the docker image.
+- `extra_command`: The extra command that user want to execute  for this time.
+- `user_config`: The `UserConfig` object, it contains the user default setting.
+- `cap_max`: The `MaxCapability` object, it contains the maximum capability setting for this computing device.
+
+#### **Return**
+
+- `None`
+
+### *`cli()`*
+
+```python
+@click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
+@click.option('-id', '--user-id', help=help_dict['user_id'], required=True)
+@click.option('-pw', '--password', help=help_dict['pw'], required=True)
+@click.option('-fp', '--forward-port', help=help_dict['fp'], required=True)
+@click.option('-cpus', show_default=True, default=8, help=help_dict['cpus'])
+@click.option('-mem', '--memory', show_default=True, default=32, help=help_dict['mem'])
+@click.option('-gpus', show_default=True, default='0', help=help_dict['gpus'])
+@click.option('-im', '--image', show_default=True, default=None, help=help_dict['im'])
+@click.option('-e-cmd', '--extra-command', default=None, help=help_dict['e-cmd'])
+def cli(
+    user_id: str,
+    password: str,
+    forward_port: int,
+    cpus: float = 2,
+    memory: int = 8,
+    gpus: int or str = '0',
+    image: str = None,
+    extra_command: str = '',
+    *args,
+    **kwargs,
+) -> None:
+```
+
+The CLI tool for host maintainer used, under the `MaxCapability`, unlimited user capability.
+
+#### **Parameters**
+
+- `user_id`: user ID.
+- `forward_port`: which forward port you want to connect to port: 2(SSH).
+- `cpus`: Number of CPU utilities.
+- `memory`: The memory size you want to used for this time, unit: GB.
+- `gpus`: List of gpu id used for the container.
+- `image`: The image/tag name for the docker image.
+- `extra_command`: The extra command that user want to execute  for this time.
+- `user_config`: The `UserConfig` object, it contains the user default setting.
+- `cap_max`: The `MaxCapability` object, it contains the maximum capability setting for this computing device.
+
+#### **Return**
+
+- `None`
+
+```python
+@click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
+@click.option('-id', '--user-id', help=help_dict['user_id'], required=True)
+@click.option('-pw', '--password', help=help_dict['pw'], required=True)
+@click.option('-fp', '--forward-port', help=help_dict['fp'], required=True)
+@click.option('-cpus', show_default=True, default=8, help=help_dict['cpus'])
+@click.option('-mem', '--memory', show_default=True, default=32, help=help_dict['mem'])
+@click.option('-gpus', show_default=True, default='0', help=help_dict['gpus'])
+@click.option('-im', '--image', show_default=True, default=None, help=help_dict['im'])
+@click.option('-e-cmd', '--extra-command', default=None, help=help_dict['e-cmd'])
+def cli(
+    user_id: str,
+    password: str,
+    forward_port: int,
+    cpus: float = 2,
+    memory: int = 8,
+    gpus: int or str = '0',
+    image: str = None,
+    extra_command: str = '',
+    *args,
+    **kwargs,
+) -> None:
+    '''Repository: https://github.com/tw-yshuang/AIVC-Server-Booking
+
+    EXAMPLES
+
+    >>> python3 ./run_container.py -std-id m11007s05 -pw IamNo1handsome! -fp 2222'''
     ...
 ```

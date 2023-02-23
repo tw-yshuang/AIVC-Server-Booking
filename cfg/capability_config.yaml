@@ -10,7 +10,7 @@ max:
   backup_space: 200 # GB
   work_space: 500 # GB
 
-allow_userID:
+allow_userIDs:
   - m11007s05
   - m11007s05-1
   - m11007s05-2
