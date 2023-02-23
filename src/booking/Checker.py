@@ -11,13 +11,13 @@ if __name__ == '__main__':
 from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF
 
-# ? 新增加import ScheduleDF
-
-#! tasting
-#! csv readed formate
-#! gpus saving formate
-#! get_best_gpu_ids queation
-#! get_best_gpu_ids search using gpus while booking_time
+#todo def check_forward_port_empty()
+#todo def
+#todo def find_book_time_csv()
+#todo using csv table ficture to cut the time
+#todo get_user_max_cap() dont used try expect
+#! get_best_gpu_ids schual quation
+#? check_booking_info() check api : user_config not been used
 
 
 class Checker(HostInfo):
@@ -59,7 +59,6 @@ class Checker(HostInfo):
         # HostInfo.__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         super().__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         self.booked_df = ScheduleDF.concat(self.booking.df, self.using.df)
-        # ? ScheduleDF.concat只吃Dataframe 所以後面要加.df
 
     def check_student_id(self, student_id: str) -> bool:
         '''
@@ -69,10 +68,7 @@ class Checker(HostInfo):
         ### **Return**
         - `boolean`
         '''
-        try:
-            return self.users_config.ids[student_id] != None
-        except KeyError:
-            return False
+        return student_id in self.users_config.ids.keys()
 
     def get_user_max_cap(self, student_id: str) -> BasicCapability:
         '''
@@ -82,10 +78,10 @@ class Checker(HostInfo):
         # **Return**
         - `BasicCapability`
         '''
-        try:
+        if student_id in self.cap_config.max_custom_capability.keys:
             # print(student_id,':max_custom_capability')
             return self.cap_config.max_custom_capability[student_id]
-        except KeyError:
+        else:
             # print('max_default_capability')
             return self.cap_config.max_default_capability
 
@@ -100,7 +96,6 @@ class Checker(HostInfo):
         - `boolean`
         '''
         # *只比gpu就好
-        # ? check api : user_config not been used
         # self.booked_df 存了預約資料
         df = self.booked_df
         df['start'] = pd.to_datetime(df['start'], format='%Y-%b-%d %H:%M:%S.%f')
@@ -177,7 +172,9 @@ class Checker(HostInfo):
         # ? do I need to check was it satisfy the config?
         return gpu_id[0:gpus]
 
-    # ? where is api?: def check_forward_port_empty()
+    # todo def check_forward_port_empty()
+    # todo def
+    # todo def find_book_time_csv(df,booktime)->dataframe
 
 
 if __name__ == '__main__':
@@ -196,9 +193,9 @@ if __name__ == '__main__':
     #     print(student_id, ':', checker.check_student_id(student_id))
 
     # * test get_user_max_cap
-    # student_ids = ['m11007s05', 'm11007s05-1', 'm11007s05-2', 'm11007s05-3', 'm11007s05-4', 'm11007s05-5']
-    # for student_id in student_ids:
-    #     print(checker.get_user_max_cap(student_id))
+    student_ids = ['m11007s05', 'm11007s05-1', 'm11007s05-2', 'm11007s05-3', 'm11007s05-4', 'm11007s05-5']
+    for student_id in student_ids:
+        print(checker.get_user_max_cap(student_id))
 
     # * test check_booking_info
     # from datetime import timedelta
