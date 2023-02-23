@@ -1,19 +1,21 @@
 import os, shutil
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 import click
 
 if __name__ == '__main__':
     import sys
 
-    sys.path.extend('../../')
+    sys.path.append(os.path.abspath('./'))
+    print(sys.path)
 
-from lib.WordOperator import str_format
-from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig
+from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig, MaxCapability
 
 default_backup_dir = Path('cfg/templates/Backup')
-default_backup_yaml_path = Path('cfg/templates/Backup/backup.yaml')
+default_backup_yaml_filename = 'backup.yaml'
+default_image = 'rober5566a/aivc-server'
+default_image_tag = 'latest'
 
 container_work_dir = '/root/Work'
 container_backup_dir = '/root/Backup'
@@ -33,33 +35,26 @@ help_dict = {
 
 
 class BackupInfo:
-    Dir: List[List[str]] = [[]]
-    File: List[List[str]] = [[]]
+    '''
+    `Dir`: The backup information for the directories.
+    `File`: The backup information for the files.
+    '''
+
+    Dir: List[List[str]]
+    File: List[List[str]]
 
     def __init__(self, yaml='cfg/templates/backup.yaml') -> None:
         for k, v in load_yaml(yaml).items():
             setattr(self, k, v)
 
 
-def check2create_dir(dir: Path):
-    try:
-        if not os.path.exists(dir):
-            os.mkdir(dir)
-            print(str_format(f"Successfully created the directory: {dir}", fore='g'))
-            return False
-        else:
-            return True
-    except OSError:
-        raise OSError(str_format(f"Fail to create the directory {dir} !", fore='r'))
-
-
 def prepare_deploy(
     user_config: UserConfig,
-    cap_max: CapabilityConfig().max,
+    cap_max: MaxCapability,
     memory: int,
     image: str or None,
     extra_command: str or None,
-):
+) -> Tuple[str, str, int, List[List[str]]]:
     '''
     `user_config`: The user_config from users_config.yaml, for docker volume used.
     `cap_max`: The maximum capability information, for memory used.
@@ -68,10 +63,10 @@ def prepare_deploy(
     '''
 
     if image is None:
-        image = 'rober5566a/aivc-server:latest'
+        image = f'{default_image}:{default_image_tag}' if user_config.image is None else user_config.image
 
     exec_command = extra_command if extra_command is not None else ''
-    if 'rober5566a/aivc-server' in image:
+    if default_image in image:
         if exec_command != '':
             exec_command += ' && '
         exec_command += f'/.script/ssh_start.sh {user_config.password}'
@@ -87,7 +82,7 @@ def prepare_deploy(
     if not os.path.exists(user_config.volume_backup_dir):
         shutil.copytree(default_backup_dir, user_config.volume_backup_dir)
     else:
-        backup_info = BackupInfo(default_backup_yaml_path)
+        backup_info = BackupInfo(f'{user_config.volume_backup_dir}/{default_backup_yaml_filename}')
         for backup_dir, container_dir in backup_info.Dir:
             backup_dir = f'{user_config.volume_backup_dir}/{backup_dir}'
             if os.path.exists(backup_dir):
@@ -162,10 +157,10 @@ def run_container(
     image: str or None = None,
     extra_command: str = '',
     user_config: UserConfig = None,
-    cap_max: CapabilityConfig().max = None,
+    cap_max: MaxCapability = None,
     *args,
     **kwargs,
-):
+) -> None:
 
     image, exec_command, ram_size, volumes_ls = prepare_deploy(user_config, cap_max, memory, image, extra_command)
 
@@ -192,9 +187,8 @@ def cli(
     extra_command: str = '',
     *args,
     **kwargs,
-):
-    '''Repository: https://github.com/tw-yshuang/AIVC-Server
-
+) -> None:
+    '''Repository: https://github.com/tw-yshuang/AIVC-Server-Booking
     EXAMPLES
 
     >>> python3 ./run_container.py -std-id m11007s05 -pw IamNo1handsome! -fp 2222'''

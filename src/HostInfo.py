@@ -133,7 +133,7 @@ class BasicCapability:
 
 class CapabilityConfig:
     max: MaxCapability
-    allow_userID: List[str]
+    allow_userIDs: List[str]
     max_default_capability: BasicCapability
     max_custom_capability: Dict[str, BasicCapability]
 
