@@ -18,9 +18,9 @@ Our team uses the package, **Docker**, as an important tool to help us distribut
 >
 >After running the docker file, you can get the container you want. The last and important property is that Docker allows different containers to operate simultaneously without affecting  other containers.
 
-Because of those properties, when a user wants to take advantage of the server's computing capability, he no more worries about problems caused by different environments and he can focus on his project.  
+Because of those properties, when a user wants to take advantage of the server's computing capability, you can no more worry about problems caused by different environments and you can focus on the project.  
 
-Besides integrating Docker, our team try to make this system more usable so we add additional functions to it as follows :
+Besides integrating Docker, our team is trying to make this system more usable so we add some additional functions to it as follows :
 
 1. User can customize their required resources with CLI.
 2. The host maintainer can supervise the state of the server easily.  
@@ -72,7 +72,7 @@ Before booking AIVC's server, there is something you should know ......
     Store user's projects and personal datasets. Because the booking system will automatically remove containers with an empty `work_dir`, you should ensure the `work_dir` has projects in it to avoid your container from being removed.
 
     `dataset_dir`  
-    It is a read-only folder and supports some common public datasets to every user such as COCO datasets. If you have demands about public datasets, you can ask the host maintainer for them. The host maintainer will add them to the directory. With the management, all users can access the public datasets, and no need to download them again.
+    It is a read-only folder and supports standard datasets for every user such as COCO datasets. If you have demands about the public datasets, you can ask the host maintainer for them. The host maintainer will add them to the directory. With the management, all users can access the public datasets without downloading again.
 
 ---
 
