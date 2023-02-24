@@ -434,7 +434,7 @@ Search cap_info for user_id from the *`self.cap_config.max_default_capability`* 
 ### *`Checker.check_booking_info()`*
 
 ```python
-def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> BasicCapability:
+def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
 ```
 
 Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
@@ -525,7 +525,7 @@ Control the message for `Monitor`, and record it to the `self.log_path`.
 
 - `ERROR`: the `[ERROR]` flag.
 - `WARNING`: the `[WARNING]` flag.
-- `DONE`: the `[DONE]` flag.
+- `INFO`: the `[INFO]` flag.
 - `log_path`: the path for record the `Monitor` action for host maintainer & MLOps to check.
 
 ```python
@@ -891,7 +891,7 @@ Setting & generate the related dirs/files and information; prepared for the `run
 - `str`: the image/tag name for running container.
 - `str`: the command for running container.
 - `int`: the DRAM size assign for the container.
-- `List[List[str]]]`: the volumes information for running container, format: `[[host_dir, container_dir, operate_flag(Optional)]...]`.
+- `List[List[str]]]`: the volumes information for running container, format: `[[host_path, container_path]...]`.
 
 ### *`run()`*
 
@@ -1055,6 +1055,6 @@ def cli(
 
     EXAMPLES
 
-    >>> python3 ./run_container.py -std-id m11007s05 -pw IamNo1handsome! -fp 2222'''
+    >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10000'''
     ...
 ```
