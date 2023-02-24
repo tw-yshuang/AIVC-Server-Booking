@@ -1,18 +1,17 @@
-import os, shutil
+#!/usr/bin/env python3
+import os, sys, shutil
 from pathlib import Path
 from typing import List, Tuple
 
 import click
 
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
-    import sys
-
-    sys.path.append(os.path.abspath('./'))
-    # print(sys.path)
+    sys.path.append(str(PROJECT_DIR))
 
 from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig, MaxCapability
 
-default_backup_dir = Path('cfg/templates/Backup')
+default_backup_dir = Path(PROJECT_DIR / 'cfg/templates/Backup')
 default_backup_yaml_filename = 'backup.yaml'
 default_image = 'rober5566a/aivc-server'
 default_image_tag = 'latest'
@@ -43,7 +42,7 @@ class BackupInfo:
     Dir: List[List[str]]
     File: List[List[str]]
 
-    def __init__(self, yaml='cfg/templates/backup.yaml') -> None:
+    def __init__(self, yaml=PROJECT_DIR / 'cfg/templates/backup.yaml') -> None:
         for k, v in load_yaml(yaml).items():
             setattr(self, k, v)
 
@@ -131,7 +130,7 @@ def run(
                 --cpus={cpus}\
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
-                --shm-size={ram_size}G\
+                --shm-size={memory-ram_size}G\
                 --gpus={gpus}\
                 --name={user_id}\
                 -p {forward_port}:22\
@@ -184,8 +183,8 @@ def cli(
     **kwargs,
 ) -> None:
     '''Repository: https://github.com/tw-yshuang/AIVC-Server-Booking
-    EXAMPLES
 
+    Examples:
     >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10000'''
 
     user_config = UserConfig(
@@ -205,12 +204,12 @@ def cli(
         image=image,
         extra_command=extra_command,
         user_config=user_config,
-        cap_max=CapabilityConfig(HostDI.capability_config_yaml).max,
+        cap_max=CapabilityConfig(PROJECT_DIR / HostDI.capability_config_yaml).max,
     )
 
 
 if __name__ == '__main__':
-    HostDI = HostDeployInfo('cfg/test_host_deploy.yaml')
+    HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test_host_deploy.yaml')
     cli()
 
     # # ? for test.
