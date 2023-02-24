@@ -11,11 +11,11 @@ if __name__ == '__main__':
 from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF
 
-#todo def check_forward_port_empty()
-#todo def
 #todo def find_book_time_csv()
+#todo def
 #todo using csv table ficture to cut the time
 #todo get_user_max_cap() dont used try expect
+#! get_user_max_cap() problum
 #! get_best_gpu_ids schual quation
 #? check_booking_info() check api : user_config not been used
 
@@ -25,7 +25,7 @@ class Checker(HostInfo):
     `deploy_info`: the deploy information that from yaml file.
     `cap_config`: the capability config that from yaml file.
     `users_config`: the users config that from yaml file.
-    `booking`: the booking schedule frame that from csv file.
+    `booking`: 2the booking schedule frame that from csv file.
     `using`: the using data schedule frame that from csv file.
     `used`: the used data schedule frame that from csv file.
     '''
@@ -35,10 +35,12 @@ class Checker(HostInfo):
     # users_config: HostInfo.users_config
 
     # booking: HostInfo.booking
-    # using: HostInfo.using
+    # using: HostInfo.usingforward_port
     # used: HostInfo.used
 
     booked_df: pd.DataFrame
+    #self used flag
+    test_flag: bool=False
 
     def __init__(
         self,
@@ -78,11 +80,13 @@ class Checker(HostInfo):
         # **Return**
         - `BasicCapability`
         '''
-        if student_id in self.cap_config.max_custom_capability.keys:
-            # print(student_id,':max_custom_capability')
+        if student_id in list(self.cap_config.max_custom_capability.keys()):
+            if self.test_flag:
+                print(student_id,':max_custom_capability')
             return self.cap_config.max_custom_capability[student_id]
         else:
-            # print('max_default_capability')
+            if self.test_flag:
+                print(student_id,':max_default_capability')
             return self.cap_config.max_default_capability
 
     def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
@@ -172,9 +176,33 @@ class Checker(HostInfo):
         # ? do I need to check was it satisfy the config?
         return gpu_id[0:gpus]
 
-    # todo def check_forward_port_empty()
-    # todo def
+    def check_forward_port_empty(self, forward_port: int) -> bool:
+        '''
+        Check forward_port that is not exists in *`self.users_config[*].forward_port`*.
+        #### **Parameters**
+        - `forward_port` : the forward port that wants to assign.
+        #### **Return**
+        - boolean
+        '''
+        # print(list(self.users_config.ids.value()))
+        for i in list(self.users_config.ids.values()):
+            if forward_port == i.forward_port:
+                return False
+        return True
+        #? self.users_config[*].forward_port [*]cant use
+
+    def check_image_isexists(self, image: str) -> bool:
+        '''
+        Check image that is exists from the *`self.deploy_info.images`*.
+        #### **Parameters**
+        - `image` : the image that wants to assign.
+        #### **Return**
+        - `boolean`
+        '''
+        return image in self.deploy_info.images
+
     # todo def find_book_time_csv(df,booktime)->dataframe
+    # todo def
 
 
 if __name__ == '__main__':
@@ -184,6 +212,7 @@ if __name__ == '__main__':
         using_csv=Path('jobs/using.csv'),
         used_csv=Path('jobs/used.csv'),
     )
+    checker.test_flag=True
     # print(checker.booked_df)
     # print('123')
 
@@ -193,9 +222,9 @@ if __name__ == '__main__':
     #     print(student_id, ':', checker.check_student_id(student_id))
 
     # * test get_user_max_cap
-    student_ids = ['m11007s05', 'm11007s05-1', 'm11007s05-2', 'm11007s05-3', 'm11007s05-4', 'm11007s05-5']
-    for student_id in student_ids:
-        print(checker.get_user_max_cap(student_id))
+    # student_ids = ['m11007s05', 'm11007s05-1', 'm11007s05-2', 'm11007s05-3', 'm11007s05-4', 'm11007s05-5']
+    # for student_id in student_ids:
+    #     checker.get_user_max_cap(student_id)
 
     # * test check_booking_info
     # from datetime import timedelta
@@ -239,3 +268,16 @@ if __name__ == '__main__':
     # requears = [1, 2, 3]
     # for i in range(3):
     #     print(checker.get_best_gpu_ids(requears[i], booktimes[i]))
+
+    #* test check_forward_port_empty
+    # forward_ports = ['2221','2222','2223','2224','2225','2226']
+    # print('True:forward_port empty , False:forward_port occupyed')
+    # for forward_port in forward_ports:
+    #     print(forward_port,':',checker.check_forward_port_empty(forward_port))
+
+    #* test check_image_isexists
+    # images = ['111','222','333','null',None,'rober5566a/aivc-server:latest']
+    # for image in images:
+    #     print(image,':',checker.check_image_isexists(image))
+    
+    #* test find_book_time_csv
