@@ -12,11 +12,11 @@ Simultaneously, this system will efficiently manage the server's resources betwe
 
 Our team uses the package, **Docker**, as an important tool to help us distribute resources. Why we use Docker  because it has some characteristics that will be briefly introduced in the following article :  
 
->With Docker, you can easily package and  deploy your applications. It will collect the infrastructure resources and applications, which the project requires.
->
->Those environmental settings are dictated by Docker file which has instructions on how to build the environment (container). You can customize it on your will.
->
->After running the docker file, you can get the container you want. The last and important property is that Docker allows different containers to operate simultaneously without affecting  other containers.
+> With Docker, you can easily package and  deploy your applications. It will collect the infrastructure resources and applications, which the project requires.
+>  
+> Those environmental settings are dictated by Docker file which has instructions on how to build the environment (container). You can customize it on your will.
+>  
+> After running the docker file, you can get the container you want. The last and important property is that Docker allows different containers to operate simultaneously without affecting  other containers.
 
 Because of those properties, when a user wants to take advantage of the server's computing capability, you can no more worry about problems caused by different environments and you can focus on the project.  
 
@@ -49,11 +49,11 @@ Before booking AIVC's server, there is something you should know ......
     ```yaml  
     # Under the Backup
     Dir: 
-      - - < Backup's dir_path>    # Backup is a folder in the host
+      - - < Backup's dir_path>    # Backup is a folder in the host; it must be a related path.
         - < container's dir_path> # must be absolute path  
     
     File: 
-      - - < Backup's file_path>    # Backup is a folder in the host
+      - - < Backup's file_path>    # Backup is a folder in the host; it must be a related path.
         - < container's file_path> # must be absolute path
     ```  
 
@@ -73,6 +73,16 @@ Before booking AIVC's server, there is something you should know ......
 
     `dataset_dir`  
     It is a read-only folder and supports standard datasets for every user such as COCO datasets. If you have demands about the public datasets, you can ask the host maintainer for them. The host maintainer will add them to the directory. With the management, all users can access the public datasets without downloading again.
+5. We recommend you to install the font , [Sauce Code Pro Medium Nerd Font Complete](../fonts/Sauce%20Code%20Pro%20Medium%20Nerd%20Font%20Complete.ttf), which supports to avoid broken pictures in the terminal with [powerlevel10k](https://github.com/romkatv/powerlevel10k).  
+The following steps show that how to change the terminal's font in Vscode :
+
+    1. Use "` Ctrl + , `" to open the Settings of Vscode, and search "terminal integrated font".
+
+    ![1-image](show8.png)
+
+    2. Key "SauceCodePro Nerd Font" in  `Terminal > Integrated: Font Family`. Restart Vscode to end of the setting.
+
+    ![2-image](show9.png)
 
 ---
 
@@ -231,7 +241,7 @@ Some of hotkeys have been changed by [tmux_config](../imgae_setup/config/.tmux.c
 |Key|Description|
 |:--:|:--|
 |<font color=#CE9178>C-a</font> |prefix|
-|<font color=#CE9178>prefix + \| </font>| split-window horizontally ()|
+|<font color=#CE9178>prefix + \| </font>| split-window horizontally |
 |<font color=#CE9178>prefix +  -</font> | split-window vertically |
 
 For reference, I list other useful hotkeys when you use `tmux` :
