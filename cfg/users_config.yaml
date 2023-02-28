@@ -1,0 +1,8 @@
+m11007a05:
+    password: '0000'
+    forward_port: '2222'
+    image: null
+    extra_command: ''
+    volume_work_dir:
+    volume_dataset_dir:
+    volume_backup_dir: null

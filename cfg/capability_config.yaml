@@ -14,6 +14,7 @@ allow_userID:
   - m11007s05
   - m11007s05-1
   - m11007s05-2
+  - m11007a05
 
 max_default_capability:
   cpus: 8
@@ -42,3 +43,10 @@ max_custom_capability:
     gpus: 4
     # if there is not parameter, follow by max_default_capability
     work_space: max
+
+  m11007a05:
+    cpus: 125
+    memory: 65
+    gpus: 4
+    # if there is not parameter, follow by max_default_capability
+    work_space: meowa
