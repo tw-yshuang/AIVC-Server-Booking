@@ -12,6 +12,7 @@ if __name__ == '__main__':
 from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF
 
+# todo:
 # ? check_booking_info() check api : user_config not been used
 # ? api import timedelta
 # ? api import numpy
@@ -19,15 +20,6 @@ from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, Sch
 
 
 class Checker(HostInfo):
-    '''
-    `deploy_info`: the deploy information that from yaml file.
-    `cap_config`: the capability config that from yaml file.
-    `users_config`: the users config that from yaml file.
-    `booking`: 2the booking schedule frame that from csv file.
-    `using`: the using data schedule frame that from csv file.
-    `used`: the used data schedule frame that from csv file.
-    '''
-
     # deploy_info: HostInfo.deploy_info
     # cap_config: HostInfo.cap_config
     # users_config: HostInfo.users_config
@@ -47,37 +39,14 @@ class Checker(HostInfo):
         using_csv: Path = Path('jobs/using.csv'),
         used_csv: Path = Path('jobs/used.csv'),
     ) -> None:
-        '''
-        ### **Parameters**
-        - `deploy_yaml` : the yaml file for host deploy.
-        - `booking_csv`: the csv file for already booking.
-        - `using_csv`: the csv file for already using.
-        - `used_csv`: the csv file for already used.
-        #### **Return**
-        - `None`
-        '''
         # HostInfo.__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         super().__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         self.booked_df = ScheduleDF.concat(self.booking.df, self.using.df)
 
     def check_student_id(self, student_id: str) -> bool:
-        '''
-        Check student_id that has in the *`self.users_config.id`*.
-        ### **Parameters**
-        - `student_id` : user's account.
-        ### **Return**
-        - `boolean`
-        '''
         return student_id in self.users_config.ids.keys()
 
     def get_user_max_cap(self, student_id: str) -> BasicCapability:
-        '''
-        Search cap_info for student_id from the *`self.cap_config.max_default_capability`* / *`self.cap_config.max_custom_capability`*.
-        # **Parameters**
-        - `student_id` : user's account.
-        # **Return**
-        - `BasicCapability`
-        '''
         if student_id in self.cap_config.max_custom_capability.keys():
             if self.test_flag:
                 print(student_id, ':max_custom_capability')
@@ -88,15 +57,6 @@ class Checker(HostInfo):
             return self.cap_config.max_default_capability
 
     def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
-        '''
-        Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
-        ### **Parameters**
-        - `cap_info` : the user requires cpus, memory, gpus.
-        - `booking_time`: the user requires start time & end time.
-        - `user_config`: the user config information.
-        ### **Return**
-        - `boolean`
-        '''
         # * only conpare gpus cap
         df = self.find_book_time_csv(booking_time)
         gpu_np = self.booking_to_gpu_nparray(df, booking_time)
@@ -113,15 +73,7 @@ class Checker(HostInfo):
         return self.cap_config.max.gpus - using_gpu_nmb >= cap_info.gpus
 
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
-        '''
-        Search the fewer usages gpu_ids from *`self.booked_df`* in the `booking_time`.
-        ### **Parameters**
-        - `gpus` : number of gpus required.
-        - `booking_time`: the user requires start time & end time.
-        ### **Return**
-        - `List[int]`: the available gpu devices id list.
-        '''
-        # * 將前幾張gpu先塞滿 所以編號小的gpu 先提供
+        # * full up the forward gpu, so offer from the lower no gpus
         df = self.find_book_time_csv(booking_time)
         gpu_np = self.booking_to_gpu_nparray(df=df, booking_time=booking_time)
 
@@ -151,14 +103,6 @@ class Checker(HostInfo):
             return result
 
     def check_forward_port_empty(self, forward_port: int) -> bool:
-        '''
-        Check forward_port that is not exists in *`self.users_config[*].forward_port`*.
-        #### **Parameters**
-        - `forward_port` : the forward port that wants to assign.
-        #### **Return**
-        - boolean
-        '''
-        # print(self.users_config.ids.values())
         for i in self.users_config.ids.values():
             if forward_port == i.forward_port:
                 return False
@@ -166,22 +110,13 @@ class Checker(HostInfo):
         # ? self.users_config[*].forward_port [*]cant use
 
     def check_image_isexists(self, image: str) -> bool:
-        '''
-        Check image that is exists from the *`self.deploy_info.images`*.
-        #### **Parameters**
-        - `image` : the image that wants to assign.
-        #### **Return**
-        - `boolean`
-        '''
         return image in self.deploy_info.images
 
     def find_book_time_csv(self, booking_time: BookingTime) -> pd.DataFrame:
-        '''
-        sort dataframe by 'start'
-        find the first velue >= booking_time.start
-        drop earlier
-        repeat for 'end'
-        '''
+        # sort dataframe by 'start'
+        # find the first velue >= booking_time.start
+        # drop earlier
+        # repeat for 'end'
         df = self.booked_df
         # change data form for test
         if self.test_flag:

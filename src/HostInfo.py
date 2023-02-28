@@ -137,7 +137,7 @@ class CapabilityConfig:
     max_default_capability: BasicCapability
     max_custom_capability: Dict[str, BasicCapability]
 
-    def __init__(self, yaml='cfg/capability_config.yaml') -> None:
+    def __init__(self, yaml: Path = Path('cfg/capability_config.yaml')) -> None:
         for k, v in load_yaml(yaml).items():
             if k == 'max':
                 setattr(self, k, MaxCapability(v))
@@ -161,8 +161,8 @@ class HostDeployInfo:
     users_config_yaml: Path
     images: List[str]
 
-    def __init__(self, yaml_file='host_deploy.yaml') -> None:
-        for k, v in load_yaml(yaml_file).items():
+    def __init__(self, yaml: Path = Path('host_deploy.yaml')) -> None:
+        for k, v in load_yaml(yaml).items():
             setattr(self, k, v)
 
 

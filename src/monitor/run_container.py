@@ -1,18 +1,17 @@
-import os, shutil
+#!/usr/bin/env python3
+import os, sys, shutil
 from pathlib import Path
 from typing import List, Tuple
 
 import click
 
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
-    import sys
-
-    sys.path.append(os.path.abspath('./'))
-    print(sys.path)
+    sys.path.append(str(PROJECT_DIR))
 
 from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig, MaxCapability
 
-default_backup_dir = Path('cfg/templates/Backup')
+default_backup_dir = Path(PROJECT_DIR / 'cfg/templates/Backup')
 default_backup_yaml_filename = 'backup.yaml'
 default_image = 'rober5566a/aivc-server'
 default_image_tag = 'latest'
@@ -43,7 +42,7 @@ class BackupInfo:
     Dir: List[List[str]]
     File: List[List[str]]
 
-    def __init__(self, yaml='cfg/templates/backup.yaml') -> None:
+    def __init__(self, yaml=PROJECT_DIR / 'cfg/templates/backup.yaml') -> None:
         for k, v in load_yaml(yaml).items():
             setattr(self, k, v)
 
@@ -72,7 +71,7 @@ def prepare_deploy(
         exec_command += f'/.script/ssh_start.sh {user_config.password}'
         ram_size: int = int(memory * cap_max.shm_rate)
 
-    # volumes_ls = [[host_dir, container_dir, operate_flag(Optional)]...]
+    # volumes_ls = [[host_path, container_path, operate_flag(Optional)]...]
     volumes_ls: List[List[str]] = [
         [user_config.volume_work_dir, container_work_dir],
         [user_config.volume_backup_dir, container_backup_dir],
@@ -83,12 +82,7 @@ def prepare_deploy(
         shutil.copytree(default_backup_dir, user_config.volume_backup_dir)
     else:
         backup_info = BackupInfo(f'{user_config.volume_backup_dir}/{default_backup_yaml_filename}')
-        for backup_dir, container_dir in backup_info.Dir:
-            backup_dir = f'{user_config.volume_backup_dir}/{backup_dir}'
-            if os.path.exists(backup_dir):
-                volumes_ls.append([backup_dir, container_dir])
-
-        for backup_path, container_path in backup_info.File:
+        for backup_path, container_path in [*backup_info.Dir, *backup_info.File]:
             backup_path = f'{user_config.volume_backup_dir}/{backup_path}'
             if os.path.exists(backup_path):
                 volumes_ls.append([backup_path, container_path])
@@ -136,10 +130,10 @@ def run(
                 --cpus={cpus}\
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
-                --shm-size={ram_size}G\
+                --shm-size={memory-ram_size}G\
                 --gpus={gpus}\
                 --name={user_id}\
-                -p{forward_port}:22\
+                -p {forward_port}:22\
                 -v {volume_info}\
                 -e DISPLAY=$DISPLAY\
                 {image}\
@@ -189,9 +183,9 @@ def cli(
     **kwargs,
 ) -> None:
     '''Repository: https://github.com/tw-yshuang/AIVC-Server-Booking
-    EXAMPLES
 
-    >>> python3 ./run_container.py -std-id m11007s05 -pw IamNo1handsome! -fp 2222'''
+    Examples:
+    >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10000'''
 
     user_config = UserConfig(
         password=password,
@@ -210,12 +204,12 @@ def cli(
         image=image,
         extra_command=extra_command,
         user_config=user_config,
-        cap_max=CapabilityConfig(HostDI.capability_config_yaml).max,
+        cap_max=CapabilityConfig(PROJECT_DIR / HostDI.capability_config_yaml).max,
     )
 
 
 if __name__ == '__main__':
-    HostDI = HostDeployInfo('cfg/test_host_deploy.yaml')
+    HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test_host_deploy.yaml')
     cli()
 
     # # ? for test.

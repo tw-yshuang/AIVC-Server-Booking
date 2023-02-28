@@ -4,7 +4,7 @@ max:
   swap_size: 30 # GB
   gpus: 8
 
-  shm_rate: ram / swap_size if swap_size != 0 else 1
+  shm_rate: swap_size / ram if swap_size != 0 else 1
   memory: ram + swap_size
 
   backup_space: 200 # GB
