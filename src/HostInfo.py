@@ -210,7 +210,7 @@ class ScheduleDF:
     @staticmethod
     def concat(df1: pd.DataFrame, df2: pd.DataFrame, *args):
         cat_ls = [df1, df2, *args] if tuple(args) == Tuple[pd.DataFrame] else [df1, df2]
-        return pd.concat(cat_ls)
+        return pd.concat(cat_ls, ignore_index=True)
 
 
 class HostInfo:
@@ -243,7 +243,7 @@ class HostInfo:
 
 
 if __name__ == '__main__':
-    host_info = HostDeployInfo('./cfg/test_host_deploy.yaml')
+    # host_info = HostDeployInfo('./cfg/test_host_deploy.yaml')
 
     # CapCfg = CapabilityConfig(
     #     host_info.capability_config_yaml,
@@ -263,5 +263,6 @@ if __name__ == '__main__':
     # print(id(user_config), id(users_config))
     # print(users_config.ids['m11007s05'] == user_config)
 
-    # sch_df = ScheduleDF('./cfg/templates/test_schedule.csv')
-    # print('aa')
+    sch_df = ScheduleDF('./cfg/templates/test_schedule.csv')
+    print(type(sch_df.df['gpus'][0]))
+    print('aa')

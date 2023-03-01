@@ -434,7 +434,7 @@ Search cap_info for user_id from the *`self.cap_config.max_default_capability`* 
 ### *`Checker.check_booking_info()`*
 
 ```python
-def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
+def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
 ```
 
 Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
@@ -443,7 +443,6 @@ Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
 
 - `cap_info` : the user requires cpus, memory, gpus.
 - `booking_time`: the user requires start time & end time.
-- `user_config`: the user config information.
 
 #### **Return**
 
