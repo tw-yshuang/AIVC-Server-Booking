@@ -141,7 +141,6 @@ class Monitor(HostInfo):
         return result_ls
 
     def run_containers(self, run_df: pd.DataFrame) -> List:
-
         # result_ls:  List
         # ...
         # task: NamedTuple
