@@ -19,7 +19,7 @@ RUN apt-get update \
 
 # https://www.baeldung.com/linux/control-variable-access-sudo-environment
 # TODO: is there has a way to use env in /etc/sudoers ?
-RUN echo "${ACCOUNT}" 'ALL=(ALL) NOPASSWD: /usr/bin/booking_sudo' >> /etc/sudoers
+RUN echo "${ACCOUNT}" 'ALL=(ALL) NOPASSWD: /usr/sbin/booking' >> /etc/sudoers
 
 ADD image_setup/booking_exec /.script/
 RUN chmod +x /.script/*

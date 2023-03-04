@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #>         +---------------------------+
-#>         |    run_booking.sh    |
+#>         |       run_booking.sh      |
 #>         +---------------------------+
 #-
 #- SYNOPSIS
@@ -49,4 +49,4 @@ docker run \
 -v ./src/:$PROJ_PATH/src \
 -v $PROJ_PATH/src/monitor/ \
 rober5566a/aivc-server:booking-v1.0.0 \
-/bin/bash -c "ln -s $PROJ_PATH/src/booking/booking.py /usr/bin/booking_sudo && /.script/ssh_start.sh $password"
+/bin/bash -c "ln -s $PROJ_PATH/src/booking/booking.py /usr/sbin/booking && /.script/ssh_start.sh $password"
