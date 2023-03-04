@@ -9,15 +9,16 @@ if __name__ == '__main__':
     import sys
 
     sys.path.append(str(Path(__file__).resolve().parents[2]))
-from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF
 
 # todo:
-# ? check_booking_info() check api : user_config not been used
-# ? api import timedelta
-# ? api import numpy
-# ? get_best_gpu_ids() do I need to check was it satisfy the cap?
-
+# change name(aa,bb,...)
+# note more at less self can know
+# get_best_gpu_ids() too complex
+# use find... 
+# get_best_gpu_ids().gpu_ids need to use self.cap_config.max.gpus use range()
+# __booking_to_gpu_nparray() need rework too complex use math 
+# ? check_booking_info() check api : user_config not been used --> del
 
 class Checker(HostInfo):
     # deploy_info: HostInfo.deploy_info
@@ -56,15 +57,13 @@ class Checker(HostInfo):
                 print(student_id, ':max_default_capability')
             return self.cap_config.max_default_capability
 
-    def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
+    def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
         # * only conpare gpus cap
-        df = self.find_book_time_csv(booking_time)
-        gpu_np = self.booking_to_gpu_nparray(df, booking_time)
+        df = self.__find_book_time_csv(booking_time)
+        gpu_np = self.__booking_to_gpu_nparray(df, booking_time)
         using_gpu_nmb = 0
         for i in range(len(gpu_np[0])):
-            aa = gpu_np[:, i]
-            # print(aa)
-            bb = np.count_nonzero(aa == 1)
+            bb = np.count_nonzero(gpu_np[:, i] == 1)
             if bb > using_gpu_nmb:
                 using_gpu_nmb = bb
         # retrun ((max) - (how many been used) >= (how many cap_info asked)) -> boolen
@@ -74,19 +73,19 @@ class Checker(HostInfo):
 
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
         # * full up the forward gpu, so offer from the lower no gpus
-        df = self.find_book_time_csv(booking_time)
-        gpu_np = self.booking_to_gpu_nparray(df=df, booking_time=booking_time)
+        df = self.__find_book_time_csv(booking_time)
+        gpu_np = self.__booking_to_gpu_nparray(df=df, booking_time=booking_time)
 
-        gpu_id = [0, 1, 2, 3, 4, 5, 6, 7]
+        gpu_ids = [0, 1, 2, 3, 4, 5, 6, 7]
         # if self.test_flag:gpu_id = [0, 1]
         id_using_count = []
-        for i in range(len(gpu_id)):
+        for i in range(len(gpu_ids)): # 
             aa = np.count_nonzero(gpu_np[i] != 0)
             id_using_count.append(aa)
             if aa != 0:
-                gpu_id.remove(i)
-        if len(gpu_id) > gpus:
-            return gpu_id[0:gpus]
+                gpu_ids.remove(i)
+        if len(gpu_ids) > gpus:
+            return gpu_ids[0:gpus]
         else:
             # if gpu is full but satisfy the cap
             # than assign the less using gpu
@@ -94,8 +93,8 @@ class Checker(HostInfo):
                 aa = id_using_count.index(0)
                 # print(aa)
                 id_using_count[aa] = 9999
-            result = gpu_id
-            for i in range(gpus - len(gpu_id)):
+            result = gpu_ids
+            for i in range(gpus - len(gpu_ids)):
                 index = id_using_count.index(min(id_using_count))  # find which gpu is min using
                 id_using_count[index] = 9999  # del min
                 result.append(index)  # insert the min using gpu_id into result [0]
@@ -112,18 +111,14 @@ class Checker(HostInfo):
     def check_image_isexists(self, image: str) -> bool:
         return image in self.deploy_info.images
 
-    def find_book_time_csv(self, booking_time: BookingTime) -> pd.DataFrame:
+    def __find_book_time_csv(self, booking_time: BookingTime) -> pd.DataFrame:
         # sort dataframe by 'start'
         # find the first velue >= booking_time.start
         # drop earlier
         # repeat for 'end'
         df = self.booked_df
-        # change data form for test
-        if self.test_flag:
-            df.reset_index(drop=True, inplace=True)
-            df['start'] = pd.to_datetime(df['start'], format='%Y-%b-%d %H:%M:%S.%f')
-            df['end'] = pd.to_datetime(df['end'], format='%Y-%b-%d %H:%M:%S.%f')
-            df['gpus'] = df['gpus'].values.tolist()
+        # print(type(df['gpus'][0]))
+        # print(df)
         # sort data
         df = df.sort_values(by='start')
         df = df.loc[df['start'] < booking_time.end]  # keep which is start when book end #　start time smiller than my end time
@@ -131,23 +126,22 @@ class Checker(HostInfo):
         df = df.loc[df['end'] > booking_time.start]  # keep which isnot end when book start # end time bigger then my start time
         return df
 
-    def booking_to_gpu_nparray(self, df: pd.DataFrame, booking_time: BookingTime) -> np.array:
+    def __booking_to_gpu_nparray(self, df: pd.DataFrame, booking_time: BookingTime) -> np.array:
         # this func turn booking information into gpus-time(30min) list
-        n = (booking_time.end - booking_time.start) / timedelta(minutes=30)
-        gpu_np = np.zeros((8, int(n)))
-        for i in range(int(n)):
+        n = (booking_time.end - booking_time.start) // timedelta(minutes=30)
+        gpu_np = np.zeros((self.cap_config.max.gpus, n))
+        for i in range(n):
             aa = BookingTime()
             aa.start = booking_time.start + timedelta(minutes=30) * i
             aa.end = booking_time.start + timedelta(minutes=30) * (i + 1)
-            bb = self.find_book_time_csv(aa)['gpus']
-            bb.reset_index(drop=True, inplace=True)
-            if self.test_flag:
-                bb = bb[0][1:-1].split(', ')
-            # print(bb)
-            # print(type(bb))
+            bb = self.__find_book_time_csv(aa)['gpus']
+
             for j in bb:
                 gpu_np[int(j), i] = 1
         return gpu_np
+    
+    def test__find_book_time_csv(self, booking_time):
+        return(self.__find_book_time_csv(booking_time))
 
 
 if __name__ == '__main__':
@@ -224,21 +218,21 @@ if __name__ == '__main__':
     # for image in images:
     #     print(image,':',checker.check_image_isexists(image))
 
-    # * test find_book_time_csv
+    # * test __find_book_time_csv
     # booktimes = []
     # aa = BookingTime()
     # aa.start = datetime(2023, 1, 1, 14, 30, 0)
     # aa.end = datetime(2023, 1, 1, 17, 30, 0)
     # booktimes.append(aa)
     # for book_time in booktimes:
-    #     print(checker.find_book_time_csv(book_time))
+    #     print(checker.test__find_book_time_csv(book_time))
 
-    # * test booking_to_gpu_nparray
+    # * test __booking_to_gpu_nparray
     # booktimes = []
     # aa = BookingTime()
     # aa.start = datetime(2023, 1, 1, 14, 30, 0)
     # aa.end = datetime(2023, 1, 1, 17, 30, 0)
     # booktimes.append(aa)
     # for book_time in booktimes:
-    #     df = checker.find_book_time_csv(book_time)
-    #     bb = checker.booking_to_gpu_nparray(df,book_time)
+    #     df = checker.__find_book_time_csv(book_time)
+    #     bb = checker.__booking_to_gpu_nparray(df,book_time)

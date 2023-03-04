@@ -210,7 +210,7 @@ class ScheduleDF:
     @staticmethod
     def concat(df1: pd.DataFrame, df2: pd.DataFrame, *args):
         cat_ls = [df1, df2, *args] if tuple(args) == Tuple[pd.DataFrame] else [df1, df2]
-        return pd.concat(cat_ls)
+        return pd.concat(cat_ls, ignore_index=True)
 
 
 class HostInfo:
