@@ -1,6 +1,6 @@
 FROM python:3.10.10-slim
 
-LABEL author="tw-yshuang" version="1.0" description="I'm writing server image!"
+LABEL author="tw-yshuang" version="1.1" description="I'm writing server image!"
 
 # Localtime
 ENV TZ=Asia/Taipei
@@ -19,7 +19,7 @@ RUN apt-get update \
 
 # https://www.baeldung.com/linux/control-variable-access-sudo-environment
 # TODO: is there has a way to use env in /etc/sudoers ?
-RUN echo "${ACCOUNT}" 'ALL=(ALL) NOPASSWD: /root/src/booking/booking.py' >> /etc/sudoers
+RUN echo "${ACCOUNT}" 'ALL=(ALL) NOPASSWD: /usr/bin/booking_sudo' >> /etc/sudoers
 
 ADD image_setup/booking_exec /.script/
 RUN chmod +x /.script/*
