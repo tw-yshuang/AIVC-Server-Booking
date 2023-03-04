@@ -74,8 +74,8 @@ This function interactive with the users.
 ```python
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
 @click.option('-id', '--user-id', help="user's account.")
-@click.option('-use-opt', '--use-options', default=False, help="use extra options.")
-@click.option('-ls', '--list-schedule', default=False, help="list schedule that already booking.")
+@click.option('-use-opt', '--use-options', default=False, is_flag=True, help="use extra options.")
+@click.option('-ls', '--list-schedule', default=False, is_flag=True, help="list schedule that already booking.")
 def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False) -> bool:
     '''
     This function is the entrypoint that communicates with users.
@@ -170,8 +170,8 @@ if use_options is True:
   | Flag                                  | Description                                                                                                                                                  |
   | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
   | <font color=#CE9178>now</font>        | `start` use, the booking information will be active immediately if the usage is available, and the "mm" will discard unconditionally record to the schedule. |
-  | <font color=#CE9178>{num}-day</font>  | The range of the <font color=#CE9178>num</font> is `1~14`, 24 hrs for a unit.                                                                     |
-  | <font color=#CE9178>{num}-week</font> | The range of the <font color=#CE9178>num</font> is `1~2`, 7 days for a unit.                                                                      |
+  | <font color=#CE9178>{num}-day</font>  | The range of the <font color=#CE9178>num</font> is `1~14`, 24 hrs for a unit, and the "mm" will discard unconditionally record to the schedule.                                                                     |
+  | <font color=#CE9178>{num}-week</font> | The range of the <font color=#CE9178>num</font> is `1~2`, 7 days for a unit, and the "mm" will discard unconditionally record to the schedule.                                                                      |
 
 #### 4. New User Config
 
@@ -271,7 +271,6 @@ def booking(user_id:str, cap_info: BasicCapability, booking_time: BookingTime, u
     `user_config`: the config for this user_id.
     `booking_csv`: the csv for booking, default: 'jobs/booking.csv'.
     '''
-    booking_df = Schedule_DF(booking_csv)
     ...
 ```
 
@@ -434,7 +433,7 @@ Search cap_info for user_id from the *`self.cap_config.max_default_capability`* 
 ### *`Checker.check_booking_info()`*
 
 ```python
-def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
+def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
 ```
 
 Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
@@ -443,7 +442,6 @@ Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
 
 - `cap_info` : the user requires cpus, memory, gpus.
 - `booking_time`: the user requires start time & end time.
-- `user_config`: the user config information.
 
 #### **Return**
 

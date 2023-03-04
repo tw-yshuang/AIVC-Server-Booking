@@ -162,9 +162,9 @@ def run_container(
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
-@click.option('-id', '--user-id', help=help_dict['user_id'], required=True)
-@click.option('-pw', '--password', help=help_dict['pw'], required=True)
-@click.option('-fp', '--forward-port', help=help_dict['fp'], required=True)
+@click.option('-id', '--user-id', help=help_dict['user_id'], required=True, prompt=True)
+@click.option('-pw', '--password', help=help_dict['pw'], required=True, prompt="Please enter the Password", hide_input=True)
+@click.option('-fp', '--forward-port', help=help_dict['fp'], required=True, prompt=True)
 @click.option('-cpus', show_default=True, default=8, help=help_dict['cpus'])
 @click.option('-mem', '--memory', show_default=True, default=32, help=help_dict['mem'])
 @click.option('-gpus', show_default=True, default='0', help=help_dict['gpus'])
