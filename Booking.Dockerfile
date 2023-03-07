@@ -1,6 +1,6 @@
 FROM python:3.10.10-slim
 
-LABEL author="tw-yshuang" version="1.0" description="I'm writing server image!"
+LABEL author="tw-yshuang" version="1.1" description="I'm writing server image!"
 
 # Localtime
 ENV TZ=Asia/Taipei
@@ -10,7 +10,6 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 ENV ACCOUNT=booking
 ENV ACCOUNT_HOME=/home/${ACCOUNT}
 RUN useradd -ms /bin/bash ${ACCOUNT}
-# RUN useradd -r -u 1001 -g ${ACCOUNT} ${ACCOUNT}
 
 # ssh-server & allow X11 forwarding use.
 RUN apt-get update \
@@ -20,17 +19,7 @@ RUN apt-get update \
 
 # https://www.baeldung.com/linux/control-variable-access-sudo-environment
 # TODO: is there has a way to use env in /etc/sudoers ?
-RUN echo "${ACCOUNT}" 'ALL=(ALL) NOPASSWD: /root/src/booking/booking.py' >> /etc/sudoers
-
-
-# ENV ACCOUNT=root
-# ENV ACCOUNT_HOME=/${ACCOUNT}
-# RUN apt-get update \
-#     && apt-get install sudo openssh-server iputils-ping -y \
-#     && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config \
-#     && echo "${ACCOUNT}:ys-huang" | chpasswd \
-#     && adduser ${ACCOUNT} sudo
-
+RUN echo "${ACCOUNT}" 'ALL=(ALL) NOPASSWD: /usr/sbin/booking' >> /etc/sudoers
 
 ADD image_setup/booking_exec /.script/
 RUN chmod +x /.script/*

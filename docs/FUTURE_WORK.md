@@ -14,3 +14,25 @@
 
 2. Avoid Assign Duplicate GPUs
     - Scheduling algorithm to re-schedule the gpus assign to get the better assign method.
+
+---
+
+## Idle Container
+
+> Create an idle container, letting users that are not running the booking container can access the server to move the files.
+>
+### `Idle.Dockerfile`
+
+Base on `Dokcerfile`.
+
+- user name: idle
+- shell setup
+- welcome message
+- install python env tool & some dotfile
+
+### `src/monitor/run_container.py`
+
+#### `run_idle_container()`
+
+- cpus: 0.5
+- volume like `run_container()`
