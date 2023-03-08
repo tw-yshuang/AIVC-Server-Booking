@@ -51,13 +51,13 @@ class Checker(HostInfo):
 
     def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
         # check if cap_info satisfy the capability during booking_time
-        # * only conpare gpus
+        # * only compare gpus
         gpu_np = self.__booking_to_gpu_nparray(booking_time)
         max_using_count = 0  # store max using gpus in the same time block
         for i in range(len(gpu_np[0])):  # run every time block
             if np.count_nonzero(gpu_np[:, i] == 1) > max_using_count:  # if there is more count, replace max_using_count
                 max_using_count = np.count_nonzero(gpu_np[:, i] == 1)
-        # retrun ((max) - (how many been used) >= (how many cap_info asked)) -> boolen
+        # return ((max) - (how many been used) >= (how many cap_info asked)) -> boolean
         if self.__test_flag:
             print(f'{self.cap_config.max.gpus} - {max_using_count} >= {cap_info.gpus}')
         return self.cap_config.max.gpus - max_using_count >= cap_info.gpus
@@ -65,14 +65,13 @@ class Checker(HostInfo):
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
         # * full up the forward gpu, so offer from the lower id gpus
         '''
-        counting every gpu using time block -> cpu_used_count:[] (indes = gpu.id, value = the gpu using time block)
+        counting every gpu using time block -> cpu_used_count:[] (index = gpu.id, value = the gpu using time block)
         assign_gpu:[]       # the result gpu list
-        // n: int      # still requir gpu number
         extend cpu_used_count[==0] into assign_gpu
         if len(assign_gpu) < gpus
         extend cpu_used_count[==1] into assign_gpu
         and so on...
-        untal len(assign_gpu) > gpus: break
+        until len(assign_gpu) > gpus: break
         assign_gpu = assign_gpu[:gpus]
         assign_gpu.sort()
         return assign_gpu
@@ -80,7 +79,7 @@ class Checker(HostInfo):
         gpu_np = self.__booking_to_gpu_nparray(booking_time=booking_time)
         cpu_used_count = np.zeros(
             (self.cap_config.max.gpus)
-        )  # counting every gpu using time block (indes = gpu.id, value = the gpu using time block)
+        )  # counting every gpu using time block (index = gpu.id, value = the gpu using time block)
         assign_gpus = []  # the result gpu list
         for i in range(self.cap_config.max.gpus):
             cpu_used_count[i] = np.count_nonzero(gpu_np[i] != 0)
@@ -88,12 +87,12 @@ class Checker(HostInfo):
             assign_gpus.extend(np.where(cpu_used_count == i)[0])
             if len(assign_gpus) >= gpus:
                 break
-        assign_gpus = assign_gpus[:gpus]  # make sure only requare number of gpus in assign_gpus
+        assign_gpus = assign_gpus[:gpus]  # make sure only require number of gpus in assign_gpus
         assign_gpus.sort()  # sort assign_gpus
         return assign_gpus
 
     def check_forward_port_empty(self, forward_port: int) -> bool:
-        # check is forward_port empty (accupy = False, empty = Ture)
+        # check is forward_port empty (occupy = False, empty = True)
         for i in self.users_config.ids.values():
             if forward_port == i.forward_port:
                 return False
@@ -103,25 +102,25 @@ class Checker(HostInfo):
         return image in self.deploy_info.images
 
     def __find_book_time_csv(self, booking_time: BookingTime) -> pd.DataFrame:
-        # sort dataframe by 'start'
-        # find the first velue >= booking_time.start
+        # sort Dataframe by 'start'
+        # find the first value >= booking_time.start
         # drop earlier
         # repeat for 'end'
         df = self.booked_df
         # sort data
         df = df.sort_values(by='start')
-        df = df.loc[df['start'] < booking_time.end]  # keep which is start when book end #　start time smiller than my end time
+        df = df.loc[df['start'] < booking_time.end]  # keep which is start when book end #　start time smaller than my end time
         df = df.sort_values(by='end')
-        df = df.loc[df['end'] > booking_time.start]  # keep which isnot end when book start # end time bigger then my start time
+        df = df.loc[df['end'] > booking_time.start]  # keep which is not end when book start # end time bigger then my start time
         return df.reset_index(drop=True, inplace=False)
 
     def __booking_to_gpu_nparray(self, booking_time: BookingTime) -> np.array:
         # this func turn booking information into gpus-time(30min) list
-        n = (booking_time.end - booking_time.start) // timedelta(minutes=30)  # caculate cut booking time into n block
+        n = (booking_time.end - booking_time.start) // timedelta(minutes=30)  # calculate cut booking time into n block
         gpu_np = np.zeros((self.cap_config.max.gpus, n))  # [gpu_id, time_block]
         csv = self.__find_book_time_csv(booking_time)
         for i in range(len(csv.index)):
-            book_time = BookingTime()  # already booked imformation in csv
+            book_time = BookingTime()  # already booked information in csv
             book_time.start = csv.at[i, 'start']
             book_time.end = csv.at[i, 'end']
             if book_time.start < booking_time.start:  # if book_time is started before booking_time
@@ -152,12 +151,6 @@ class Checker(HostInfo):
                     for j in csv.at[i, 'gpus']:
                         gpu_np[j, non_using_block:using_block] = 1
         return gpu_np
-
-    def test__find_book_time_csv(self, booking_time: BookingTime):
-        return self.__find_book_time_csv(booking_time)
-
-    def test__booking_to_gpu_nparray(self, booking_time: BookingTime):
-        return self.__booking_to_gpu_nparray(booking_time=booking_time)
 
 
 if __name__ == '__main__':
@@ -237,4 +230,3 @@ if __name__ == '__main__':
     # bookingtimes.append(bookingtime)
     # for book_time in bookingtimes:
     #     print(checker.test__booking_to_gpu_nparray(book_time))
-
