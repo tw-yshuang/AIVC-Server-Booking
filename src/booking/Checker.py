@@ -44,7 +44,6 @@ class Checker(HostInfo):
         #### **Return**
         - `None`
         '''
-        
         super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
 
     def check_student_id(self, student_id:str) -> bool:
@@ -85,8 +84,24 @@ class Checker(HostInfo):
         ### **Return**
         - `boolean`
         '''
-        
-        a=1
+        #!csv read collon need change
+        #self.booked_df 存了預約資料
+        self.booked_df = pd.read_csv('jobs\using.csv')
+        df = self.booked_df['end']
+        for i in len(df['end']):
+            if df['end'][i] > booking_time.start :
+                del(df['end'][i])
+        using_cpus = 0
+        using_memory = 0
+        using_gpus = 0
+        for i in len(df['cpus','memory','gpus']):
+            using_cpus = using_cpus + df['cpus'][i]
+            using_memory = using_memory + df['memory'][i]
+            using_gpus = using_gpus + df['gpus'][i]
+        if self.cap_config.max.cpus - using_cpus >= cap_info.cpus and self.cap_config.max.memory - using_memory >= cap_info.memory and self.cap_config.max.gpus - using_gpus >= cap_info.gpus:
+            return True
+        else:
+            return False
     
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
         '''
