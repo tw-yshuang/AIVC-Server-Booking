@@ -237,3 +237,4 @@ if __name__ == '__main__':
     # bookingtimes.append(bookingtime)
     # for book_time in bookingtimes:
     #     print(checker.test__booking_to_gpu_nparray(book_time))
+
