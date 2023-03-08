@@ -11,13 +11,9 @@ if __name__ == '__main__':
 from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF
 
-#todo def find_book_time_csv()
-#todo def
-#todo using csv table ficture to cut the time
-#todo get_user_max_cap() dont used try expect
-#! get_user_max_cap() problum
-#! get_best_gpu_ids schual quation
-#? check_booking_info() check api : user_config not been used
+#! get_best_gpu_ids() schual quation
+#! check_booking_info() same
+# ? check_booking_info() check api : user_config not been used
 
 
 class Checker(HostInfo):
@@ -39,8 +35,8 @@ class Checker(HostInfo):
     # used: HostInfo.used
 
     booked_df: pd.DataFrame
-    #self used flag
-    test_flag: bool=False
+    # self used flag
+    test_flag: bool = False
 
     def __init__(
         self,
@@ -80,13 +76,13 @@ class Checker(HostInfo):
         # **Return**
         - `BasicCapability`
         '''
-        if student_id in list(self.cap_config.max_custom_capability.keys()):
+        if student_id in self.cap_config.max_custom_capability.keys():
             if self.test_flag:
-                print(student_id,':max_custom_capability')
+                print(student_id, ':max_custom_capability')
             return self.cap_config.max_custom_capability[student_id]
         else:
             if self.test_flag:
-                print(student_id,':max_default_capability')
+                print(student_id, ':max_default_capability')
             return self.cap_config.max_default_capability
 
     def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
@@ -99,41 +95,18 @@ class Checker(HostInfo):
         ### **Return**
         - `boolean`
         '''
-        # *只比gpu就好
-        # self.booked_df 存了預約資料
-        df = self.booked_df
-        df['start'] = pd.to_datetime(df['start'], format='%Y-%b-%d %H:%M:%S.%f')
-        df['end'] = pd.to_datetime(df['end'], format='%Y-%b-%d %H:%M:%S.%f')
-        df['gpus'] = df['gpus'].values.tolist()
-        df.reset_index(drop=True, inplace=True)
-        # see = df
-        # print(see)
-        # print(type(see))
-        # * del none using date
-        for i in range(len(df['end'])):
-            # del booking time before
-            if df['end'][i] > booking_time.start:
-                df = df.drop(index=[i])
-        for j in range(len(df['start'])):
-            # del booking time after
-            if df['start'][j] > booking_time.end:
-                df = df.drop(index=[j])
-        # print(df)
+        # * only conpare gpus cap
+        df = self.find_book_time_csv(booking_time)
         using_gpus = []
         # print(type(gpu_list[1][1]))
         for i in df['gpus']:
             ii = i[1:-1].split(', ')  # 依照', '去切割字串
-            # print(ii)
-            # print(type(ii))
             for j in ii:
-                j = int(j)
-                # print('j:',j)
-                # print(type(j))
-                using_gpus.append(j)
+                using_gpus.append(int(j))
         using_gpus = list(set(using_gpus))
         # retrun ((max) - (how many been used) >= (how many cap_info asked)) -> boolen
-        # print(using_gpus)
-        # print(f'{self.cap_config.max.gpus} - {len(using_gpus)} >= {cap_info.gpus}')
+        if self.test_flag:
+            print(f'{self.cap_config.max.gpus} - {len(using_gpus)} >= {cap_info.gpus}')
         return self.cap_config.max.gpus - len(using_gpus) >= cap_info.gpus
 
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
@@ -146,23 +119,11 @@ class Checker(HostInfo):
         - `List[int]`: the available gpu devices id list.
         '''
         # * 將前幾張gpu先塞滿 所以編號小的gpu 先提供
-        # find booking_time imformation
-        df = self.booked_df
-        df['start'] = pd.to_datetime(df['start'], format='%Y-%b-%d %H:%M:%S.%f') # dataframe to datetime
-        df['end'] = pd.to_datetime(df['end'], format='%Y-%b-%d %H:%M:%S.%f') # dataframe to datetime
-        df['gpus'] = df['gpus'].values.tolist() # dataframe to list
-        df.reset_index(drop=True, inplace=True) # dataframe reset index
-        # * del none using date
-        for i in range(len(df['end'])):
-            # del booking time before
-            if df['end'][i] > booking_time.start:
-                df = df.drop(index=[i])
-        for j in range(len(df['start'])):
-            # del booking time after
-            if df['start'][j] > booking_time.end:
-                df = df.drop(index=[j])
+        df = self.find_book_time_csv(booking_time)
         # del using gpus
         gpu_id = [0, 1, 2, 3, 4, 5, 6, 7]
+        if self.test_flag:
+            gpu_id = [0, 1]
         # print(df['gpus'])
         for i in df['gpus']:
             ii = i[1:-1].split(', ')  # 依照', '去切割字串
@@ -184,12 +145,12 @@ class Checker(HostInfo):
         #### **Return**
         - boolean
         '''
-        # print(list(self.users_config.ids.value()))
-        for i in list(self.users_config.ids.values()):
+        # print(self.users_config.ids.values())
+        for i in self.users_config.ids.values():
             if forward_port == i.forward_port:
                 return False
         return True
-        #? self.users_config[*].forward_port [*]cant use
+        # ? self.users_config[*].forward_port [*]cant use
 
     def check_image_isexists(self, image: str) -> bool:
         '''
@@ -201,18 +162,52 @@ class Checker(HostInfo):
         '''
         return image in self.deploy_info.images
 
-    # todo def find_book_time_csv(df,booktime)->dataframe
-    # todo def
+    def find_book_time_csv(self, booking_time: BookingTime) -> pd.DataFrame:
+        # self.booked_df 存了預約資料
+        df = self.booked_df
+        if self.test_flag:
+            df.reset_index(drop=True, inplace=True)
+            df['start'] = pd.to_datetime(df['start'], format='%Y-%b-%d %H:%M:%S.%f')
+            df['end'] = pd.to_datetime(df['end'], format='%Y-%b-%d %H:%M:%S.%f')
+            df['gpus'] = df['gpus'].values.tolist()
+        # see = df
+        # print(see)
+        # print(type(see))
+        # * del none using date
+        # for i in range(len(df['end'])):
+        #     # del booking time before
+        #     if df['end'][i] > booking_time.start:
+        #         df = df.drop(index=[i])
+        # for j in range(len(df['start'])):
+        #     # del booking time after
+        #     if df['start'][j] > booking_time.end:
+        #         df = df.drop(index=[j])
+        # # print(df)
+
+        # new way
+        '''
+        sort dataframe by 'start'
+        find the first velue >= booking_time.start
+        drop earlier
+        repeat for 'end'
+        '''
+        df = df.sort_values(by='start')
+        df = df.loc[df['start'] < booking_time.end]  # keep which is start when book end #　start time smiller than my end time
+        df = df.sort_values(by='end')
+        df = df.loc[df['end'] > booking_time.start]  # keep which isnot end when book start # end time bigger then my start time
+        return df
 
 
 if __name__ == '__main__':
+    from datetime import timedelta
+
     checker = Checker(
         deploy_yaml=Path('cfg/test_host_deploy.yaml'),
         booking_csv=Path('jobs/booking.csv'),
         using_csv=Path('jobs/using.csv'),
         used_csv=Path('jobs/used.csv'),
     )
-    checker.test_flag=True
+    checker.test_flag = True
     # print(checker.booked_df)
     # print('123')
 
@@ -227,7 +222,6 @@ if __name__ == '__main__':
     #     checker.get_user_max_cap(student_id)
 
     # * test check_booking_info
-    # from datetime import timedelta
     # capinfos = []
     # for i in range(1, 5):
     #     aa = BasicCapability(cpus=i * 10, memory=i * 10, gpus=i, backup_space=i, work_space=i)
@@ -257,7 +251,6 @@ if __name__ == '__main__':
     #     print(checker.check_booking_info(capinfos[i], booktimes[i], userconfigs[i]))
 
     # * test get_best_gpu_ids
-    # from datetime import timedelta
     # booktimes = []
     # for i in range(1, 5):
     #     tt = datetime(2000 + i, i, i, i, 0, 0)
@@ -269,15 +262,22 @@ if __name__ == '__main__':
     # for i in range(3):
     #     print(checker.get_best_gpu_ids(requears[i], booktimes[i]))
 
-    #* test check_forward_port_empty
+    # * test check_forward_port_empty
     # forward_ports = ['2221','2222','2223','2224','2225','2226']
     # print('True:forward_port empty , False:forward_port occupyed')
     # for forward_port in forward_ports:
     #     print(forward_port,':',checker.check_forward_port_empty(forward_port))
 
-    #* test check_image_isexists
+    # * test check_image_isexists
     # images = ['111','222','333','null',None,'rober5566a/aivc-server:latest']
     # for image in images:
     #     print(image,':',checker.check_image_isexists(image))
-    
-    #* test find_book_time_csv
+
+    # * test find_book_time_csv
+    booktimes = []
+    aa = BookingTime()
+    aa.start = datetime(2023, 1, 1, 14, 30, 0)
+    aa.end = datetime(2023, 1, 1, 17, 30, 0)
+    booktimes.append(aa)
+    for book_time in booktimes:
+        print(checker.find_book_time_csv(book_time))
