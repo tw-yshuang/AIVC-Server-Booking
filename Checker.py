@@ -1,6 +1,6 @@
 from pathlib import Path
 from datetime import datetime
-from typing import Tuple, Dict
+from typing import Tuple, Dict,List
 
 import pandas as pd
 
@@ -48,7 +48,10 @@ class Checker(HostInfo):
         #- `student_id` : user's account.
         #### **Return**
         #- `boolean`
-        a=1
+        if self.users_config.ids[student_id] != None:
+            return True
+        else:
+            return False
     
     def get_user_max_cap(self, student_id: str) -> BasicCapability:
         #Search cap_info for student_id from the *`self.cap_config.max_default_capability`* / *`self.cap_config.max_custom_capability`*.
@@ -77,5 +80,5 @@ class Checker(HostInfo):
         #- `List[int]`: the available gpu devices id list.
         a=1
 
-if "__name__"=="__main__":
-    a=0
+if __name__ == '__main__':
+    print(123)
