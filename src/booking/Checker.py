@@ -9,7 +9,7 @@ if __name__ == '__main__':
     import sys
 
     sys.path.append(str(Path(__file__).resolve().parents[2]))
-from src.HostInfo import HostInfo, BookingTime, BasicCapability, ScheduleDF
+from src.HostInfo import HostInfo, Booking_Time, BasicCapability, ScheduleDF
 
 
 class Checker(HostInfo):
@@ -18,7 +18,7 @@ class Checker(HostInfo):
     # users_config: HostInfo.users_config
 
     # booking: HostInfo.booking
-    # using: HostInfo.usingforward_port
+    # using: HostInfo.using
     # used: HostInfo.used
 
     booked_df: pd.DataFrame
@@ -49,7 +49,7 @@ class Checker(HostInfo):
                 print(student_id, ':max_default_capability')
             return self.cap_config.max_default_capability
 
-    def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
+    def check_booking_info(self, cap_info: BasicCapability, booking_time: Booking_Time) -> bool:
         # check if cap_info satisfy the capability during booking_time
         # * only compare gpus
         gpu_np = self.__booking_to_gpu_nparray(booking_time)
@@ -62,7 +62,7 @@ class Checker(HostInfo):
             print(f'{self.cap_config.max.gpus} - {max_using_count} >= {cap_info.gpus}')
         return self.cap_config.max.gpus - max_using_count >= cap_info.gpus
 
-    def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
+    def get_best_gpu_ids(self, gpus: int, booking_time: Booking_Time) -> List[int]:
         # * full up the forward gpu, so offer from the lower id gpus
         '''
         counting every gpu using time block -> cpu_used_count:[] (index = gpu.id, value = the gpu using time block)
@@ -101,7 +101,7 @@ class Checker(HostInfo):
     def check_image_isexists(self, image: str) -> bool:
         return image in self.deploy_info.images
 
-    def __find_book_time_csv(self, booking_time: BookingTime) -> pd.DataFrame:
+    def __find_book_time_csv(self, booking_time: Booking_Time) -> pd.DataFrame:
         # sort Dataframe by 'start'
         # find the first value >= booking_time.start
         # drop earlier
@@ -114,13 +114,13 @@ class Checker(HostInfo):
         df = df.loc[df['end'] > booking_time.start]  # keep which is not end when book start # end time bigger then my start time
         return df.reset_index(drop=True, inplace=False)
 
-    def __booking_to_gpu_nparray(self, booking_time: BookingTime) -> np.array:
+    def __booking_to_gpu_nparray(self, booking_time: Booking_Time) -> np.array:
         # this func turn booking information into gpus-time(30min) list
         n = (booking_time.end - booking_time.start) // timedelta(minutes=30)  # calculate cut booking time into n block
         gpu_np = np.zeros((self.cap_config.max.gpus, n))  # [gpu_id, time_block]
         csv = self.__find_book_time_csv(booking_time)
         for i in range(len(csv.index)):
-            book_time = BookingTime()  # already booked information in csv
+            book_time = Booking_Time()  # already booked information in csv
             book_time.start = csv.at[i, 'start']
             book_time.end = csv.at[i, 'end']
             if book_time.start < booking_time.start:  # if book_time is started before booking_time
@@ -175,36 +175,36 @@ if __name__ == '__main__':
     #     checker.get_user_max_cap(student_id)
 
     # * test check_booking_info
-    # capinfos = []
+    # cap_infos = []
     # for i in range(1, 5):
-    #     capinfo = BasicCapability(cpus=i * 10, memory=i * 10, gpus=i, backup_space=i, work_space=i)
-    #     capinfos.append(capinfo)
-    # bookingtimes = []
+    #     cap_info = BasicCapability(cpus=i * 10, memory=i * 10, gpus=i, backup_space=i, work_space=i)
+    #     cap_infos.append(cap_info)
+    # booking_times = []
     # for i in range(1, 5):
-    #     bookingtime = BookingTime()
-    #     bookingtime.start = datetime(2023, 1, 1, 14, 30, 0)
-    #     bookingtime.end = datetime(2023, 1, 1, 17, 30, 0)
-    #     bookingtimes.append(bookingtime)
+    #     booking_time = BookingTime()
+    #     booking_time.start = datetime(2023, 1, 1, 14, 30, 0)
+    #     booking_time.end = datetime(2023, 1, 1, 17, 30, 0)
+    #     booking_times.append(booking_time)
     # for i in range(4):
     #     print(
-    #         f'!!!Check whether self.booked_df has satisfied gpu:{capinfos[i].cpus} during {bookingtimes[i].start}~{bookingtimes[i].end}.i:{i}'
+    #         f'!!!Check whether self.booked_df has satisfied gpu:{cap_infos[i].cpus} during {booking_times[i].start}~{booking_times[i].end}.i:{i}'
     #     )
-    #     print(checker.check_booking_info(capinfos[i], bookingtimes[i]))
+    #     print(checker.check_booking_info(cap_infos[i], booking_Times[i]))
 
     # * test get_best_gpu_ids
-    # bookingtimes = []
+    # booking_times = []
     # for i in range(3):
-    #     bookingtime = BookingTime()
-    #     bookingtime.start = datetime(2023, 1, 1, 14, 30, 0)
-    #     bookingtime.end = datetime(2023, 1, 1, 17, 30, 0)
-    #     bookingtimes.append(bookingtime)
-    # requears = [5, 2, 3]
+    #     booking_time = BookingTime()
+    #     booking_time.start = datetime(2023, 1, 1, 14, 30, 0)
+    #     booking_time.end = datetime(2023, 1, 1, 17, 30, 0)
+    #     booking_times.append(booking_time)
+    # gpu_requires = [5, 2, 3]
     # for i in range(1):
-    #     print(checker.get_best_gpu_ids(requears[i], bookingtimes[i]))
+    #     print(checker.get_best_gpu_ids(gpu_requires[i], booking_times[i]))
 
     # * test check_forward_port_empty
     # forward_ports = ['2221','2222','2223','2224','2225','2226']
-    # print('True:forward_port empty , False:forward_port occupyed')
+    # print('True:forward_port empty , False:forward_port occupied')
     # for forward_port in forward_ports:
     #     print(forward_port,':',checker.check_forward_port_empty(forward_port))
 
@@ -214,19 +214,19 @@ if __name__ == '__main__':
     #     print(image,':',checker.check_image_isexists(image))
 
     # * test __find_book_time_csv
-    # bookingtimes = []
-    # bookingtime = BookingTime()
-    # bookingtime.start = datetime(2023, 1, 1, 14, 30, 0)
-    # bookingtime.end = datetime(2023, 1, 1, 17, 30, 0)
-    # bookingtimes.append(bookingtime)
-    # for book_time in bookingtimes:
+    # booking_times = []
+    # booking_time = Booking_Time()
+    # booking_time.start = datetime(2023, 1, 1, 14, 30, 0)
+    # booking_time.end = datetime(2023, 1, 1, 17, 30, 0)
+    # booking_times.append(booking_time)
+    # for book_time in booking_times:
     #     print(checker.test__find_book_time_csv(book_time))
 
     # * test __booking_to_gpu_nparray
-    # bookingtimes = []
-    # bookingtime = BookingTime()
-    # bookingtime.start = datetime(2023, 1, 1, 14, 30, 0)
-    # bookingtime.end = datetime(2023, 1, 1, 17, 30, 0)
-    # bookingtimes.append(bookingtime)
-    # for book_time in bookingtimes:
+    # booking_times = []
+    # booking_time = Booking_Time()
+    # booking_time.start = datetime(2023, 1, 1, 14, 30, 0)
+    # booking_time.end = datetime(2023, 1, 1, 17, 30, 0)
+    # booking_times.append(booking_time)
+    # for book_time in booking_times:
     #     print(checker.test__booking_to_gpu_nparray(book_time))
