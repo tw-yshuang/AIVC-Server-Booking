@@ -35,51 +35,68 @@ class Checker(HostInfo):
         using_csv: Path = Path('jobs/using.csv'),
         used_csv: Path = Path('jobs/used.csv'),
         ) -> None:
-        #### **Parameters**
-        #- `deploy_yaml` : the yaml file for host deploy.
-        #- `booking_csv`: the csv file for already booking.
-        #- `using_csv`: the csv file for already using.
-        #- `used_csv`: the csv file for already used.
-        ##### **Return**
-        #- `None`
+        '''
+        ### **Parameters**
+        - `deploy_yaml` : the yaml file for host deploy.
+        - `booking_csv`: the csv file for already booking.
+        - `using_csv`: the csv file for already using.
+        - `used_csv`: the csv file for already used.
+        #### **Return**
+        - `None`
+        '''
+        
         super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
 
     def check_student_id(self, student_id:str) -> bool:
-        #Check student_id that has in the *`self.users_config.id`*.
-        #### **Parameters**
-        #- `student_id` : user's account.
-        #### **Return**
-        #- `boolean`
+        '''
+        Check student_id that has in the *`self.users_config.id`*.
+        ### **Parameters**
+        - `student_id` : user's account.
+        ### **Return**
+        - `boolean`
+        '''
+        
         if self.users_config.ids[student_id] != None:
             return True
         else:
             return False
     
     def get_user_max_cap(self, student_id: str) -> BasicCapability:
-        #Search cap_info for student_id from the *`self.cap_config.max_default_capability`* / *`self.cap_config.max_custom_capability`*.
-        #### **Parameters**
-        #- `student_id` : user's account.
-        #### **Return**
-        #- `BasicCapability`
-        a=1
+        '''
+        Search cap_info for student_id from the *`self.cap_config.max_default_capability`* / *`self.cap_config.max_custom_capability`*.
+        # **Parameters**
+        - `student_id` : user's account.
+        # **Return**
+        - `BasicCapability`
+        '''
+        cpus = self.cap_config.max_default_capability.cpus/self.cap_config.max_custom_capability[student_id].cpus
+        memory = self.cap_config.max_default_capability.memory/self.cap_config.max_custom_capability[student_id].memory
+        gpus = self.cap_config.max_default_capability.gpus/self.cap_config.max_custom_capability[student_id].gpus
+        result = BasicCapability(cpus,memory,gpus)
+        return result
 
     def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
-        #Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
-        #### **Parameters**
-        #- `cap_info` : the user requires cpus, memory, gpus.
-        #- `booking_time`: the user requires start time & end time.
-        #- `user_config`: the user config information.
-        #### **Return**
-        #- `boolean`
+        '''
+        Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
+        ### **Parameters**
+        - `cap_info` : the user requires cpus, memory, gpus.
+        - `booking_time`: the user requires start time & end time.
+        - `user_config`: the user config information.
+        ### **Return**
+        - `boolean`
+        '''
+        
         a=1
     
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
-        #Search the fewer usages gpu_ids from *`self.booked_df`* in the `booking_time`.
-        #### **Parameters**
-        #- `gpus` : number of gpus required.
-        #- `booking_time`: the user requires start time & end time.
-        #### **Return**
-        #- `List[int]`: the available gpu devices id list.
+        '''
+        Search the fewer usages gpu_ids from *`self.booked_df`* in the `booking_time`.
+        ### **Parameters**
+        - `gpus` : number of gpus required.
+        - `booking_time`: the user requires start time & end time.
+        ### **Return**
+        - `List[int]`: the available gpu devices id list.
+        '''
         a=1
 
 if __name__ == '__main__':
