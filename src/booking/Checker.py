@@ -53,7 +53,7 @@ class Checker(HostInfo):
         - `None`
         '''
         #HostInfo.__init__(deploy_yaml, booking_csv, using_csv, used_csv)
-        super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
+        super().__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         self.booked_df = ScheduleDF.concat(HostInfo.booking, HostInfo.using)
         #? self. change to HostInfo.
 
@@ -141,7 +141,7 @@ class Checker(HostInfo):
     #? where is api?: def check_forward_port_empty()
 
 if __name__ == '__main__':
-    Checker = Checker(deploy_yaml=Path('cfg/test_host_deploy.yaml')
+    Checker = Checker(deploy_yaml=Path('cfg/host_deploy.yaml')
         ,booking_csv = Path('jobs/booking.csv')
         ,using_csv = Path('jobs/using.csv')
         ,used_csv = Path('jobs/used.csv')
