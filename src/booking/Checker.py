@@ -54,8 +54,8 @@ class Checker(HostInfo):
         '''
         #HostInfo.__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         super(HostInfo, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
-        #?self. change to HostInfo.
         self.booked_df = ScheduleDF.concat(HostInfo.booking, HostInfo.using)
+        #? self. change to HostInfo.
 
     def check_student_id(self, student_id:str) -> bool:
         '''
@@ -91,20 +91,22 @@ class Checker(HostInfo):
         - `boolean`
         '''
         #*只比gpu就好
-        #!csv read collon need change
+        #? check api : user_config not been used
         #self.booked_df 存了預約資料
-        df = self.booked_df['end']
+        df = self.booked_df
         for i in len(df['end']):
+            # del booking time before
             if df['end'][i] > booking_time.start :
-                del(df['end'][i])
-        using_cpus = 0
-        using_memory = 0
-        using_gpus = 0
-        for i in len(df['cpus','memory','gpus']):
-            using_cpus = using_cpus + df['cpus'][i]
-            using_memory = using_memory + df['memory'][i]
+                df = df.drop(index=[i])
+        for j in len(df['start']):
+            # del booking time after
+            if df['start'][j] > booking_time.end :
+                df = df.drop(index=[j])
+        using_gpus = []
+        for i in len(df['gpus']):
             using_gpus = using_gpus + df['gpus'][i]
-        return self.cap_config.max.cpus - using_cpus >= cap_info.cpus and self.cap_config.max.memory - using_memory >= cap_info.memory and self.cap_config.max.gpus - using_gpus >= cap_info.gpus
+        # retrun ((max) - (how many been used) >= (how many cap_info asked)) -> boolen
+        return self.cap_config.max.gpus - len(using_gpus) >= cap_info.gpus
     
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
         '''
@@ -116,14 +118,33 @@ class Checker(HostInfo):
         - `List[int]`: the available gpu devices id list.
         '''
         #* 將前幾張gpu先塞滿 所以編號小的gpu 先提供
-        df = self.booked_df['gpus']
+        # find booking_time imformation
+        df = self.booked_df
+        for i in len(df['end']):
+            # del booing before
+            if df['end'][i] > booking_time.start :
+                df = df.drop(index=[i])
+        for j in len(df['start']):
+            # del booking after
+            if df['start'][j] > booking_time.end :
+                df = df.drop(index=[j])
+        # del using gpus
         gpu_id = [0,1,2,3,4,5,6,7]
-        #search booking_time using gpu and remove
-        gpu_id.remove(df)
-        return gpu_id
+        for i in df['gpus']:    # [[0,1],[2,3]]
+            for j in i:     # [0,1]
+                for k in j:     # 0 1
+                    gpu_id.remove(k)
+        # return gpu list been asked start from 0 to gpus
+        #? do I need to check was it satisfy the config?
+        return gpu_id[0:gpus]
+    
+    #? where is api?: def check_forward_port_empty()
 
 if __name__ == '__main__':
-    HostInfo = HostInfo(deploy_yaml=Path('cfg/test_host_deploy.yaml'))
-    Checker = Checker(HostInfo)
+    Checker = Checker(deploy_yaml=Path('cfg/test_host_deploy.yaml')
+        ,booking_csv = Path('jobs/booking.csv')
+        ,using_csv = Path('jobs/using.csv')
+        ,used_csv = Path('jobs/used.csv')
+        )
     print(Checker.booked_df)
     print('123')
