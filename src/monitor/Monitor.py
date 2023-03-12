@@ -2,15 +2,15 @@ import sys
 import time
 import os
 import pandas as pd
+import numpy as np
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Tuple
 
-if __name__ == "__main__":
-    sys.path.append(str(Path(__file__).resolve().parents[2]))
-    from run_container import run_container
-    from lib.WordOperator import str_format
-    from src.HostInfo import BasicCapability, BookingTime, HostInfo, ScheduleColumnNames, ScheduleDF, UserConfig
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+from run_container import run_container
+from lib.WordOperator import str_format
+from src.HostInfo import BasicCapability,BookingTime,HostInfo,ScheduleColumnNames,ScheduleDF,UserConfig 
 
 
 class MonitorMassage:
@@ -21,10 +21,9 @@ class MonitorMassage:
 
     def __init__(self, path: Path = Path("src/jobs/monitor.log")) -> None:
         self.log_path = path
-        # self.__name__ = "MonitorMassage"
 
     def update_log(self, status: str, msg: str, sign) -> bool:
-        with open(self.log_path, 'a') as f:
+        with open(self.log_path, "a") as f:
             timeStr = time.strftime("%Y%m%d %H:%M", time.localtime())
             if sign == None:
                 history = f"{timeStr} {status} {msg}\n"
@@ -77,11 +76,11 @@ class Monitor(HostInfo):
 
     def __init__(
         self,
-        deploy_yaml: Path = Path('cfg/host_deploy.yaml'),
-        booking_csv: Path = Path('jobs/booking.csv'),
-        using_csv: Path = Path('jobs/using.csv'),
-        used_csv: Path = Path('jobs/used.csv'),
-        log_path: Path = Path('jobs/monitor.log'),
+        deploy_yaml: Path = Path("cfg/host_deploy.yaml"),
+        booking_csv: Path = Path("jobs/booking.csv"),
+        using_csv: Path = Path("jobs/using.csv"),
+        used_csv: Path = Path("jobs/used.csv"),
+        log_path: Path = Path("jobs/monitor.log"),
         *args,
         **kwargs,
     ) -> None:
@@ -94,6 +93,25 @@ class Monitor(HostInfo):
                 size += os.path.getsize(os.path.join(root, f))
         return size
 
+    def check_gpus_duplicate(self, run_df):
+        df = self.used.df
+        count = []
+        for i in range(len(df)):
+            count.extend(df["gpus"].iloc[i])
+        u, c = np.unique(count, return_counts=True)
+        dup = u[c > 1]
+        dup_ids = []
+        for k in range(len(df)):
+            for ele in dup:
+                if ele in df["gpus"].iloc[k]:
+                    dup_ids.append(df["user_id"].iloc[k])
+        dup_ids = list(set(dup_ids))
+        # print(f"{dup_ids} GPU duplicate")
+        self.msg.warning(
+            sign=GPUDuplicateWarning.__name__,
+            msg=f"{dup_ids} containers encounter GPU duplicate",
+        )
+
     def check_space(self, user_id) -> bool:
         if self.cap_config.max_custom_capability.get(user_id) == None:  # user is not in custom config
             user_backup_capacity = self.cap_config.max_default_capability.backup_space
@@ -102,8 +120,14 @@ class Monitor(HostInfo):
             user_backup_capacity = self.cap_config.max_custom_capability[user_id].backup_space
             user_work_capcity = self.cap_config.max_custom_capability[user_id].work_space
         try:
-            backup_capacity = round(self.__get_dir_size(path=self.users_config.ids[user_id].volume_backup_dir) / (1000**3), 2)  # Gb
-            work_capacity = round(self.__get_dir_size(path=self.users_config.ids[user_id].volume_work_dir) / (1000**3), 2)
+            backup_capacity = round(
+                self.__get_dir_size(path=self.users_config.ids[user_id].volume_backup_dir) / (1000**3),
+                2,
+            )  # Gb
+            work_capacity = round(
+                self.__get_dir_size(path=self.users_config.ids[user_id].volume_work_dir) / (1000**3),
+                2,
+            )
             backup_over_used = backup_capacity - user_backup_capacity
             work_over_used = work_capacity - user_work_capcity
         except:
@@ -141,17 +165,32 @@ class Monitor(HostInfo):
         return result_ls
 
     def run_containers(self, run_df: pd.DataFrame) -> List:
-        
-        # result_ls:  List
-        # ...
-        # task: NamedTuple
-        # for task in run_df.itertuples(index=False, name=None):
-        #     ...
-        #     result = run_container(..., **task._asdict())
-        #     self.msg.info(...)
-        #     ...
-        #     ...
-        #     return result_ls
+        result_ls: List
+        task: NamedTuple
+
+        result_ls = []
+
+        for task in run_df.itertuples(index=False, name=None):
+            # print(task[2:])
+            # print(getattr(task, "user_id"))
+            user_id, cpus, memory, gpus, forward_port, image, extra_command = task[2:]
+            # print(user_id, cpus, memory, gpus, forward_port, image, extra_command)
+            try:
+                result = run_container(
+                    user_id=user_id,
+                    cpus=cpus,
+                    memory=memory,
+                    gpus=gpus,
+                    forward_port=forward_port,
+                    image=image,
+                    extra_command=extra_command,
+                )
+                result_ls.append(True)
+                self.msg.info(msg=f"Container {user_id} have been ran successfully")
+            except:
+                self.msg.error(sign="ContainerError", msg=f"Fail to run container {user_id}")
+                result_ls.append(False)
+            return result_ls
         ...
 
     def update_tasks(self) -> List[str] and pd.DataFrame:
@@ -173,7 +212,10 @@ class Monitor(HostInfo):
                     self.msg.info(msg=f"Successfully update {remove_ids} from using to used")
                     break
         except:
-            self.msg.error(sign="updateError", msg=f"fail to update {remove_ids} from using to used")
+            self.msg.error(
+                sign="updateError",
+                msg=f"fail to update {remove_ids} from using to used",
+            )
         move_to_using = pd.DataFrame(columns=self.used.df.columns)
         sorted_booking = self.booking.df.sort_values(by="start", ascending=False)  # sort by the starting time from big to small
         sorted_booking.reset_index(drop=True, inplace=True)  # reset the index
@@ -192,7 +234,10 @@ class Monitor(HostInfo):
                     self.msg.info(msg=f"Successfully update {move_to_using_ids} from booking to using")
                     break
         except:
-            self.msg.error(sign="updateError", msg=f"fail to update {move_to_using_ids} from booking to using")
+            self.msg.error(
+                sign="updateError",
+                msg=f"fail to update {move_to_using_ids} from booking to using",
+            )
 
         return (remove_ids, move_to_using)
 
@@ -202,24 +247,23 @@ class Monitor(HostInfo):
         task_df: pd.DataFrame
         run_df: pd.DataFrame
 
+        run_df = pd.DataFrame(columns=self.used.df.columns)
         close_ls, task_df = self.update_tasks()
         self.close_containers(close_ls)
-
-        ...
-        check_ls = [self.check_space() for user_id in task_df[ScheduleColumnNames.user_id]]
-        print(check_ls)
-        run_df = ...  # use check_ls to select it.
-
-        self.run_containers(run_df)
-        ...
+        check_ls = [self.check_space(user_id) for user_id in task_df[ScheduleColumnNames.user_id]]
+        for i in range(len(task_df)):
+            if check_ls[i] == True:
+                run_df.loc[len(run_df.index)] = task_df.iloc[i]
+        self.run_containers(task_df)
+        # os.system(f"docker exec {user_id} echo 'info' > N/run_echo")
+        self.check_gpus_duplicate(run_df)
 
 
 aa = Monitor(
-    deploy_yaml='cfg/test_host_deploy.yaml',
-    booking_csv='jobs/booking.csv',
-    using_csv='jobs/using.csv',
-    used_csv='jobs/used.csv',
-    log_path='jobs/monitor.log',
+    deploy_yaml="cfg/test_host_deploy.yaml",
+    booking_csv="jobs/booking.csv",
+    using_csv="jobs/using.csv",
+    used_csv="jobs/used.csv",
+    log_path="jobs/monitor.log",
 )
-# aa.check_space("m11007s05-7")
-aa.update_tasks()
+aa.exec()
