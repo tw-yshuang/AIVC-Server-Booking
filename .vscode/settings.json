@@ -24,5 +24,13 @@
       "style": "asterisk"
     }
   },
-  "cSpell.words": ["aivc", "cpus", "Dataframe", "isexists", "nparray", "rober"]
+  "cSpell.words": [
+    "aivc",
+    "cpus",
+    "Dataframe",
+    "isexists",
+    "isna",
+    "nparray",
+    "rober"
+  ]
 }

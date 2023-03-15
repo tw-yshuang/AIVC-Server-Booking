@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import click
+from pandas import isna
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
@@ -155,6 +156,10 @@ def run_container(
     *args,
     **kwargs,
 ) -> None:
+
+    # the value of image & extra_command maybe is nan, pd.NA, np.nan ..., use this method to convert it first.
+    image = None if isna(image) else image
+    extra_command = None if isna(extra_command) else extra_command
 
     image, exec_command, ram_size, volumes_ls = prepare_deploy(user_config, cap_max, memory, image, extra_command)
 
