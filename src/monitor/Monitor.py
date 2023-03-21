@@ -7,10 +7,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Tuple
 
-sys.path.append(str(Path(__file__).resolve().parents[2]))
+if __name__ == "__main__":
+    sys.path.append(str(Path(__file__).resolve().parents[2]))
 from run_container import run_container
 from lib.WordOperator import str_format
-from src.HostInfo import BasicCapability,BookingTime,HostInfo,ScheduleColumnNames,ScheduleDF,UserConfig 
+from src.HostInfo import BasicCapability, BookingTime, HostInfo, ScheduleColumnNames, ScheduleDF, UserConfig, MaxCapability
 
 
 class MonitorMassage:
@@ -94,25 +95,25 @@ class Monitor(HostInfo):
         return size
 
     def check_gpus_duplicate(self, run_df):
-        df = self.used.df
         count = []
-        for i in range(len(df)):
-            count.extend(df["gpus"].iloc[i])
+        for i in range(len(run_df)):
+            count.extend(run_df["gpus"].iloc[i])
         u, c = np.unique(count, return_counts=True)
         dup = u[c > 1]
         dup_ids = []
-        for k in range(len(df)):
+        for k in range(len(run_df)):
             for ele in dup:
-                if ele in df["gpus"].iloc[k]:
-                    dup_ids.append(df["user_id"].iloc[k])
+                if ele in run_df["gpus"].iloc[k]:
+                    dup_ids.append(run_df["user_id"].iloc[k])
         dup_ids = list(set(dup_ids))
-        # print(f"{dup_ids} GPU duplicate")
-        self.msg.warning(
-            sign=GPUDuplicateWarning.__name__,
-            msg=f"{dup_ids} containers encounter GPU duplicate",
-        )
+        if dup_ids != []:
+            self.msg.warning(
+                sign=GPUDuplicateWarning.__name__,
+                msg=f"{dup_ids} containers encounter GPU duplicate",
+            )
 
     def check_space(self, user_id) -> bool:
+        user_id = user_id.lower()
         if self.cap_config.max_custom_capability.get(user_id) == None:  # user is not in custom config
             user_backup_capacity = self.cap_config.max_default_capability.backup_space
             user_work_capcity = self.cap_config.max_default_capability.work_space
@@ -151,9 +152,10 @@ class Monitor(HostInfo):
     def close_containers(self, user_ids: List) -> List:
         result_ls = []
         for id in user_ids:  # user_ids is a list which contains ids need to be remove
+            id = id.lower()
             os.system(f"docker exec {id} python3 /root/Backup/.container_backup.py")
             os.system(f"docker container stop {id}")
-            cmdInfo = os.system(f"docker container remove {id}")
+            cmdInfo = os.system(f"docker container rm {id}")
             if cmdInfo == 0:  # success
                 self.msg.info(msg=f"Container {id} have been closed successfully")
                 result_ls.append(True)
@@ -167,14 +169,10 @@ class Monitor(HostInfo):
     def run_containers(self, run_df: pd.DataFrame) -> List:
         result_ls: List
         task: NamedTuple
-
         result_ls = []
-
         for task in run_df.itertuples(index=False, name=None):
-            # print(task[2:])
-            # print(getattr(task, "user_id"))
             user_id, cpus, memory, gpus, forward_port, image, extra_command = task[2:]
-            # print(user_id, cpus, memory, gpus, forward_port, image, extra_command)
+            user_id = user_id.lower()
             try:
                 result = run_container(
                     user_id=user_id,
@@ -184,14 +182,15 @@ class Monitor(HostInfo):
                     forward_port=forward_port,
                     image=image,
                     extra_command=extra_command,
+                    cap_max=self.cap_config.max,
+                    user_config=self.users_config.ids[user_id],
                 )
                 result_ls.append(True)
                 self.msg.info(msg=f"Container {user_id} have been ran successfully")
             except:
                 self.msg.error(sign="ContainerError", msg=f"Fail to run container {user_id}")
                 result_ls.append(False)
-            return result_ls
-        ...
+        return result_ls
 
     def update_tasks(self) -> List[str] and pd.DataFrame:
         remove_ids = []
@@ -246,24 +245,25 @@ class Monitor(HostInfo):
         check_ls: List[bool]
         task_df: pd.DataFrame
         run_df: pd.DataFrame
+        run_df = pd.DataFrame(columns=self.using.df.columns)
 
-        run_df = pd.DataFrame(columns=self.used.df.columns)
         close_ls, task_df = self.update_tasks()
         self.close_containers(close_ls)
         check_ls = [self.check_space(user_id) for user_id in task_df[ScheduleColumnNames.user_id]]
         for i in range(len(task_df)):
             if check_ls[i] == True:
                 run_df.loc[len(run_df.index)] = task_df.iloc[i]
-        self.run_containers(task_df)
+        self.run_containers(run_df)
         # os.system(f"docker exec {user_id} echo 'info' > N/run_echo")
         self.check_gpus_duplicate(run_df)
 
 
-aa = Monitor(
-    deploy_yaml="cfg/test_host_deploy.yaml",
-    booking_csv="jobs/booking.csv",
-    using_csv="jobs/using.csv",
-    used_csv="jobs/used.csv",
-    log_path="jobs/monitor.log",
-)
-aa.exec()
+if __name__ == '__main__':
+    test = Monitor(
+        deploy_yaml="cfg/test_host_deploy.yaml",
+        booking_csv="jobs/booking.csv",
+        using_csv="jobs/using.csv",
+        used_csv="jobs/used.csv",
+        log_path="jobs/monitor.log",
+    )
+    test.exec()

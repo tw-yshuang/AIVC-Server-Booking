@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Tuple
 
 import click
+from pandas import isna
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
@@ -156,15 +157,19 @@ def run_container(
     **kwargs,
 ) -> None:
 
+    # the value of image & extra_command maybe is nan, pd.NA, np.nan ..., use this method to convert it first.
+    image = None if isna(image) else image
+    extra_command = None if isna(extra_command) else extra_command
+
     image, exec_command, ram_size, volumes_ls = prepare_deploy(user_config, cap_max, memory, image, extra_command)
 
     run(user_id, forward_port, cpus, memory, gpus, image, exec_command, ram_size, volumes_ls)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
-@click.option('-id', '--user-id', help=help_dict['user_id'], required=True)
-@click.option('-pw', '--password', help=help_dict['pw'], required=True)
-@click.option('-fp', '--forward-port', help=help_dict['fp'], required=True)
+@click.option('-id', '--user-id', help=help_dict['user_id'], required=True, prompt=True)
+@click.option('-pw', '--password', help=help_dict['pw'], required=True, prompt="Please enter the Password", hide_input=True)
+@click.option('-fp', '--forward-port', help=help_dict['fp'], required=True, prompt=True)
 @click.option('-cpus', show_default=True, default=8, help=help_dict['cpus'])
 @click.option('-mem', '--memory', show_default=True, default=32, help=help_dict['mem'])
 @click.option('-gpus', show_default=True, default='0', help=help_dict['gpus'])
@@ -183,7 +188,6 @@ def cli(
     **kwargs,
 ) -> None:
     '''Repository: https://github.com/tw-yshuang/AIVC-Server-Booking
-
     Examples:
     >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10000'''
 
