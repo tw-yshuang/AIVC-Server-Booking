@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, NamedTuple, Tuple
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.path.append(str(Path(__file__).resolve().parents[2]))
 from run_container import run_container
 from lib.WordOperator import str_format
@@ -16,46 +16,46 @@ from src.HostInfo import BasicCapability, BookingTime, HostInfo, ScheduleColumnN
 
 class MonitorMassage:
     # STATUS
-    ERROR: str = "[ERROR]"
-    WARING: str = "[WARNING]"
-    INFO: str = "[INFO]"
+    ERROR: str = '[ERROR]'
+    WARING: str = '[WARNING]'
+    INFO: str = '[INFO]'
 
-    def __init__(self, path: Path = Path("src/jobs/monitor.log")) -> None:
+    def __init__(self, path: Path = Path('src/jobs/monitor.log')) -> None:
         self.log_path = path
 
     def update_log(self, status: str, msg: str, sign) -> bool:
-        with open(self.log_path, "a") as f:
-            timeStr = time.strftime("%Y%m%d %H:%M", time.localtime())
+        with open(self.log_path, 'a') as f:
+            timeStr = time.strftime('%Y%m%d %H:%M', time.localtime())
             if sign == None:
-                history = f"{timeStr} {status} {msg}\n"
+                history = f'{timeStr} {status} {msg}\n'
             else:
-                history = f"{timeStr} {status} {sign}, {msg}\n"
+                history = f'{timeStr} {status} {sign}, {msg}\n'
             f.write(history)
 
     def warning(self, sign: Warning, msg) -> None:
         self.update_log(self.WARING, msg, sign)
-        timeStr = time.strftime("%Y%m%d %H:%M", time.localtime())
+        timeStr = time.strftime('%Y%m%d %H:%M', time.localtime())
         send_msg = f"{timeStr} {self.WARING} {sign}, {msg}\n"
-        send_msg = str_format(send_msg, fore="y")
+        send_msg = str_format(send_msg, fore='y')
         print(send_msg)
 
     def info(self, msg: str) -> None:
         self.update_log(self.INFO, msg, sign=None)
-        timeStr = time.strftime("%Y%m%d %H:%M", time.localtime())
+        timeStr = time.strftime('%Y%m%d %H:%M', time.localtime())
         send_msg = f"{timeStr} {self.INFO} {msg}\n"
-        send_msg = str_format(send_msg, fore="g")
+        send_msg = str_format(send_msg, fore='g')
         print(send_msg)
 
     def error(self, sign, msg: str) -> None:
         self.update_log(self.ERROR, msg, sign)
-        timeStr = time.strftime("%Y%m%d %H:%M", time.localtime())
+        timeStr = time.strftime('%Y%m%d %H:%M', time.localtime())
         send_msg = f"{timeStr} {self.ERROR} {sign}, {msg}\n"
-        send_msg = str_format(send_msg, fore="r")
+        send_msg = str_format(send_msg, fore='r')
         print(send_msg)
 
 
 class SpaceWarning(Warning):
-    def __init__(self, path: Path = Path("jobs/monitor.log")) -> None:
+    def __init__(self, path: Path = Path('jobs/monitor.log')) -> None:
         super().__init__(path)
         self.__name__ = "SpaceWarning"
 
@@ -77,11 +77,11 @@ class Monitor(HostInfo):
 
     def __init__(
         self,
-        deploy_yaml: Path = Path("cfg/host_deploy.yaml"),
-        booking_csv: Path = Path("jobs/booking.csv"),
-        using_csv: Path = Path("jobs/using.csv"),
-        used_csv: Path = Path("jobs/used.csv"),
-        log_path: Path = Path("jobs/monitor.log"),
+        deploy_yaml: Path = Path('cfg/host_deploy.yaml'),
+        booking_csv: Path = Path('jobs/booking.csv'),
+        using_csv: Path = Path('jobs/using.csv'),
+        used_csv: Path = Path('jobs/used.csv'),
+        log_path: Path = Path('jobs/monitor.log'),
         *args,
         **kwargs,
     ) -> None:
@@ -97,14 +97,14 @@ class Monitor(HostInfo):
     def check_gpus_duplicate(self, run_df):
         count = []
         for i in range(len(run_df)):
-            count.extend(run_df["gpus"].iloc[i])
+            count.extend(run_df['gpus'].iloc[i])
         u, c = np.unique(count, return_counts=True)
         dup = u[c > 1]
         dup_ids = []
         for k in range(len(run_df)):
             for ele in dup:
-                if ele in run_df["gpus"].iloc[k]:
-                    dup_ids.append(run_df["user_id"].iloc[k])
+                if ele in run_df['gpus'].iloc[k]:
+                    dup_ids.append(run_df['user_id'].iloc[k])
         dup_ids = list(set(dup_ids))
         if dup_ids != []:
             self.msg.warning(
@@ -136,7 +136,7 @@ class Monitor(HostInfo):
             self.msg.error(sign="PathError", msg=send_msg)
             return False
 
-        # print(f"backup:{backup_over_used}Gb, work:{work_over_used}Gb")
+        # print(f'backup:{backup_over_used}Gb, work:{work_over_used}Gb')
         if (work_over_used > 0) and (backup_over_used > 0):
             send_msg = f"{user_id} is over-use the work_dir {work_over_used}GB, and backup_dir {backup_over_used}GB."
         elif work_over_used < 0 and backup_over_used > 0:
@@ -153,9 +153,9 @@ class Monitor(HostInfo):
         result_ls = []
         for id in user_ids:  # user_ids is a list which contains ids need to be remove
             id = id.lower()
-            os.system(f"docker exec {id} python3 /root/Backup/.container_backup.py")
-            os.system(f"docker container stop {id}")
-            cmdInfo = os.system(f"docker container rm {id}")
+            os.system(f'docker exec {id} python3 /root/Backup/.container_backup.py')
+            os.system(f'docker container stop {id}')
+            cmdInfo = os.system(f'docker container rm {id}')
             if cmdInfo == 0:  # success
                 self.msg.info(msg=f"Container {id} have been closed successfully")
                 result_ls.append(True)
@@ -194,9 +194,9 @@ class Monitor(HostInfo):
 
     def update_tasks(self) -> List[str] and pd.DataFrame:
         remove_ids = []
-        sorted_using = self.using.df.sort_values(by="end", ascending=False)  # sort by the ending time from big to small
+        sorted_using = self.using.df.sort_values(by='end', ascending=False)  # sort by the ending time from big to small
         sorted_using.reset_index(drop=True, inplace=True)  # reset the index
-        using_end_dates = sorted_using["end"]
+        using_end_dates = sorted_using['end']
         t_now = datetime.now()
         try:
             for i in range(0, len(using_end_dates), 1):  # find the
@@ -207,7 +207,7 @@ class Monitor(HostInfo):
                     self.used.update_csv()
                     self.using.df = sorted_using.loc[sorted_using[0:i].index].copy()
                     self.using.update_csv()
-                    remove_ids = move_to_used["user_id"].tolist()
+                    remove_ids = move_to_used['user_id'].tolist()
                     self.msg.info(msg=f"Successfully update {remove_ids} from using to used")
                     break
         except:
@@ -216,9 +216,9 @@ class Monitor(HostInfo):
                 msg=f"fail to update {remove_ids} from using to used",
             )
         move_to_using = pd.DataFrame(columns=self.used.df.columns)
-        sorted_booking = self.booking.df.sort_values(by="start", ascending=False)  # sort by the starting time from big to small
+        sorted_booking = self.booking.df.sort_values(by='start', ascending=False)  # sort by the starting time from big to small
         sorted_booking.reset_index(drop=True, inplace=True)  # reset the index
-        booking_start_dates = sorted_booking["start"]
+        booking_start_dates = sorted_booking['start']
         t_now = datetime.now()
         try:
             for i in range(0, len(booking_start_dates), 1):
@@ -229,7 +229,7 @@ class Monitor(HostInfo):
                     self.using.update_csv()
                     self.booking.df = sorted_booking.loc[sorted_booking[0:i].index].copy()
                     self.booking.update_csv()
-                    move_to_using_ids = move_to_using["user_id"].to_list()
+                    move_to_using_ids = move_to_using['user_id'].to_list()
                     self.msg.info(msg=f"Successfully update {move_to_using_ids} from booking to using")
                     break
         except:
@@ -254,16 +254,16 @@ class Monitor(HostInfo):
             if check_ls[i] == True:
                 run_df.loc[len(run_df.index)] = task_df.iloc[i]
         self.run_containers(run_df)
-        # os.system(f"docker exec {user_id} echo 'info' > N/run_echo")
+        # os.system(f'docker exec {user_id} echo 'info' > N/run_echo')
         self.check_gpus_duplicate(run_df)
 
 
 if __name__ == '__main__':
     test = Monitor(
-        deploy_yaml="cfg/test_host_deploy.yaml",
-        booking_csv="jobs/booking.csv",
-        using_csv="jobs/using.csv",
-        used_csv="jobs/used.csv",
-        log_path="jobs/monitor.log",
+        deploy_yaml='cfg/test_host_deploy.yaml',
+        booking_csv='jobs/booking.csv',
+        using_csv='jobs/using.csv',
+        used_csv='jobs/used.csv',
+        log_path='jobs/monitor.log',
     )
     test.exec()
