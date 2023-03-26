@@ -243,7 +243,7 @@ if use_options is True:
 ### *`booking()`*
 
 ```python
-def booking(user_id:str, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig, booking_csv: Path = Path('jobs/booking.csv')) -> bool:
+def booking(user_id:str, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
 ```
 
 #### **Parameters**
@@ -252,7 +252,6 @@ def booking(user_id:str, cap_info: BasicCapability, booking_time: BookingTime, u
 - `cap_info`: cpus, memory, gpus.
 - `booking_time`: checked available times.
 - `user_config`: the config for this user_id.
-- `booking_csv`: the csv for booking, default: 'jobs/booking.csv'.
 
 #### **Return**
 
@@ -269,7 +268,6 @@ def booking(user_id:str, cap_info: BasicCapability, booking_time: BookingTime, u
     `cap_info`: cpus, memory, gpus.
     `booking_time`: checked available times.
     `user_config`: the config for this user_id.
-    `booking_csv`: the csv for booking, default: 'jobs/booking.csv'.
     '''
     ...
 ```

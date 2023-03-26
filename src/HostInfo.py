@@ -90,8 +90,8 @@ class MaxCapability:
     swap_size: int
     gpus: int
 
-    shm_rate: int
-    memory: int
+    shm_rate: int  # swap_size / ram if swap_size != 0 else 1
+    memory: int  # ram + swap_size
 
     def __init__(self, max_dict: dict) -> None:
         for k, v in max_dict.items():
@@ -122,6 +122,9 @@ class BasicCapability:
         cap_str_ls = ['cpus', 'memory', 'gpus', 'backup_space', 'work_space']
         for cap_str in cap_str_ls:
             cap_value = locals()[cap_str]
+            if cap_value is None:
+                continue
+
             cap_value_type = type(cap_value)
             if cap_value_type is int or cap_value_type is float:
                 setattr(self, cap_str, cap_value)
@@ -265,4 +268,3 @@ if __name__ == '__main__':
 
     sch_df = ScheduleDF('./cfg/templates/test_schedule.csv')
     print(type(sch_df.df['gpus'][0]))
-    print('aa')
