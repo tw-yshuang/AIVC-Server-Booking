@@ -394,11 +394,4 @@ def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, 
 
 
 if __name__ == '__main__':
-    # sys.argv = ['booking.py', '-id', 'm11007s05-2', '-use-opt']
     cli()
-
-    # cap_info = __get_caps_info('m11007s05-3')
-
-    # booking_time = __get_bookingtime()
-    # print(f"start: {booking_time.start}")
-    # print(f"end: {booking_time.end}")

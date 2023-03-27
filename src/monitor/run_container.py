@@ -219,24 +219,3 @@ def cli(
 
 if __name__ == '__main__':
     cli()
-
-    # # ? for test.
-
-    # user_id = 'm11007s05-4'
-    # user_config = UserConfig(
-    #     password='0000',
-    #     forward_port='2224',
-    #     volume_work_dir=f'{HostDI.volume_work_dir}/{user_id}',
-    #     volume_backup_dir=f'{HostDI.volume_backup_dir}/{user_id}',
-    #     volume_dataset_dir=HostDI.volume_dataset_dir,
-    # )
-
-    # run_container(
-    #     user_id,
-    #     user_config.forward_port,
-    #     cpus=8,
-    #     memory=16,
-    #     gpus=[0],
-    #     user_config=user_config,
-    #     cap_max=CapabilityConfig(HostDI.capability_config_yaml).max,
-    # )

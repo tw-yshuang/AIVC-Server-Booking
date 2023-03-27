@@ -257,14 +257,3 @@ class Monitor(HostInfo):
         self.run_containers(run_df)
         # os.system(f'docker exec {user_id} echo 'info' > N/run_echo')
         self.check_gpus_duplicate(run_df)
-
-
-# if __name__ == '__main__':
-#     test = Monitor(
-#         deploy_yaml= PROJECT_DIR / 'cfg/test_host_deploy.yaml',
-#         booking_csv= PROJECT_DIR / 'jobs/booking.csv',
-#         using_csv= PROJECT_DIR / 'jobs/using.csv',
-#         used_csv= PROJECT_DIR / 'jobs/used.csv',
-#         log_path= PROJECT_DIR / 'jobs/monitor.log',
-#     )
-#     test.exec()
