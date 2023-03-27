@@ -21,7 +21,7 @@ from Checker import Checker
 from lib.WordOperator import str_format, ask_yn
 from HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
 
-checker = Checker(deploy_yaml='cfg/test_host_deploy.yaml')
+checker = Checker(deploy_yaml=f'{PROJECT_DIR}/cfg/test_host_deploy.yaml')
 
 # Check Whether user_id is in custom_user or not.
 MIN_CPUS: float = 1
@@ -42,7 +42,7 @@ MAX_DAY: int = 14
 def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False) -> bool:
     # if user input -ls True
     if list_schedule:
-        print(checker.booking.df.sort_values(by='start', ignore_index=True))
+        print(checker.booked_df.sort_values(by='start', ignore_index=True).to_string())
         return False
 
     if user_id == '':
@@ -67,7 +67,7 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
             isWrong = False  # login successfully
             break
         else:
-            print("Wrong password!! ", end='')
+            print("Wrong password!!")
     if isWrong:
         print("ByeBye~~")  # login failed
         return False
@@ -390,7 +390,7 @@ def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, 
 
 
 if __name__ == '__main__':
-    sys.argv = ['booking.py', '-id', 'm11007s05-2', '-use-opt']
+    # sys.argv = ['booking.py', '-id', 'm11007s05-2', '-use-opt']
     cli()
 
     # cap_info = __get_caps_info('m11007s05-3')

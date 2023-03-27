@@ -35,7 +35,7 @@ Before booking AIVC's server, there is something you should know ......
 
 1. Ask the host maintainer for a new account first. Every account has default limitations of resources. If you want more, you can go to discuss with the host maintainer.
 
-2. You will be forbidden to access the server if your used space is out of range. You must sort out your memory space before using the server.
+2. You will be forbidden to access the server if your used space is out of range. You must sort out your disk space before using the server.
 
 3. Every container is removed after it runs out of time to release the computing resources being utilized.
 
@@ -88,32 +88,48 @@ The following steps show that how to change the terminal's font in Vscode :
 
 ## **3. Booking Usage**
 
-In this topic, I will instruct the operations of booking step by step including the booking method, and describe extra options.  
+In this topic, I will instruct the operations of booking step by step including the booking method, and describe extra options.
+
+### **SSH to the Booking Interface**
+
+```bash
+ssh booking@XXX.XXX.XXX.XXX -p 10000
+
+# Ask Host Maintainer(MLOps) the password
+# booking@XXX.XXX.XXX.XXX's password:
+```
 
 ### **CLI Commands**
 
 `-h` or `--help`: Get the manpage about this system.
 
-  ```zsh
-  python3 booking.py -h
-  ```
+```zsh
+booking@c548116f2832:~$ booking -h
+Usage: booking [OPTIONS]
+
+Options:
+  -id, --user-id TEXT      user's account.
+  -use-opt, --use-options  use extra options.
+  -ls, --list-schedule     list schedule that already booking.
+  -h, --help               Show this message and exit.
+```
 
 `-ls` or `--list-schedule`:   List the all booked schedules.
 
-  ```zsh
-  python3 booking.py -ls
-  ```
+```zsh
+booking -ls
+```
 
 `id` or `--user-id`: Log in the system to book the server.
 
 ```zsh
-python3 booking.py -id <user_id>
+booking -id <user_id>
 ```
 
 `-use-opt` or `--use-options`: Update user's config.
 
 ```zsh
-python3 booking.py -use-opt <user_id>
+booking -id <user_id> -use-opt
 ```
 
 Notice that you should ask the host maintainer for an account first before accessing this system.
@@ -130,12 +146,12 @@ After that, describe how many resources the container requires :
 
 ```bash
 Your Maximum Capability Information: 
-{ cpus:xx, memory:xx, gpus:xx }
+cpus=xx, memory=xx, gpus=xx
 Please enter the capability information 'cpus(float) memory(int) gpus(int)': 
 ```
 
-As shown above, the first line shows the maximum limitations of **CPUs**, **Memories**, and **GPUs**.
-All inputs **cannot be lower than 1**. Lower ones are forbidden.
+As shown above, the first line shows the maximum limitations of **CPUs**, **Memory**, and **GPUs**.
+**CPUs & Memory cannot be lower than 1, GPUs cannot be lower than 0**.
 
 The final step is to select when you want to run the container and its end time. There are some limits you should know :
 
@@ -159,7 +175,7 @@ After the system has already checked that the computing resources are affordable
 
 #### **II. Update Account Setting**
 
-The system will prompt you to confirm  whether you want to modify the `forward_port`. The `forward_port` must be assigned a value between **10000** and **11000**. Why we choose this range because the `forward_port` in this range isn't related to critical features.  Additionally, the system will automatically check whether the `forward_port` you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
+The system will prompt you to confirm  whether you want to modify the `forward_port`. The `forward_port` must be assigned a value between **10001** and **11000**. Why we choose this range because the `forward_port` in this range isn't related to critical features.  Additionally, the system will automatically check whether the `forward_port` you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
 
 ```zsh
 Please enter the forward port(default: xxxxx, none by default):
@@ -194,7 +210,7 @@ The previous setting is for the once, do you want to update the default config?
 ## **4. Extra Useful Packages Introduction**  
 
 After instructions, I recommend some packages and commands to you, which are useful for development.  
-*( Here's a brief introduction. If you want to realize more, you can click the package name to view the detail.)*
+*( Here's a briefly introduction. If you want to realize more, you can click the package name to view the detail.)*
 
 ### Environment Setting
 

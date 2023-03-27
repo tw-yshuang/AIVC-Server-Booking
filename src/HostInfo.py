@@ -7,6 +7,9 @@ from dataclasses import dataclass, asdict
 import yaml
 import pandas as pd
 
+PROJECT_DIR = Path(__file__).resolve().parents[1]
+
+
 # https://github.com/yaml/pyyaml/issues/127#issuecomment-525800484
 class CustomDumper(yaml.SafeDumper):
     def write_line_break(self, data=None):
@@ -236,13 +239,13 @@ class HostInfo:
     ) -> None:
         super(HostInfo, self).__init__(*args, **kwargs)
 
-        self.deploy_info = HostDeployInfo(deploy_yaml)
-        self.cap_config = CapabilityConfig(self.deploy_info.capability_config_yaml)
-        self.users_config = UsersConfig(self.deploy_info.users_config_yaml)
+        self.deploy_info = HostDeployInfo(PROJECT_DIR / deploy_yaml)
+        self.cap_config = CapabilityConfig(PROJECT_DIR / self.deploy_info.capability_config_yaml)
+        self.users_config = UsersConfig(PROJECT_DIR / self.deploy_info.users_config_yaml)
 
-        self.booking = ScheduleDF(booking_csv)
-        self.using = ScheduleDF(using_csv)
-        self.used = ScheduleDF(used_csv)
+        self.booking = ScheduleDF(PROJECT_DIR / booking_csv)
+        self.using = ScheduleDF(PROJECT_DIR / using_csv)
+        self.used = ScheduleDF(PROJECT_DIR / used_csv)
 
 
 if __name__ == '__main__':

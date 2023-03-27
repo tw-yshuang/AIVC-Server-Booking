@@ -1,5 +1,5 @@
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import timedelta
 from typing import List
 
 import pandas as pd
