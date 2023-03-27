@@ -75,6 +75,10 @@ class UsersConfig:
     def get_users_config(yaml_file='cfg/users_config.yaml') -> Dict[str, UserConfig]:
         users_dict = load_yaml(yaml_file)
         users_config = {}
+
+        if users_dict is None:
+            return users_config
+
         for k, v in users_dict.items():
             users_config[k] = UserConfig(**v)
 
@@ -125,8 +129,6 @@ class BasicCapability:
         cap_str_ls = ['cpus', 'memory', 'gpus', 'backup_space', 'work_space']
         for cap_str in cap_str_ls:
             cap_value = locals()[cap_str]
-            if cap_value is None:
-                continue
 
             cap_value_type = type(cap_value)
             if cap_value_type is int or cap_value_type is float:
@@ -143,7 +145,7 @@ class CapabilityConfig:
     max_default_capability: BasicCapability
     max_custom_capability: Dict[str, BasicCapability]
 
-    def __init__(self, yaml: Path = Path('cfg/capability_config.yaml')) -> None:
+    def __init__(self, yaml: Path = PROJECT_DIR / 'cfg/capability_config.yaml') -> None:
         for k, v in load_yaml(yaml).items():
             if k == 'max':
                 setattr(self, k, MaxCapability(v))
@@ -167,7 +169,7 @@ class HostDeployInfo:
     users_config_yaml: Path
     images: List[str]
 
-    def __init__(self, yaml: Path = Path('host_deploy.yaml')) -> None:
+    def __init__(self, yaml: Path = PROJECT_DIR / 'host_deploy.yaml') -> None:
         for k, v in load_yaml(yaml).items():
             setattr(self, k, v)
 
@@ -230,10 +232,10 @@ class HostInfo:
 
     def __init__(
         self,
-        deploy_yaml: Path = Path('cfg/host_deploy.yaml'),
-        booking_csv: Path = Path('jobs/booking.csv'),
-        using_csv: Path = Path('jobs/using.csv'),
-        used_csv: Path = Path('jobs/used.csv'),
+        deploy_yaml: Path = PROJECT_DIR / 'cfg/host_deploy.yaml',
+        booking_csv: Path = PROJECT_DIR / 'jobs/booking.csv',
+        using_csv: Path = PROJECT_DIR / 'jobs/using.csv',
+        used_csv: Path = PROJECT_DIR / 'jobs/used.csv',
         *args,
         **kwargs,
     ) -> None:

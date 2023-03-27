@@ -29,6 +29,7 @@
     "argsort",
     "cpus",
     "Dataframe",
+    "devel",
     "iloc",
     "isexists",
     "isna",

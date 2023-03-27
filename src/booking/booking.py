@@ -18,7 +18,7 @@ from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
 from src.booking.Checker import Checker
 
-checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/test_host_deploy.yaml')
+checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml')
 
 MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/monitor_exec'
 
@@ -145,7 +145,7 @@ def __get_caps_info(user_id: str) -> BasicCapability:
             continue
         break
 
-    return BasicCapability(*cap_info_ls)
+    return BasicCapability(*cap_info_ls, defaultCap=checker.cap_config.max_default_capability, maxCap=checker.cap_config.max)
 
 
 def __filter_time_flags(input_time_args: List[str], time_flag: str) -> int:
@@ -251,7 +251,7 @@ def __get_bookingtime() -> BasicCapability:
 def __update_users_config_and_yaml(user_id: str, user_config: UserConfig):
     checker.users_config.ids[user_id] = user_config
 
-    dump_yaml(checker.users_config.to_dict(), checker.deploy_info.users_config_yaml)
+    dump_yaml(checker.users_config.to_dict(), PROJECT_DIR / checker.deploy_info.users_config_yaml)
 
 
 def __add_new_user_config(user_id: str) -> UserConfig:
@@ -312,20 +312,22 @@ def __setting_user_options(user_id: str, user_config: UserConfig):
         if image == None:
             image = "rober5566a/aivc-server:latest"
 
-        user_config.image = input(f"Please enter the image 'repository/tag'(default: {image}, none by default): ")
+        image = input(f"Please enter the image 'repository/tag'(default: {image}, none by default): ")
 
-        if user_config.image == '':
+        if image == '':
             user_config.image = None
             break
 
-        if not checker.check_image_isexists(user_config.image):
+        if not checker.check_image_isexists(image):
             print(str_format("AvailableError: Not the available image!", fore='r'))
             continue
 
+        user_config.image = image
         break
 
     # extra_commands
-    user_config.extra_command = input("Please enter the extra command when running the image. (default: None, none by default): ")
+    extra_command = input("Please enter the extra command when running the image. (default: None, none by default): ")
+    user_config.extra_command = extra_command if extra_command != '' else None
 
     # Update Password
     isUpdate = ask_yn("Do you want to update the password?")

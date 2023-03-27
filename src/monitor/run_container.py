@@ -14,7 +14,7 @@ from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig
 
 HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test_host_deploy.yaml')
 
-DEFAULT_BACKUP_DIR = Path(PROJECT_DIR / 'cfg/templates/Backup')
+DEFAULT_BACKUP_DIR = PROJECT_DIR / 'cfg/templates/Backup'
 DEFAULT_BACKUP_YAML_FILENAME = 'backup.yaml'
 DEFAULT_IMAGE = 'rober5566a/aivc-server'
 DEFAULT_IMAGE_TAG = 'latest'

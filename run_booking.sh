@@ -6,7 +6,7 @@
 #-
 #- SYNOPSIS
 #-
-#-    ./run_booking.sh <password> [-h]
+#-    bash run_booking.sh <password> [-h]
 #-    
 #-    It will run booking container with specific password for booking account.
 #-
@@ -16,7 +16,7 @@
 #-
 #- EXAMPLES
 #-
-#-    $ ./run_booking.sh IamNo1handsome!
+#-    $ bash run_booking.sh IamNo1handsome!
 
 #====================================================
 # Part 1. Option Tool
