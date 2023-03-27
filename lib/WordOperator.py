@@ -163,10 +163,12 @@ def ask_yn(question, fore: str = 'default'):
     |37     |    白色   |   white     |
     '''
     reply = input(f"{str_format(question, fore=fore)} [y/n]: ").lower().strip()
-    if reply[0] in ('y', '1') or reply[:] == 'true':
-        return True
-    elif reply[0] in ('n', '0') or reply[:] == 'false':
-        return False
-    else:
-        print(str_format(f"Wrong answer, please enter again.", fore='r'))
-        return ask_yn(question)
+
+    if reply.lower() in ['y', 'yes', '1', 'n', 'no', 'not', '0']:
+        if reply[0] in ('y', '1') or reply[:] == 'true':
+            return True
+        elif reply[0] in ('n', '0') or reply[:] == 'false':
+            return False
+
+    print(str_format(f"Wrong answer, please enter again.", fore='r'))
+    return ask_yn(question)

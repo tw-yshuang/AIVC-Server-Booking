@@ -22,6 +22,8 @@ class Checker(HostInfo):
     # used: HostInfo.used
 
     booked_df: pd.DataFrame
+    user_booking_range_df: pd.DataFrame
+    user_booking_time: BookingTime
     # self used flag
     __test_flag: bool = False
 
@@ -49,8 +51,8 @@ class Checker(HostInfo):
                 print(student_id, ':max_default_capability')
             return self.cap_config.max_default_capability
 
-    def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
-        # check if cap_info satisfy the capability during booking_time
+    def check_cap4time(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
+        '''check if cap_info satisfy the capability during booking_time'''
         # * only compare gpus
         gpu_np = self.__booking_to_gpu_nparray(booking_time)
         max_using_count = 0  # store max using gpus in the same time block
@@ -61,6 +63,9 @@ class Checker(HostInfo):
         if self.__test_flag:
             print(f'{self.cap_config.max.gpus} - {max_using_count} >= {cap_info.gpus}')
         return self.cap_config.max.gpus - max_using_count >= cap_info.gpus
+
+    def check_forward_port4time(self, forward_port: int, booking_time: BookingTime) -> bool:
+        return False if forward_port in list(self.__find_book_time_csv(booking_time).loc[:, 'forward_port']) else True
 
     def get_best_gpu_ids(self, gpus: int, booking_time: BookingTime) -> List[int]:
         # * full up the forward gpu, so offer from the lower id gpus
@@ -110,13 +115,26 @@ class Checker(HostInfo):
         # find the first value >= booking_time.start
         # drop earlier
         # repeat for 'end'
+
+        if hasattr(self, 'user_booking_time'):
+            if (
+                hasattr(self, 'user_booking_range_df')
+                and booking_time.end == self.user_booking_time.end
+                and booking_time.start == self.user_booking_time.start
+            ):
+                return self.user_booking_range_df
+
         df = self.booked_df
         # sort data
         df = df.sort_values(by='start')
         df = df.loc[df['start'] < booking_time.end]  # keep which is start when book end #　start time smaller than my end time
         df = df.sort_values(by='end')
         df = df.loc[df['end'] > booking_time.start]  # keep which is not end when book start # end time bigger then my start time
-        return df.reset_index(drop=True, inplace=False)
+
+        self.user_booking_range_df = df.reset_index(drop=True, inplace=False)
+        self.user_booking_time = booking_time
+
+        return self.user_booking_range_df
 
     def __booking_to_gpu_nparray(self, booking_time: BookingTime) -> np.ndarray:
         # this func turn booking information into gpus-time(30min) list
@@ -178,7 +196,7 @@ if __name__ == '__main__':
     # for student_id in student_ids:
     #     checker.get_user_max_cap(student_id)
 
-    # * test check_booking_info
+    # * test check_cap4time
     # cap_infos = []
     # for i in range(1, 5):
     #     cap_info = BasicCapability(cpus=i * 10, memory=i * 10, gpus=i, backup_space=i, work_space=i)
@@ -193,7 +211,7 @@ if __name__ == '__main__':
     #     print(
     #         f'!!!Check whether self.booked_df has satisfied gpu:{cap_infos[i].cpus} during {booking_times[i].start}~{booking_times[i].end}.i:{i}'
     #     )
-    #     print(checker.check_booking_info(cap_infos[i], booking_Times[i]))
+    #     print(checker.check_cap4time(cap_infos[i], booking_Times[i]))
 
     # * test get_best_gpu_ids
     # booking_times = []

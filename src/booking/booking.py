@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import os, sys
+import sys
+from copy import copy
 from pathlib import Path
 
 if __name__ == '__main__':
@@ -8,8 +9,8 @@ if __name__ == '__main__':
 
 import random
 import datetime
-from datetime import datetime, timezone, timedelta
-from typing import List, Tuple, Dict
+from datetime import datetime
+from typing import List
 import getpass
 import click
 from pathlib import Path
@@ -41,7 +42,7 @@ MAX_DAY: int = 14
 def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False) -> bool:
     # if user input -ls True
     if list_schedule:
-        __list_schedules()
+        print(checker.booking.df.sort_values(by='start', ignore_index=True))
         return False
 
     if user_id == '':
@@ -75,24 +76,28 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         cap_info = __get_caps_info(user_id)
         booking_time = __get_bookingtime()
 
-        if checker.check_booking_info(cap_info, booking_time) == True:
+        if checker.check_cap4time(cap_info, booking_time):
             break
         else:
             print(str_format(f"There is not enough computing power for the time you need, book again.", fore='y'))
             continue
 
     if user_id in checker.users_config.ids:
-        user_config = checker.users_config.ids[user_id]
+        user_config = copy(checker.users_config.ids[user_id])
     else:
         user_config = __add_new_user_config(user_id)
 
     if use_options:
-        user_config = __user_options(user_id, user_config)
+        user_config = __setting_user_options(user_id, user_config)
+
+    while checker.check_forward_port4time(user_config.forward_port, booking_time) is False:
+        print(str_format(f"DuplicateError: Forward Port duplicated with others during the time you are booking!!", fore='r'))
+        user_config.forward_port = __setting_forward_port(user_id, checker.users_config.ids[user_id].forward_port)
 
     booking(user_id, cap_info, booking_time, user_config)
 
 
-def __get_caps_info(user_id: str):
+def __get_caps_info(user_id: str) -> BasicCapability:
     if user_id in checker.cap_config.max_custom_capability:
         max_cpus: float = checker.cap_config.max_custom_capability[user_id].cpus
         max_memory: int = checker.cap_config.max_custom_capability[user_id].memory
@@ -145,7 +150,7 @@ def __get_caps_info(user_id: str):
     return BasicCapability(*cap_info_ls)
 
 
-def __filter_time_flags(input_time_args: List[str], time_flag: str):
+def __filter_time_flags(input_time_args: List[str], time_flag: str) -> int:
     time_flag_value = 0
     for input_time_arg in input_time_args:
         if time_flag in input_time_arg:
@@ -157,7 +162,7 @@ def __filter_time_flags(input_time_args: List[str], time_flag: str):
     return time_flag_value
 
 
-def __get_bookingtime():
+def __get_bookingtime() -> BasicCapability:
     sec2day = 86400
     sec2week = sec2day * 7
     start2end_datetime = [0.0, 0.0]
@@ -251,7 +256,7 @@ def __update_users_config_and_yaml(user_id: str, user_config: UserConfig):
     dump_yaml(checker.users_config.to_dict(), checker.deploy_info.users_config_yaml)
 
 
-def __add_new_user_config(user_id: str):
+def __add_new_user_config(user_id: str) -> UserConfig:
     while True:
         random_forward_ports = random.randint(FORWARD_PORT_BEGIN, FORWARD_PORT_END)
         if checker.check_forward_port_empty(user_id, random_forward_ports) == True:
@@ -276,23 +281,28 @@ def __add_new_user_config(user_id: str):
     return user_config
 
 
-def __user_options(user_id: str, user_config: UserConfig):
-    # Forward Port
+def __setting_forward_port(user_id: str, default_forward_port: int):
     while True:
-        forward_port = input(f"Please enter the forward port(default:{user_config.forward_port}, none by default):")
+        forward_port = input(f"Please enter the forward port(default:{default_forward_port}, none by default): ")
         try:
-            user_config.forward_port = int(forward_port) if forward_port != '' else user_config.forward_port
-            if user_config.forward_port < FORWARD_PORT_BEGIN or user_config.forward_port > FORWARD_PORT_END:
+            forward_port = int(forward_port) if forward_port != '' else default_forward_port
+            if forward_port < FORWARD_PORT_BEGIN or forward_port > FORWARD_PORT_END:
                 raise ValueError
         except ValueError:
             print(str_format(f"ValueError: must be int, and the range in {FORWARD_PORT_BEGIN} ~ {FORWARD_PORT_END}", fore='r'))
             continue
 
-        if checker.check_forward_port_empty(user_id, user_config.forward_port) == False:
-            print(str_format(f"DuplicateError: Forward Port with other user!!", fore='r'))
+        if checker.check_forward_port_empty(user_id, forward_port) is False:
+            print(str_format(f"DuplicateError: Forward Port duplicated with other user's config!!", fore='r'))
             continue
 
         break
+    return forward_port
+
+
+def __setting_user_options(user_id: str, user_config: UserConfig):
+    # Forward Port
+    user_config.forward_port = __setting_forward_port(user_id, user_config.forward_port)
 
     # Image
     while True:
@@ -317,12 +327,10 @@ def __user_options(user_id: str, user_config: UserConfig):
         break
 
     # extra_commands
-    while True:
-        user_config.extra_command = input("Please enter the extra command when running the image. (default: None, none by default): ")
-        break
+    user_config.extra_command = input("Please enter the extra command when running the image. (default: None, none by default): ")
 
     # Update Password
-    isUpdate: bool = ask_yn("Do you want to update the password?")
+    isUpdate = ask_yn("Do you want to update the password?")
     while isUpdate:
         new_password = getpass.getpass(prompt="Please enter the new Password: ")
         if new_password == '':
@@ -341,20 +349,11 @@ def __user_options(user_id: str, user_config: UserConfig):
             break
 
     # Update users_config.yaml
-    isUpdate: bool = ask_yn("The previous setting is for the once, do you want to update the default config?")
-    while isUpdate:
+    if ask_yn("The previous setting is for the once, do you want to update the default config?"):
         __update_users_config_and_yaml(user_id, user_config)
         print(str_format("Update your user_config!", fore='g'))
-        break
 
     return user_config
-
-
-def __list_schedules():
-    data = checker.booking.df
-    # Checker.booking_df got two data, need checker fix it !!!
-    data = data.sort_values(by='start')
-    print(data.head())
 
 
 def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
@@ -391,7 +390,7 @@ def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, 
 
 
 if __name__ == '__main__':
-    sys.argv = ['booking.py', '-id', 'm11007s05-2']
+    sys.argv = ['booking.py', '-id', 'm11007s05-2', '-use-opt']
     cli()
 
     # cap_info = __get_caps_info('m11007s05-3')

@@ -155,7 +155,7 @@ if use_options is True:
 - `end`, <font color=#CE9178>"Please enter the end time 'YYYY MM DD hh mm': "</font>.
   - The maximum end time is 2 weeks from the start time.
   - If is wrong, send the message (red-font)<font color=#CE9178>"Wrong Input!"</font>, back to the [Q.3.end](#3-booking_time).
-- If *`Checker.check_booking_info()`* return:
+- If *`Checker.check_cap4time()`* return:
 
   - `True`, then send (green-font)<font color=#CE9178>"Booking successful!"</font>.
   - `False`, then send (red-font)<font color=#CE9178>"There is not enough computing power for the time you need, book again."</font>, back to the [Q.2](#2-cap_info).
@@ -396,6 +396,23 @@ Check forward_port that is not exists in *`self.users_config[*].forward_port`*.
 
 - `boolean`
 
+### *`Checker.check_forward_port4time()`*
+
+```python
+def check_forward_port4time(self, forward_port: int, booking_time: BookingTime) -> bool:
+```
+
+Check forward_port duplicate problem during the time that user booking.
+
+#### **Parameters**
+
+- `forward_port` : the user requires cpus, memory, gpus.
+- `booking_time`: the user requires start time & end time.
+
+#### **Return**
+
+- `boolean`
+
 ### *`Checker.check_image_isexists()`*
 
 ```python
@@ -428,10 +445,10 @@ Search cap_info for user_id from the *`self.cap_config.max_default_capability`* 
 
 - `BasicCapability`
 
-### *`Checker.check_booking_info()`*
+### *`Checker.check_cap4time()`*
 
 ```python
-def check_booking_info(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
+def check_cap4time(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
 ```
 
 Check whether *`self.booked_df`* has satisfied cap_info during booking_time.
@@ -1017,7 +1034,7 @@ The CLI tool for host maintainer used, under the `MaxCapability`, unlimited user
 - `memory`: The memory size you want to used for this time, unit: GB.
 - `gpus`: List of gpu id used for the container.
 - `image`: The image/tag name for the docker image.
-- `extra_command`: The extra command that user want to execute  for this time.
+- `extra_command`: The extra command that user want to execute for this time.
 - `user_config`: The `UserConfig` object, it contains the user default setting.
 - `cap_max`: The `MaxCapability` object, it contains the maximum capability setting for this computing device.
 
