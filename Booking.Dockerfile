@@ -1,6 +1,6 @@
 FROM python:3.10.10-slim
 
-LABEL author="tw-yshuang" version="1.1" description="I'm writing server image!"
+LABEL author="tw-yshuang" version="1.1.0" description="I'm writing server image!"
 
 # Localtime
 ENV TZ=Asia/Taipei
@@ -28,6 +28,14 @@ WORKDIR ${ACCOUNT_HOME}
 # USER ${ACCOUNT}
 ADD requirements.txt ${ACCOUNT_HOME}/requirements.txt
 RUN pip3 install -r requirements.txt
+
+# welcome message
+ADD fonts/*.flf /usr/share/figlet/
+ADD image_setup/11-logo.sh ${ACCOUNT_HOME}/.11-logo.sh
+RUN apt-get install figlet lolcat -y \
+    && echo 'export LANG="C.UTF-8"' >> /etc/profile \
+    && chmod +x ${ACCOUNT_HOME}/.11-logo.sh \
+    && echo "bash ${ACCOUNT_HOME}/.11-logo.sh" >> ${ACCOUNT_HOME}/.bashrc
 
 USER root
 

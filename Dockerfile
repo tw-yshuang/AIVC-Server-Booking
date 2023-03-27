@@ -44,7 +44,7 @@ ADD fonts/*.flf /usr/share/figlet/
 ADD image_setup/11-logo.sh /etc/profile.d/11-logo.sh
 RUN apt-get install figlet lolcat -y \
     && chmod +x /etc/profile.d/11-logo.sh \
-    && cat /etc/profile.d/11-logo.sh | sed '1d' >> ~/.zlogin
+    && echo 'bash /etc/profile.d/11-logo.sh' >> ~/.zlogin
 
 # install python env tool & some dotfile
 RUN ./language_package.sh -y \

@@ -30,6 +30,7 @@ function show_script_help(){
     echo 
 }
 
+password=""
 # Receive arguments in slient mode.
 if [ "$#" -gt 0 ]; then
     while [ "$#" -gt 0 ]; do
@@ -38,6 +39,10 @@ if [ "$#" -gt 0 ]; then
             "-h"|"--help")
                 show_script_help
                 exit 1
+            ;;
+            * )
+                password=$1
+                shift 1
             ;;
         esac
     done
@@ -48,8 +53,7 @@ fi
 #====================================================
 
 PROJ_PATH=/root
-password=$1
-if [ "$1" = "" ]; then
+if [ "$password" = "" ]; then
     printf "Please enter a password for booking account: "
     read password
 fi
@@ -65,5 +69,5 @@ docker run \
 -v ./lib/:$PROJ_PATH/lib \
 -v ./src/:$PROJ_PATH/src \
 -v $PROJ_PATH/src/monitor/ \
-rober5566a/aivc-server:booking-v1.0.0 \
+rober5566a/aivc-server:booking-v1.0.1 \
 /bin/bash -c "ln -s $PROJ_PATH/src/booking/booking.py /usr/sbin/booking && /.script/ssh_start.sh $password"

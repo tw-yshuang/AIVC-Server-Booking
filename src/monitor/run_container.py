@@ -194,7 +194,7 @@ def cli(
 ) -> None:
     '''Repository: https://github.com/tw-yshuang/AIVC-Server-Booking
     Examples:
-    >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10000'''
+    >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10001'''
 
     user_config = UserConfig(
         password=password,

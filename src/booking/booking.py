@@ -15,8 +15,8 @@ if __name__ == '__main__':
     sys.path.append(str(PROJECT_DIR))
 
 from lib.WordOperator import str_format, ask_yn
-from HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
-from Checker import Checker
+from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
+from src.booking.Checker import Checker
 
 checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/test_host_deploy.yaml')
 
