@@ -12,16 +12,18 @@ if __name__ == '__main__':
 
 from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig, MaxCapability
 
-default_backup_dir = Path(PROJECT_DIR / 'cfg/templates/Backup')
-default_backup_yaml_filename = 'backup.yaml'
-default_image = 'rober5566a/aivc-server'
-default_image_tag = 'latest'
+HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test_host_deploy.yaml')
 
-container_work_dir = '/root/Work'
-container_backup_dir = '/root/Backup'
-container_dataset_dir = '/root/Dataset'
+DEFAULT_BACKUP_DIR = Path(PROJECT_DIR / 'cfg/templates/Backup')
+DEFAULT_BACKUP_YAML_FILENAME = 'backup.yaml'
+DEFAULT_IMAGE = 'rober5566a/aivc-server'
+DEFAULT_IMAGE_TAG = 'latest'
 
-help_dict = {
+CONTAINER_WORK_DIR = '/root/Work'
+CONTAINER_BACKUP_DIR = '/root/Backup'
+CONTAINER_DATASET_DIR = '/root/Dataset'
+
+HELP_DICT = {
     'user_id': 'User ID.',
     'pw': 'password.',
     'fp': 'which forward port you want to connect to port: 22(SSH).',
@@ -63,10 +65,10 @@ def prepare_deploy(
     '''
 
     if image is None:
-        image = f'{default_image}:{default_image_tag}' if user_config.image is None else user_config.image
+        image = f'{DEFAULT_IMAGE}:{DEFAULT_IMAGE_TAG}' if user_config.image is None else user_config.image
 
     exec_command = extra_command if extra_command is not None else ''
-    if default_image in image:
+    if DEFAULT_IMAGE in image:
         if exec_command != '':
             exec_command += ' && '
         exec_command += f'/.script/ssh_start.sh {user_config.password}'
@@ -74,15 +76,15 @@ def prepare_deploy(
 
     # volumes_ls = [[host_path, container_path, operate_flag(Optional)]...]
     volumes_ls: List[List[str]] = [
-        [user_config.volume_work_dir, container_work_dir],
-        [user_config.volume_backup_dir, container_backup_dir],
-        [user_config.volume_dataset_dir, container_dataset_dir, 'ro'],
+        [user_config.volume_work_dir, CONTAINER_WORK_DIR],
+        [user_config.volume_backup_dir, CONTAINER_BACKUP_DIR],
+        [user_config.volume_dataset_dir, CONTAINER_DATASET_DIR, 'ro'],
     ]
 
     if not os.path.exists(user_config.volume_backup_dir):
-        shutil.copytree(default_backup_dir, user_config.volume_backup_dir)
+        shutil.copytree(DEFAULT_BACKUP_DIR, user_config.volume_backup_dir)
     else:
-        backup_info = BackupInfo(f'{user_config.volume_backup_dir}/{default_backup_yaml_filename}')
+        backup_info = BackupInfo(f'{user_config.volume_backup_dir}/{DEFAULT_BACKUP_YAML_FILENAME}')
         for backup_path, container_path in [*backup_info.Dir, *backup_info.File]:
             backup_path = f'{user_config.volume_backup_dir}/{backup_path}'
             if os.path.exists(backup_path):
@@ -117,7 +119,10 @@ def run(
     volume_info = ' -v '.join(':'.join(volume_ls) for volume_ls in volumes_ls)
 
     if type(gpus) is list:
-        if len(gpus) == 1:
+        len_gpus = len(gpus)
+        if len_gpus == 0:
+            gpus = 'none'
+        elif len_gpus == 1:
             gpus = gpus[0]
         else:
             gpus = ','.join(gpus)
@@ -167,14 +172,14 @@ def run_container(
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
-@click.option('-id', '--user-id', help=help_dict['user_id'], required=True, prompt=True)
-@click.option('-pw', '--password', help=help_dict['pw'], required=True, prompt="Please enter the Password", hide_input=True)
-@click.option('-fp', '--forward-port', help=help_dict['fp'], required=True, prompt=True)
-@click.option('-cpus', show_default=True, default=8, help=help_dict['cpus'])
-@click.option('-mem', '--memory', show_default=True, default=32, help=help_dict['mem'])
-@click.option('-gpus', show_default=True, default='0', help=help_dict['gpus'])
-@click.option('-im', '--image', show_default=True, default=None, help=help_dict['im'])
-@click.option('-e-cmd', '--extra-command', default=None, help=help_dict['e-cmd'])
+@click.option('-id', '--user-id', help=HELP_DICT['user_id'], required=True, prompt=True)
+@click.option('-pw', '--password', help=HELP_DICT['pw'], required=True, prompt="Please enter the Password", hide_input=True)
+@click.option('-fp', '--forward-port', help=HELP_DICT['fp'], required=True, prompt=True)
+@click.option('-cpus', show_default=True, default=8, help=HELP_DICT['cpus'])
+@click.option('-mem', '--memory', show_default=True, default=32, help=HELP_DICT['mem'])
+@click.option('-gpus', show_default=True, default='0', help=HELP_DICT['gpus'])
+@click.option('-im', '--image', show_default=True, default=None, help=HELP_DICT['im'])
+@click.option('-e-cmd', '--extra-command', default=None, help=HELP_DICT['e-cmd'])
 def cli(
     user_id: str,
     password: str,
@@ -213,7 +218,6 @@ def cli(
 
 
 if __name__ == '__main__':
-    HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test_host_deploy.yaml')
     cli()
 
     # # ? for test.

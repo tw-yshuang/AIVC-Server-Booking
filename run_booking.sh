@@ -6,7 +6,7 @@
 #-
 #- SYNOPSIS
 #-
-#-    ./run_booking.sh [-h]
+#-    ./run_booking.sh <password> [-h]
 #-    
 #-    It will run booking container with specific password for booking account.
 #-
@@ -29,6 +29,23 @@ function show_script_help(){
     sed -e "s/^#[-|>]*//1" # use nothing to replace "#-" or "#>" that the first keyword in every line.  
     echo 
 }
+
+# Receive arguments in slient mode.
+if [ "$#" -gt 0 ]; then
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            # Help
+            "-h"|"--help")
+                show_script_help
+                exit 1
+            ;;
+        esac
+    done
+fi
+
+#====================================================
+# Part 2. Main
+#====================================================
 
 PROJ_PATH=/root
 password=$1

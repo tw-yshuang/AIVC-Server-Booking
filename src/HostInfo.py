@@ -248,26 +248,26 @@ class HostInfo:
         self.used = ScheduleDF(PROJECT_DIR / used_csv)
 
 
-if __name__ == '__main__':
-    # host_info = HostDeployInfo('./cfg/test_host_deploy.yaml')
+# if __name__ == '__main__':
+#     host_info = HostDeployInfo('./cfg/test_host_deploy.yaml')
 
-    # CapCfg = CapabilityConfig(
-    #     host_info.capability_config_yaml,
-    # )
+#     CapCfg = CapabilityConfig(
+#         host_info.capability_config_yaml,
+#     )
 
-    # print(dir(host_info))
-    # print(host_info)
+#     print(dir(host_info))
+#     print(host_info)
 
-    # userCig = UserConfig()
-    # print(userCig.to_dict())
-    # print(userCig.dict)
+#     userCig = UserConfig()
+#     print(userCig.to_dict())
+#     print(userCig.dict)
 
-    # import copy
+#     import copy
 
-    # users_config = UsersConfig('./cfg/test_users_config.yaml')
-    # user_config = copy.deepcopy(users_config.ids['m11007s05'])
-    # print(id(user_config), id(users_config))
-    # print(users_config.ids['m11007s05'] == user_config)
+#     users_config = UsersConfig('./cfg/test_users_config.yaml')
+#     user_config = copy.deepcopy(users_config.ids['m11007s05'])
+#     print(id(user_config), id(users_config))
+#     print(users_config.ids['m11007s05'] == user_config)
 
-    sch_df = ScheduleDF('./cfg/templates/test_schedule.csv')
-    print(type(sch_df.df['gpus'][0]))
+#     sch_df = ScheduleDF('./cfg/templates/test_schedule.csv')
+#     print(type(sch_df.df['gpus'][0]))

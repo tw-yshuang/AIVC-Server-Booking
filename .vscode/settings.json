@@ -29,8 +29,10 @@
     "argsort",
     "cpus",
     "Dataframe",
+    "iloc",
     "isexists",
     "isna",
+    "itertuples",
     "nparray",
     "rober"
   ]

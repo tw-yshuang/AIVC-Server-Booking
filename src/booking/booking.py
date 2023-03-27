@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
 import sys
-from copy import copy
-from pathlib import Path
-
-if __name__ == '__main__':
-    PROJECT_DIR = Path(__file__).resolve().parents[2]
-    sys.path.append(str(PROJECT_DIR))
-
 import random
-import datetime
-from datetime import datetime
-from typing import List
 import getpass
-import click
+from copy import copy
+from typing import List
 from pathlib import Path
+from datetime import datetime
+
+import click
 import pandas as pd
 
-from Checker import Checker
+PROJECT_DIR = Path(__file__).resolve().parents[2]
+if __name__ == '__main__':
+    sys.path.append(str(PROJECT_DIR))
 
 from lib.WordOperator import str_format, ask_yn
-from HostInfo import HostInfo, BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
+from HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
+from Checker import Checker
 
-checker = Checker(deploy_yaml=f'{PROJECT_DIR}/cfg/test_host_deploy.yaml')
+checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/test_host_deploy.yaml')
 
-# Check Whether user_id is in custom_user or not.
+MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/monitor_exec'
+
 MIN_CPUS: float = 1
 MIN_MEMORY: int = 1
 MIN_GPUS: int = 0
@@ -377,7 +375,6 @@ def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, 
             sc.cpus: [cap_info.cpus],
             sc.memory: [cap_info.memory],
             sc.gpus: [best_gpus],
-            # sc.gpus: f'[{best_gpus}]',
             sc.forward_port: [user_config.forward_port],
             sc.image: [user_config.image],
             sc.extra_command: [user_config.extra_command],
@@ -385,8 +382,13 @@ def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, 
     )
     checker.booking.df = ScheduleDF.concat(df1, df2)
     checker.booking.update_csv()
+
+    # if use Time_Flag: 'now'
+    if booking_time.start < datetime.now():
+        with open(MONITOR_EXEC_PATH, 'a') as f:
+            f.write('now\n')
+
     print(str_format(f"Booking successful!", fore='g'))
-    # right "now" to jobs/monitor_exec
 
 
 if __name__ == '__main__':

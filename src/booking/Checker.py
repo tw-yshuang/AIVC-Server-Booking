@@ -5,10 +5,12 @@ from typing import List
 import pandas as pd
 import numpy as np
 
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
     import sys
 
-    sys.path.append(str(Path(__file__).resolve().parents[2]))
+    sys.path.append(str(PROJECT_DIR))
+
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, ScheduleDF
 
 
@@ -29,10 +31,10 @@ class Checker(HostInfo):
 
     def __init__(
         self,
-        deploy_yaml: Path = Path('cfg/host_deploy.yaml'),
-        booking_csv: Path = Path('jobs/booking.csv'),
-        using_csv: Path = Path('jobs/using.csv'),
-        used_csv: Path = Path('jobs/used.csv'),
+        deploy_yaml: Path = PROJECT_DIR / 'cfg/host_deploy.yaml',
+        booking_csv: Path = PROJECT_DIR / 'jobs/booking.csv',
+        using_csv: Path = PROJECT_DIR / 'jobs/using.csv',
+        used_csv: Path = PROJECT_DIR / 'jobs/used.csv',
     ) -> None:
         super().__init__(deploy_yaml, booking_csv, using_csv, used_csv)
         self.booked_df = ScheduleDF.concat(self.booking.df, self.using.df)
@@ -177,10 +179,10 @@ class Checker(HostInfo):
 
 if __name__ == '__main__':
     checker = Checker(
-        deploy_yaml=Path('cfg/test_host_deploy.yaml'),
-        booking_csv=Path('jobs/booking.csv'),
-        using_csv=Path('jobs/using.csv'),
-        used_csv=Path('jobs/used.csv'),
+        deploy_yaml=PROJECT_DIR / 'cfg/test_host_deploy.yaml',
+        booking_csv=PROJECT_DIR / 'jobs/booking.csv',
+        using_csv=PROJECT_DIR / 'jobs/using.csv',
+        used_csv=PROJECT_DIR / 'jobs/used.csv',
     )
     checker.__test_flag = True
     # print(checker.booked_df)

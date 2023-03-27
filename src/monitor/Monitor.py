@@ -5,13 +5,14 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, NamedTuple, Tuple
+from typing import List, NamedTuple
 
+PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
-    sys.path.append(str(Path(__file__).resolve().parents[2]))
+    sys.path.append(str(PROJECT_DIR))
 from run_container import run_container
 from lib.WordOperator import str_format
-from src.HostInfo import BasicCapability, BookingTime, HostInfo, ScheduleColumnNames, ScheduleDF, UserConfig, MaxCapability
+from src.HostInfo import HostInfo, ScheduleColumnNames
 
 
 class MonitorMassage:
@@ -20,7 +21,7 @@ class MonitorMassage:
     WARING: str = '[WARNING]'
     INFO: str = '[INFO]'
 
-    def __init__(self, path: Path = Path('src/jobs/monitor.log')) -> None:
+    def __init__(self, path: Path = PROJECT_DIR / 'src/jobs/monitor.log') -> None:
         self.log_path = path
 
     def update_log(self, status: str, msg: str, sign) -> bool:
@@ -55,7 +56,7 @@ class MonitorMassage:
 
 
 class SpaceWarning(Warning):
-    def __init__(self, path: Path = Path('jobs/monitor.log')) -> None:
+    def __init__(self, path: Path = PROJECT_DIR / 'jobs/monitor.log') -> None:
         super().__init__(path)
         self.__name__ = "SpaceWarning"
 
@@ -77,11 +78,11 @@ class Monitor(HostInfo):
 
     def __init__(
         self,
-        deploy_yaml: Path = Path('cfg/host_deploy.yaml'),
-        booking_csv: Path = Path('jobs/booking.csv'),
-        using_csv: Path = Path('jobs/using.csv'),
-        used_csv: Path = Path('jobs/used.csv'),
-        log_path: Path = Path('jobs/monitor.log'),
+        deploy_yaml: Path = PROJECT_DIR / 'cfg/host_deploy.yaml',
+        booking_csv: Path = PROJECT_DIR / 'jobs/booking.csv',
+        using_csv: Path = PROJECT_DIR / 'jobs/using.csv',
+        used_csv: Path = PROJECT_DIR / 'jobs/used.csv',
+        log_path: Path = PROJECT_DIR / 'jobs/monitor.log',
         *args,
         **kwargs,
     ) -> None:
@@ -116,10 +117,10 @@ class Monitor(HostInfo):
         user_id = user_id.lower()
         if self.cap_config.max_custom_capability.get(user_id) == None:  # user is not in custom config
             user_backup_capacity = self.cap_config.max_default_capability.backup_space
-            user_work_capcity = self.cap_config.max_default_capability.work_space
+            user_work_capacity = self.cap_config.max_default_capability.work_space
         else:  # user is in custom config
             user_backup_capacity = self.cap_config.max_custom_capability[user_id].backup_space
-            user_work_capcity = self.cap_config.max_custom_capability[user_id].work_space
+            user_work_capacity = self.cap_config.max_custom_capability[user_id].work_space
         try:
             backup_capacity = round(
                 self.__get_dir_size(path=self.users_config.ids[user_id].volume_backup_dir) / (1000**3),
@@ -130,9 +131,9 @@ class Monitor(HostInfo):
                 2,
             )
             backup_over_used = backup_capacity - user_backup_capacity
-            work_over_used = work_capacity - user_work_capcity
+            work_over_used = work_capacity - user_work_capacity
         except:
-            send_msg = f"Fail to caculate the storage space of backup_dir or work_dir used by {user_id}."
+            send_msg = f"Fail to calculate the storage space of backup_dir or work_dir used by {user_id}."
             self.msg.error(sign="PathError", msg=send_msg)
             return False
 
@@ -212,8 +213,8 @@ class Monitor(HostInfo):
                     break
         except:
             self.msg.error(
-                sign="updateError",
-                msg=f"fail to update {remove_ids} from using to used",
+                sign="UpdateError",
+                msg=f"Fail to update {remove_ids} from using to used",
             )
         move_to_using = pd.DataFrame(columns=self.used.df.columns)
         sorted_booking = self.booking.df.sort_values(by='start', ascending=False)  # sort by the starting time from big to small
@@ -234,8 +235,8 @@ class Monitor(HostInfo):
                     break
         except:
             self.msg.error(
-                sign="updateError",
-                msg=f"fail to update {move_to_using_ids} from booking to using",
+                sign="UpdateError",
+                msg=f"Fail to update {move_to_using_ids} from booking to using",
             )
 
         return (remove_ids, move_to_using)
@@ -258,12 +259,12 @@ class Monitor(HostInfo):
         self.check_gpus_duplicate(run_df)
 
 
-if __name__ == '__main__':
-    test = Monitor(
-        deploy_yaml='cfg/test_host_deploy.yaml',
-        booking_csv='jobs/booking.csv',
-        using_csv='jobs/using.csv',
-        used_csv='jobs/used.csv',
-        log_path='jobs/monitor.log',
-    )
-    test.exec()
+# if __name__ == '__main__':
+#     test = Monitor(
+#         deploy_yaml= PROJECT_DIR / 'cfg/test_host_deploy.yaml',
+#         booking_csv= PROJECT_DIR / 'jobs/booking.csv',
+#         using_csv= PROJECT_DIR / 'jobs/using.csv',
+#         used_csv= PROJECT_DIR / 'jobs/used.csv',
+#         log_path= PROJECT_DIR / 'jobs/monitor.log',
+#     )
+#     test.exec()
