@@ -69,5 +69,5 @@ docker run \
 -v ./lib/:$PROJ_PATH/lib \
 -v ./src/:$PROJ_PATH/src \
 -v $PROJ_PATH/src/monitor/ \
-rober5566a/aivc-server:booking-v1.0.1 \
+rober5566a/aivc-server:booking-v1.1.0 \
 /bin/bash -c "ln -s $PROJ_PATH/src/booking/booking.py /usr/sbin/booking && /.script/ssh_start.sh $password"
