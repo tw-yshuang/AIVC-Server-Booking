@@ -2,7 +2,7 @@
 
 For Host Maintainer & MLOps
 
-## **Pre-required**
+## **1. Pre-required**
 
 There has 3 things you must install before start it:
 `nvidia-linux-driver`, `docker` and `nvidia-container-toolkit`
@@ -11,7 +11,7 @@ There has 3 things you must install before start it:
 
 Here is suggest to use apt to install the driver, use this [Nvidia Linux Driver Installation Guide](https://docs.nvidia.com/datacenter/tesla/tesla-installation-notes/index.html#ubuntu-lts) to install the latest version of GPU driver.
 
-**Note**: If you are using others methods to install, make sure the **NVIDIA Linux Driver >= 418.81.07**
+**Note**: If you are using others methods to install, make sure the **NVIDIA Linux Driver >= 418.81.07**, after install, please reboot the OS.
 
 ### Docker
 
@@ -29,7 +29,9 @@ The NVIDIA Container Toolkit is available on a variety of Linux distributions an
 
 * [Setting up NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html#setting-up-nvidia-container-toolkit)
 
-## **Installation of AIVC-Server-Booking System**
+---
+
+## **2. Installation of AIVC-Server-Booking System**
 
 ```bash
 # To the project directory location
@@ -43,6 +45,8 @@ It will be automatic to do the things below:
 * Install some packages.
 * Pull all the images from [tw-yshuang's Docker Hub](https://hub.docker.com/repository/docker/rober5566a/aivc-server/general)
 * Run booking container on port: 10000
+
+---
 
 ## Config File
 

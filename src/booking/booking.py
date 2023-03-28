@@ -19,7 +19,6 @@ from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, d
 from src.booking.Checker import Checker
 
 checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml')
-
 MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/monitor_exec'
 
 MIN_CPUS: float = 1

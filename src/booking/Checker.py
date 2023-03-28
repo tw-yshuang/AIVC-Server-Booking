@@ -179,7 +179,7 @@ class Checker(HostInfo):
 
 if __name__ == '__main__':
     checker = Checker(
-        deploy_yaml=PROJECT_DIR / 'cfg/test_host_deploy.yaml',
+        deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml',
         booking_csv=PROJECT_DIR / 'jobs/booking.csv',
         using_csv=PROJECT_DIR / 'jobs/using.csv',
         used_csv=PROJECT_DIR / 'jobs/used.csv',

@@ -25,12 +25,12 @@ done
 # Add command to the cron job
 #====================================================
 #write out current crontab
-sudo crontab -l > temp_crontab
+crontab -l > temp_crontab
 #echo new cron into cron file
-sudo echo "*/30 * * * * python3 $(pwd)/src/monitor/Monitor.py" >> temp_crontab
+echo "*/30 * * * * python3 $(pwd)/src/monitor/Monitor.py" >> temp_crontab
 #install new cron file
-sudo crontab temp_crontab
-sudo rm temp_crontab
+crontab temp_crontab
+rm temp_crontab
 
 
 #====================================================
