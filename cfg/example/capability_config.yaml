@@ -1,0 +1,41 @@
+max:
+  cpus: 62 # cores
+  ram: 30 # GB
+  swap_size: 10 # GB
+  gpus: 1
+
+  shm_rate: swap_size / ram if swap_size != 0 else 1
+  memory: ram + swap_size
+
+  backup_space: 200 # GB
+  work_space: 500 # GB
+
+allow_userIDs:
+  - m11007s05
+  - m11007s05-1
+  - m11007s05-2
+  - m11007s05-3
+
+max_default_capability:
+  cpus: 8
+  memory: 32
+  gpus: 1
+
+  backup_space: 50
+  work_space: 200
+
+max_custom_capability:
+  m11007s05:
+    cpus: max
+    memory: max
+    gpus: max
+
+  m11007s05-1:
+    cpus: max
+    memory: max
+    # if there is not parameter, follow by max_default_capability
+
+  m11007s05-2:
+    cpus: 12
+    memory: 64
+    gpus: 4

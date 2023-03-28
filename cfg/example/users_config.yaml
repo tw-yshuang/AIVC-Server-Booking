@@ -1,0 +1,17 @@
+m11007s05:
+  password: "0000"
+  forward_port: 10001
+  image: null
+  extra_command: null
+  volume_work_dir: /mnt/Users/m11007s05
+  volume_dataset_dir: /mnt/Dataset/m11007s05
+  volume_backup_dir: /mnt/Backup/m11007s05
+
+m11007s05-1:
+  password: "0000"
+  forward_port: 10002
+  image: rober5566a/aivc-server:cuda11.8.0-cudnn8-devel-ubuntu20.04
+  extra_command: null
+  volume_work_dir: /mnt/Users/m11007s05-1
+  volume_dataset_dir: /mnt/Dataset/m11007s05-1
+  volume_backup_dir: /mnt/Backup/m11007s05-1
