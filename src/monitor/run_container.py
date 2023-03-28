@@ -12,8 +12,6 @@ if __name__ == '__main__':
 
 from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig, MaxCapability
 
-HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test_host_deploy.yaml')
-
 DEFAULT_BACKUP_DIR = PROJECT_DIR / 'cfg/templates/Backup'
 DEFAULT_BACKUP_YAML_FILENAME = 'backup.yaml'
 DEFAULT_IMAGE = 'rober5566a/aivc-server'
@@ -125,7 +123,7 @@ def run(
         elif len_gpus == 1:
             gpus = gpus[0]
         else:
-            gpus = ','.join(gpus)
+            gpus = ','.join(str(gpu) for gpu in gpus)
 
     # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
     os.system(
@@ -218,4 +216,5 @@ def cli(
 
 
 if __name__ == '__main__':
+    HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/example/host_deploy.yaml')
     cli()

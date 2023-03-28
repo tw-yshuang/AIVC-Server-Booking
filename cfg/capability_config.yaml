@@ -1,8 +1,8 @@
 max:
   cpus: 62 # cores
   ram: 30 # GB
-  swap_size: 30 # GB
-  gpus: 4
+  swap_size: 10 # GB
+  gpus: 1
 
   shm_rate: swap_size / ram if swap_size != 0 else 1
   memory: ram + swap_size

@@ -10,9 +10,9 @@ from typing import List, NamedTuple
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
     sys.path.append(str(PROJECT_DIR))
-from run_container import run_container
 from lib.WordOperator import str_format
 from src.HostInfo import HostInfo, ScheduleColumnNames
+from src.monitor.run_container import run_container
 
 
 class MonitorMassage:
@@ -187,9 +187,9 @@ class Monitor(HostInfo):
                     user_config=self.users_config.ids[user_id],
                 )
                 result_ls.append(True)
-                self.msg.info(msg=f"Container {user_id} have been ran successfully")
-            except:
-                self.msg.error(sign="ContainerError", msg=f"Fail to run container {user_id}")
+                self.msg.info(msg=f"Container {user_id} have been run successfully")
+            except Exception as e:
+                self.msg.error(sign="ContainerError", msg=f"Fail to run container {user_id}, {e}")
                 result_ls.append(False)
         return result_ls
 
@@ -257,3 +257,14 @@ class Monitor(HostInfo):
         self.run_containers(run_df)
         # os.system(f'docker exec {user_id} echo 'info' > N/run_echo')
         self.check_gpus_duplicate(run_df)
+
+
+if __name__ == '__main__':
+    monitor = Monitor(
+        deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml',
+        booking_csv=PROJECT_DIR / 'jobs/booking.csv',
+        using_csv=PROJECT_DIR / 'jobs/using.csv',
+        used_csv=PROJECT_DIR / 'jobs/used.csv',
+        log_path=PROJECT_DIR / 'jobs/monitor.log',
+    )
+    monitor.exec()
