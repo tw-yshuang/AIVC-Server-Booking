@@ -6,6 +6,7 @@
 monitor_files=('jobs/monitor_exec' 'jobs/monitor.log')
 schedule_files=('jobs/booking.csv' 'jobs/using.csv' 'jobs/used.csv')
 
+mkdir jobs
 # check and create
 for key in ${!monitor_files[*]}; do
     if ! [ -f "${monitor_files[$key]}" ]; then
