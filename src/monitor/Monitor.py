@@ -121,6 +121,15 @@ class Monitor(HostInfo):
         else:  # user is in custom config
             user_backup_capacity = self.cap_config.max_custom_capability[user_id].backup_space
             user_work_capacity = self.cap_config.max_custom_capability[user_id].work_space
+
+        isNotExist = False
+        for path in [self.users_config.ids[user_id].volume_backup_dir, self.users_config.ids[user_id].volume_work_dir]:
+            if os.path.exists(path) is False:
+                self.msg.info(f"{path} is not exists.")
+                isNotExist = True
+        if isNotExist:
+            return True
+
         try:
             backup_capacity = round(
                 self.__get_dir_size(path=self.users_config.ids[user_id].volume_backup_dir) / (1000**3),
