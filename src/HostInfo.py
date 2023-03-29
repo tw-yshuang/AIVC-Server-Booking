@@ -97,7 +97,7 @@ class MaxCapability:
     swap_size: int
     gpus: int
 
-    shm_rate: int  # swap_size / ram if swap_size != 0 else 1
+    shm_rate: float  # ram / (ram + swap_size)
     memory: int  # ram + swap_size
 
     def __init__(self, max_dict: dict) -> None:

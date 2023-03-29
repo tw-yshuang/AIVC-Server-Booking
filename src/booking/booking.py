@@ -265,7 +265,7 @@ def __add_new_user_config(user_id: str) -> UserConfig:
         image=None,
         extra_command=None,
         volume_work_dir=f"{checker.deploy_info.volume_work_dir}/{user_id}",
-        volume_dataset_dir=f"{checker.deploy_info.volume_dataset_dir}/{user_id}",
+        volume_dataset_dir=f"{checker.deploy_info.volume_dataset_dir}",
         volume_backup_dir=f"{checker.deploy_info.volume_backup_dir}/{user_id}",
     )
 

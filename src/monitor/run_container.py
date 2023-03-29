@@ -70,7 +70,7 @@ def prepare_deploy(
         if exec_command != '':
             exec_command += ' && '
         exec_command += f'/.script/ssh_start.sh {user_config.password}'
-        ram_size: int = int(memory * 1 / cap_max.shm_rate)
+        ram_size: int = int(memory * cap_max.shm_rate)
 
     # volumes_ls = [[host_path, container_path, operate_flag(Optional)]...]
     volumes_ls: List[List[str]] = [
@@ -217,6 +217,7 @@ def cli(
 
 
 if __name__ == '__main__':
+    # sys.argv = ['run-container', '--user-id', 'm11007s05', '-pw', '0000', '-fp', '2225', '-cpus', '12', '-gpus', '1', '-mem', '24']
     HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/example/host_deploy.yaml')
     cli()
 
