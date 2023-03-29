@@ -70,7 +70,7 @@ def prepare_deploy(
         if exec_command != '':
             exec_command += ' && '
         exec_command += f'/.script/ssh_start.sh {user_config.password}'
-        ram_size: int = int(memory * cap_max.shm_rate)
+        ram_size: int = int(memory * 1 / cap_max.shm_rate)
 
     # volumes_ls = [[host_path, container_path, operate_flag(Optional)]...]
     volumes_ls: List[List[str]] = [
@@ -124,6 +124,7 @@ def run(
             gpus = gpus[0]
         else:
             gpus = ','.join(str(gpu) for gpu in gpus)
+            gpus = f'"device={gpus}"'
 
     # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
     os.system(
@@ -135,7 +136,7 @@ def run(
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
                 --shm-size={memory-ram_size}G\
-                --gpus={gpus}\
+                --gpus \'{gpus}\'\
                 --name={user_id}\
                 -p {forward_port}:22\
                 -v {volume_info}\

@@ -31,7 +31,7 @@ class Checker(HostInfo):
 
     def __init__(
         self,
-        deploy_yaml: Path = PROJECT_DIR / 'cfg/host_deploy.yaml',
+        deploy_yaml: Path = PROJECT_DIR / 'cfg/example/host_deploy.yaml',
         booking_csv: Path = PROJECT_DIR / 'jobs/booking.csv',
         using_csv: Path = PROJECT_DIR / 'jobs/using.csv',
         used_csv: Path = PROJECT_DIR / 'jobs/used.csv',
@@ -179,7 +179,7 @@ class Checker(HostInfo):
 
 if __name__ == '__main__':
     checker = Checker(
-        deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml',
+        deploy_yaml=PROJECT_DIR / 'cfg/example/host_deploy.yaml',
         booking_csv=PROJECT_DIR / 'jobs/booking.csv',
         using_csv=PROJECT_DIR / 'jobs/using.csv',
         used_csv=PROJECT_DIR / 'jobs/used.csv',

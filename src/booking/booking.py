@@ -18,7 +18,7 @@ from lib.WordOperator import str_format, ask_yn
 from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
 from src.booking.Checker import Checker
 
-checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml')
+checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/example/host_deploy.yaml')
 MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/monitor_exec'
 
 MIN_CPUS: float = 1

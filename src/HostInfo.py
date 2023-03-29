@@ -68,11 +68,11 @@ class UserConfig:
 class UsersConfig:
     ids: Dict[str, UserConfig]
 
-    def __init__(self, yaml_file='cfg/users_config.yaml') -> None:
+    def __init__(self, yaml_file='cfg/example/users_config.yaml') -> None:
         self.ids = self.get_users_config(yaml_file)
 
     @staticmethod
-    def get_users_config(yaml_file='cfg/users_config.yaml') -> Dict[str, UserConfig]:
+    def get_users_config(yaml_file='cfg/example/users_config.yaml') -> Dict[str, UserConfig]:
         users_dict = load_yaml(yaml_file)
         users_config = {}
 
@@ -145,7 +145,7 @@ class CapabilityConfig:
     max_default_capability: BasicCapability
     max_custom_capability: Dict[str, BasicCapability]
 
-    def __init__(self, yaml: Path = PROJECT_DIR / 'cfg/capability_config.yaml') -> None:
+    def __init__(self, yaml: Path = PROJECT_DIR / 'cfg/example/capability_config.yaml') -> None:
         for k, v in load_yaml(yaml).items():
             if k == 'max':
                 setattr(self, k, MaxCapability(v))
@@ -232,7 +232,7 @@ class HostInfo:
 
     def __init__(
         self,
-        deploy_yaml: Path = PROJECT_DIR / 'cfg/host_deploy.yaml',
+        deploy_yaml: Path = PROJECT_DIR / 'cfg/example/host_deploy.yaml',
         booking_csv: Path = PROJECT_DIR / 'jobs/booking.csv',
         using_csv: Path = PROJECT_DIR / 'jobs/using.csv',
         used_csv: Path = PROJECT_DIR / 'jobs/used.csv',
