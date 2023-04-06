@@ -5,6 +5,7 @@
 #====================================================
 monitor_files=('jobs/monitor_exec' 'jobs/monitor.log')
 schedule_files=('jobs/booking.csv' 'jobs/using.csv' 'jobs/used.csv')
+cfg_files=('cfg/capability_config.yaml' 'cfg/host_deploy.yaml' 'cfg/users_config.yaml')
 
 mkdir jobs
 # check and create
@@ -18,6 +19,13 @@ done
 for key in ${!schedule_files[*]}; do
     if ! [ -f "${schedule_files[$key]}" ]; then
         cp cfg/templates/schedule.csv "${schedule_files[$key]}"
+    fi
+done
+
+# check and copy
+for key in ${!cfg_files[*]}; do
+    if ! [ -f "${cfg_files[$key]}" ]; then
+        git restore --source release -- "${cfg_files[$key]}"
     fi
 done
 
