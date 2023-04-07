@@ -89,11 +89,21 @@ class Monitor(HostInfo):
         super(Monitor, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv, *args, **kwargs)
         self.msg = MonitorMassage(log_path)
 
-    def __get_dir_size(self, path, size: float = 0.0):
-        for root, dirs, files in os.walk(path):
-            for f in files:
-                size += os.path.getsize(os.path.join(root, f))
-        return size
+    def __get_dir_size(self, path: str, size: float = 0.0):
+        total_size = 0.0
+
+        for root, dirs, files in os.walk(path, onerror=StopIteration):
+            if len(files) == 0:
+                continue
+
+            for file in files:
+                fp = os.path.join(root, file)
+                # skip if it is symbolic link
+                if os.path.islink(fp):
+                    total_size += os.lstat(fp).st_size
+                else:
+                    total_size += os.path.getsize(fp)
+        return total_size
 
     def check_gpus_duplicate(self, run_df):
         count = []
@@ -141,8 +151,8 @@ class Monitor(HostInfo):
             )
             backup_over_used = backup_capacity - user_backup_capacity
             work_over_used = work_capacity - user_work_capacity
-        except:
-            send_msg = f"Fail to calculate the storage space of backup_dir or work_dir used by {user_id}."
+        except Exception as e:
+            send_msg = f"Fail to calculate the storage space of backup_dir or work_dir used by {user_id}, {e}"
             self.msg.error(sign="PathError", msg=send_msg)
             return False
 
