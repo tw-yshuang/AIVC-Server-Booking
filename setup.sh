@@ -6,6 +6,7 @@
 monitor_files=('jobs/monitor_exec' 'jobs/monitor.log')
 schedule_files=('jobs/booking.csv' 'jobs/using.csv' 'jobs/used.csv')
 cfg_files=('cfg/capability_config.yaml' 'cfg/host_deploy.yaml' 'cfg/users_config.yaml')
+monitor_program_file="$(pwd)/src/monitor/Monitor.py"
 
 mkdir jobs
 # check and create
@@ -25,7 +26,7 @@ done
 # check and copy
 for key in ${!cfg_files[*]}; do
     if ! [ -f "${cfg_files[$key]}" ]; then
-        git restore --source release -- "${cfg_files[$key]}"
+        git restore --source origin/release -- "${cfg_files[$key]}"
     fi
 done
 
@@ -36,9 +37,12 @@ done
 #write out current crontab
 crontab -l > temp_crontab
 #echo new cron into cron file
-echo "*/30 * * * * python3 $(pwd)/src/monitor/Monitor.py" >> temp_crontab
-#install new cron file
-crontab temp_crontab
+if [ "$(grep "${monitor_program_file}" temp_crontab)" == "" ]; then
+    echo "*/30 * * * * python3 ${monitor_program_file}" >> temp_crontab
+    
+    #install new cron file
+    crontab temp_crontab
+fi
 rm temp_crontab
 
 
