@@ -122,4 +122,11 @@ if [ $write_plugins = 1 ]; then
     source ~/.zshrc
 fi
 
+# cannot rewrite when volume $HISTFILE(~/.zsh_history).
+zsh_opt_help='# cannot rewrite when volume $HISTFILE(~/.zsh_history).'
+zsh_opt_cmd='setopt nohistsavebycopy'
+if [ ! -f ~/.zprofile -o "$(grep "${zsh_opt_cmd}" ~/.zprofile)" = "" ]; then
+    printf "\n$zsh_opt_help\n$zsh_opt_cmd\n" >> ~/.zprofile
+fi
+
 Echo_Color g "Done!! $0"
