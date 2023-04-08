@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, shutil
+import os, sys, shutil, math
 from pathlib import Path
 from typing import List, Tuple
 
@@ -70,7 +70,7 @@ def prepare_deploy(
         if exec_command != '':
             exec_command += ' && '
         exec_command += f'/.script/ssh_start.sh {user_config.password}'
-        ram_size: int = int(memory * cap_max.shm_rate)
+        ram_size: int = math.ceil(memory * cap_max.shm_rate)
 
     # volumes_ls = [[host_path, container_path, operate_flag(Optional)]...]
     volumes_ls: List[List[str]] = [
@@ -119,7 +119,7 @@ def run(
     if type(gpus) is list:
         len_gpus = len(gpus)
         if len_gpus == 0:
-            gpus = 'none'
+            gpus = '"device=none"'
         elif len_gpus == 1:
             gpus = gpus[0]
         else:
