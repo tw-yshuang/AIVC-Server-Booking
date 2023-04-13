@@ -218,7 +218,8 @@ def cli(
 
 if __name__ == '__main__':
     # sys.argv = ['run-container', '--user-id', 'm11007s05', '-pw', '0000', '-fp', '2225', '-cpus', '12', '-gpus', '1', '-mem', '24']
-    HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/example/host_deploy.yaml')
+    # sys.argv = ['run-container', '--user-id', 'ml', '-pw', '0000', '-fp', '2225', '-cpus', '12', '-gpus', '1', '-mem', '24']
+    HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test/host_deploy.yaml')
     cli()
 
     # # ? for test.
