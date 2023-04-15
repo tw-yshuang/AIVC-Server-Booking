@@ -267,6 +267,8 @@ class Monitor(HostInfo):
         run_df: pd.DataFrame
         run_df = pd.DataFrame(columns=self.using.df.columns)
 
+        # TODO: csv update after run_containers( )
+
         close_ls, task_df = self.update_tasks()
         self.close_containers(close_ls)
         check_ls = [self.check_space(user_id) for user_id in task_df[ScheduleColumnNames.user_id]]
