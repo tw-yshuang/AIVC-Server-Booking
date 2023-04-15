@@ -168,8 +168,7 @@ def __get_bookingtime(user_bookedtime_df: Union[pd.DataFrame, None]) -> BasicCap
     sec2day = 86400
     sec2week = sec2day * 7
     start2end_float = [0.0, 0.0]
-    start2end_datetime: List[datetime] = []
-    booked_checkcode = np.zeros_like(user_bookedtime_df, dtype=np.uint8).T
+    start2end_datetime: List[datetime] = [None, None]
 
     # now time unit setting.
     now = datetime.timestamp(datetime.now())
@@ -249,8 +248,9 @@ def __get_bookingtime(user_bookedtime_df: Union[pd.DataFrame, None]) -> BasicCap
                 print(str_format(f"ValueError: The {bk_str} time must be within 2 weeks from {from_str}!!", fore='r'))
                 continue
 
-            start2end_datetime.append(datetime.fromtimestamp(start2end_float[i]))
+            start2end_datetime[i] = datetime.fromtimestamp(start2end_float[i])
 
+            booked_checkcode = np.zeros_like(user_bookedtime_df, dtype=np.uint8).T
             booked_checkcode[0] = user_bookedtime_df[SC.start] < start2end_datetime[i]
             booked_checkcode[1] = user_bookedtime_df[SC.end] > start2end_datetime[i]
             if (booked_checkcode.sum(axis=0) == 2).any():
