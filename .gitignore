@@ -2,4 +2,5 @@
 .vscode/
 jobs/
 cfg/*.yaml
+docs/FUTURE_WORK.md
 __pycache__/
