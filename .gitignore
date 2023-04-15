@@ -1,4 +1,5 @@
 *test*
+.vscode/
 jobs/
 cfg/*.yaml
 __pycache__/
