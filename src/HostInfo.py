@@ -153,8 +153,9 @@ class CapabilityConfig:
                 setattr(self, k, BasicCapability(**v))
             elif k == 'max_custom_capability':
                 custom_dict = {}
-                for k_sub, v_sub in v.items():
-                    custom_dict[k_sub] = BasicCapability(**v_sub, defaultCap=self.max_default_capability, maxCap=self.max)
+                if v is not None:
+                    for k_sub, v_sub in v.items():
+                        custom_dict[k_sub] = BasicCapability(**v_sub, defaultCap=self.max_default_capability, maxCap=self.max)
                 setattr(self, k, custom_dict)
             else:
                 setattr(self, k, v)

@@ -3,11 +3,12 @@ import sys
 import random
 import getpass
 from copy import copy
-from typing import List
+from typing import List, Union
 from pathlib import Path
 from datetime import datetime
 
 import click
+import numpy as np
 import pandas as pd
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
@@ -15,7 +16,8 @@ if __name__ == '__main__':
     sys.path.append(str(PROJECT_DIR))
 
 from lib.WordOperator import str_format, ask_yn
-from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml, ScheduleColumnNames
+from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml
+from src.HostInfo import ScheduleColumnNames as SC
 from src.booking.Checker import Checker
 
 checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml')
@@ -71,7 +73,9 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
 
     while True:
         cap_info = __get_caps_info(user_id)
-        booking_time = __get_bookingtime()
+        booking_time = __get_bookingtime(
+            user_bookedtime_df=checker.booked_df[checker.booked_df.user_id.values == user_id].loc[:, [SC.start, SC.end]]
+        )
 
         if checker.check_cap4time(cap_info, booking_time):
             break
@@ -159,10 +163,12 @@ def __filter_time_flags(input_time_args: List[str], time_flag: str) -> int:
     return time_flag_value
 
 
-def __get_bookingtime() -> BasicCapability:
+def __get_bookingtime(user_bookedtime_df: Union[pd.DataFrame, None]) -> BasicCapability:
+
     sec2day = 86400
     sec2week = sec2day * 7
-    start2end_datetime = [0.0, 0.0]
+    start2end_float = [0.0, 0.0]
+    start2end_datetime: List[datetime] = [None, None]
 
     # now time unit setting.
     now = datetime.timestamp(datetime.now())
@@ -175,12 +181,12 @@ def __get_bookingtime() -> BasicCapability:
             input_time_args = list(
                 filter(lambda x: x, input(f"Please enter the {bk_str} time, the form is YYYY MM DD hh mm: ").split(' '))
             )
-            now_time = now * (1 - i) + start2end_datetime[0] * i
+            now_float = now * (1 - i) + start2end_float[0] * i
 
             # using time flag 'now'
             if 'now' in input_time_args:
                 if i == 0 and len(input_time_args) == 1:
-                    start2end_datetime[i] = now_time
+                    start2end_float[i] = now_float
                     break
                 elif i == 1:
                     print(str_format("InputError: end time can not user 'now' flag!!", fore='r'))
@@ -190,7 +196,7 @@ def __get_bookingtime() -> BasicCapability:
                     continue
 
             checkCode = 2
-            start2end_datetime[i] = 0
+            start2end_float[i] = 0.0
             for time_flag, max_value, sec2convert in zip(['day', 'week'], [MAX_DAY, MAX_DAY // 7], [sec2day, sec2week]):
                 time_flag_value = __filter_time_flags(input_time_args, time_flag)
 
@@ -203,11 +209,11 @@ def __get_bookingtime() -> BasicCapability:
                     print(str_format(f"ValueError: The range of Time_Flag: {time_flag} must be 1 ~ {max_value}.", fore='r'))
                     checkCode += 2
                 else:
-                    start2end_datetime[i] += time_flag_value * sec2convert
+                    start2end_float[i] += time_flag_value * sec2convert
                     checkCode -= 1
 
             if checkCode < 2:  # user is correctly use time_flag
-                start2end_datetime[i] += now_time
+                start2end_float[i] += now_float
             elif checkCode == 2:  # user is using datetime format
                 useDatetimeFormat = True
             else:  # user has wrong Time_Flag format.
@@ -222,7 +228,7 @@ def __get_bookingtime() -> BasicCapability:
 
                 time_args_len = len(time_args)
                 if time_args_len != 5:
-                    print(str_format(f"InputError: Incorrect number of parameters: expected 5, received {time_args_len}", fore='r'))
+                    print(str_format(f"InputError: Incorrect number of parameters: expected 5, received {time_args_len}!!", fore='r'))
                     continue
 
                 if time_args[4] % 30 != 0:
@@ -230,21 +236,30 @@ def __get_bookingtime() -> BasicCapability:
                     continue
 
                 try:
-                    start2end_datetime[i] = datetime(*time_args).timestamp()
+                    start2end_float[i] = datetime(*time_args).timestamp()
                 except ValueError as e:
                     print(str_format(f"ValueError: {e}", fore='r'))
                     continue
 
-            time_accept = -(start2end_datetime[i] - now_time * (1 - i) - start2end_datetime[0] * i) // (sec2day * MAX_DAY) * -1
+            time_accept = -(start2end_float[i] - now_float * (1 - i) - start2end_float[0] * i) // (sec2day * MAX_DAY) * -1
 
             if time_accept != 1:
                 from_str = "now + 30min" if i == 0 else "start time"
-                print(str_format(f"ValueError: The {bk_str} time must be within 2 weeks from {from_str}", fore='r'))
+                print(str_format(f"ValueError: The {bk_str} time must be within 2 weeks from {from_str}!!", fore='r'))
+                continue
+
+            start2end_datetime[i] = datetime.fromtimestamp(start2end_float[i])
+
+            booked_checkcode = np.zeros_like(user_bookedtime_df, dtype=np.uint8).T
+            booked_checkcode[0] = user_bookedtime_df[SC.start] < start2end_datetime[i]
+            booked_checkcode[1] = user_bookedtime_df[SC.end] > start2end_datetime[i]
+            if (booked_checkcode.sum(axis=0) == 2).any():
+                print(str_format(f"OverlapError: The {bk_str} time is overlap with your previous booking!!", fore='r'))
                 continue
 
             break
 
-    return BookingTime(*[datetime.fromtimestamp(t) for t in start2end_datetime])
+    return BookingTime(*start2end_datetime)
 
 
 def __update_users_config_and_yaml(user_id: str, user_config: UserConfig):
@@ -364,21 +379,20 @@ def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, 
     `booking_time`: checked available times.
     `user_config`: the config for this user_id.
     '''
-    sc = ScheduleColumnNames()
     best_gpus = checker.get_best_gpu_ids(cap_info.gpus, booking_time)
 
     df1 = checker.booking.df
     df2 = pd.DataFrame(
         {
-            sc.start: [booking_time.start],
-            sc.end: [booking_time.end],
-            sc.user_id: [user_id],
-            sc.cpus: [cap_info.cpus],
-            sc.memory: [cap_info.memory],
-            sc.gpus: [best_gpus],
-            sc.forward_port: [user_config.forward_port],
-            sc.image: [user_config.image],
-            sc.extra_command: [user_config.extra_command],
+            SC.start: [booking_time.start],
+            SC.end: [booking_time.end],
+            SC.user_id: [user_id],
+            SC.cpus: [cap_info.cpus],
+            SC.memory: [cap_info.memory],
+            SC.gpus: [best_gpus],
+            SC.forward_port: [user_config.forward_port],
+            SC.image: [user_config.image],
+            SC.extra_command: [user_config.extra_command],
         }
     )
     checker.booking.df = ScheduleDF.concat(df1, df2)

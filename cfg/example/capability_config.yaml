@@ -2,7 +2,7 @@ max:
   cpus: 62 # cores
   ram: 30 # GB
   swap_size: 10 # GB
-  gpus: 1
+  gpus: 4
 
   shm_rate: ram / (ram + swap_size)
   memory: ram + swap_size

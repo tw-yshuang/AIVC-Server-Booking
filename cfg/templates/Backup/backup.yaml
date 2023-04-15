@@ -8,6 +8,8 @@ Dir:
     - /root/.oh-my-zsh
   - - .default/.vscode-server
     - /root/.vscode-server
+  - - .default/ssh
+    - /etc/ssh
 
 File:
   - - .default/.zshrc # Backup's dir_path, must be a related path
