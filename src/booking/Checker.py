@@ -52,7 +52,7 @@ class Checker(HostInfo):
                 print(student_id, ':max_default_capability')
             return self.cap_config.max_default_capability
 
-    def check_user_book_isOverlap(self, user_id: str, start2end_datetime: List[Union[datetime, None]]):
+    def check_user_book_isOverlap(self, user_id: str, start2end_datetime: List[Union[datetime, None]]) -> bool:
         '''
         This function checks if a user's booked time overlaps with a given time range.
 

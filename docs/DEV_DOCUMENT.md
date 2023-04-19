@@ -445,6 +445,23 @@ Search cap_info for user_id from the *`self.cap_config.max_default_capability`* 
 
 - `BasicCapability`
 
+### *`Checker.check_user_book_isOverlap()`*
+
+```python
+def check_user_book_isOverlap(self, user_id: str, start2end_datetime: List[Union[datetime, None]]) -> bool:
+```
+
+This function checks if a user's booked time overlaps with a given time range.
+
+#### **Parameters**
+
+- `user_id` : The user ID is a string that identifies a specific user.
+- `start2end_datetime`: A list of start and end datetime objects  representing the time range for which the user wants to check if they have any overlapping bookings.
+
+#### **Return**
+
+- `boolean`
+
 ### *`Checker.check_cap4time()`*
 
 ```python
