@@ -62,6 +62,7 @@ fi
 docker run \
 -dit \
 --cpus="0.5" \
+--memory="50"M \
 --restart=always \
 -p 10000:22 \
 --name=booking \
