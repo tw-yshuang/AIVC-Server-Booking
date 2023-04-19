@@ -64,6 +64,7 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         input_password = getpass.getpass(prompt="Please enter the password: ")
         if input_password == password:
             isWrong = False  # login successfully
+            print(str_format(f"Login Successfully!!", fore='g'))
             break
         else:
             print("Wrong password!!")
@@ -71,25 +72,25 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         print("ByeBye~~")  # login failed
         return False
 
-    while True:
-        cap_info = __get_caps_info(user_id)
-        booking_time = __get_bookingtime(
-            user_bookedtime_df=checker.booked_df[checker.booked_df.user_id.values == user_id].loc[:, [SC.start, SC.end]]
-        )
-
-        if checker.check_cap4time(cap_info, booking_time):
-            break
-        else:
-            print(str_format(f"There is not enough computing power for the time you need, book again.", fore='y'))
-            continue
-
     if user_id in checker.users_config.ids:
         user_config = copy(checker.users_config.ids[user_id])
     else:
         user_config = __add_new_user_config(user_id)
 
     if use_options:
+        print(str_format(f"\nUse Extra Options Setting", fore='y'))
         user_config = __setting_user_options(user_id, user_config)
+
+    print(str_format(f"\nBooking Setting", fore='y'))
+    while True:
+        cap_info = __get_caps_info(user_id)
+        booking_time = __get_bookingtime(user_id)
+
+        if checker.check_cap4time(cap_info, booking_time):
+            break
+        else:
+            print(str_format(f"There is not enough computing power for the time you need, book again.", fore='y'))
+            continue
 
     while checker.check_forward_port4time(user_config.forward_port, booking_time) is False:
         print(str_format(f"DuplicateError: Forward Port duplicated with others during the time you are booking!!", fore='r'))
@@ -163,7 +164,7 @@ def __filter_time_flags(input_time_args: List[str], time_flag: str) -> int:
     return time_flag_value
 
 
-def __get_bookingtime(user_bookedtime_df: Union[pd.DataFrame, None]) -> BasicCapability:
+def __get_bookingtime(user_id: str) -> BasicCapability:
 
     sec2day = 86400
     sec2week = sec2day * 7
@@ -187,6 +188,10 @@ def __get_bookingtime(user_bookedtime_df: Union[pd.DataFrame, None]) -> BasicCap
             if 'now' in input_time_args:
                 if i == 0 and len(input_time_args) == 1:
                     start2end_float[i] = now_float
+                    start2end_datetime[i] = datetime.fromtimestamp(start2end_float[i])
+                    if checker.check_user_book_isOverlap(user_id, start2end_datetime):
+                        print(str_format(f"OverlapError: The {bk_str} time is overlap with your previous booking!!", fore='r'))
+                        continue
                     break
                 elif i == 1:
                     print(str_format("InputError: end time can not user 'now' flag!!", fore='r'))
@@ -249,11 +254,7 @@ def __get_bookingtime(user_bookedtime_df: Union[pd.DataFrame, None]) -> BasicCap
                 continue
 
             start2end_datetime[i] = datetime.fromtimestamp(start2end_float[i])
-
-            booked_checkcode = np.zeros_like(user_bookedtime_df, dtype=np.uint8).T
-            booked_checkcode[0] = user_bookedtime_df[SC.start] < start2end_datetime[i]
-            booked_checkcode[1] = user_bookedtime_df[SC.end] > start2end_datetime[i]
-            if (booked_checkcode.sum(axis=0) == 2).any():
+            if checker.check_user_book_isOverlap(user_id, start2end_datetime):
                 print(str_format(f"OverlapError: The {bk_str} time is overlap with your previous booking!!", fore='r'))
                 continue
 

@@ -1,6 +1,6 @@
 from pathlib import Path
-from datetime import timedelta
-from typing import List
+from datetime import datetime, timedelta
+from typing import List, Union
 
 import pandas as pd
 import numpy as np
@@ -12,6 +12,7 @@ if __name__ == '__main__':
     sys.path.append(str(PROJECT_DIR))
 
 from src.HostInfo import HostInfo, BookingTime, BasicCapability, ScheduleDF
+from src.HostInfo import ScheduleColumnNames as SC
 
 
 class Checker(HostInfo):
@@ -24,8 +25,6 @@ class Checker(HostInfo):
     # used: HostInfo.used
 
     booked_df: pd.DataFrame
-    user_booking_range_df: pd.DataFrame
-    user_booking_time: BookingTime
     # self used flag
     __test_flag: bool = False
 
@@ -36,8 +35,8 @@ class Checker(HostInfo):
         using_csv: Path = PROJECT_DIR / 'jobs/using.csv',
         used_csv: Path = PROJECT_DIR / 'jobs/used.csv',
     ) -> None:
-        super().__init__(deploy_yaml, booking_csv, using_csv, used_csv)
-        self.booked_df = ScheduleDF.concat(self.booking.df, self.using.df)
+        super(Checker, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
+        self.booked_df = self.__get_booked_df()
 
     def check_student_id(self, student_id: str) -> bool:
         return student_id in self.users_config.ids.keys()
@@ -52,6 +51,44 @@ class Checker(HostInfo):
             if self.__test_flag:
                 print(student_id, ':max_default_capability')
             return self.cap_config.max_default_capability
+
+    def check_user_book_isOverlap(self, user_id: str, start2end_datetime: List[Union[datetime, None]]) -> bool:
+        '''
+        This function checks if a user's booked time overlaps with a given time range.
+
+        Args:
+            `user_id` (str): The user ID is a string that identifies a specific user.
+            `start2end_datetime` (List[Union[datetime, None]]): A list of start and end datetime objects
+            representing the time range for which the user wants to check if they have any overlapping bookings.
+
+        Returns:
+            a boolean value indicating whether the given user's booked time overlaps with the given start and
+            end datetime. If there is an overlap, it returns True, otherwise it returns False.
+        '''
+        self.booked_df = self.__get_booked_df()  # update it, get the latest booked_df
+
+        user_bookedtime_df = self.booked_df[self.booked_df.user_id.values == user_id].loc[:, [SC.start, SC.end]]
+        if user_bookedtime_df.empty:
+            return False
+
+        booked_checkcode_ls = []
+        for book_time in start2end_datetime:
+            if book_time is None:
+                continue
+            booked_checkcode = np.zeros_like(user_bookedtime_df, dtype=np.uint8).T
+            booked_checkcode[0] = user_bookedtime_df[SC.start] <= book_time
+            booked_checkcode[1] = user_bookedtime_df[SC.end] >= book_time
+
+            if (booked_checkcode.sum(axis=0) == 2).any():
+                return True
+
+            booked_checkcode_ls.append(booked_checkcode)
+
+        if len(booked_checkcode_ls) == 1:
+            return False
+
+        booked_checkcode_arr = np.array(booked_checkcode_ls)
+        return True if (booked_checkcode_arr.sum(axis=0) == 1).any() else False
 
     def check_cap4time(self, cap_info: BasicCapability, booking_time: BookingTime) -> bool:
         '''check if cap_info satisfy the capability during booking_time'''
@@ -112,19 +149,24 @@ class Checker(HostInfo):
     def check_image_isexists(self, image: str) -> bool:
         return image in self.deploy_info.images
 
+    def __get_booked_df(self):
+        '''
+        This function returns a concatenated dataframe of booking and using schedules.
+
+        Returns:
+          the latest booked dataframe by concatenating the dataframes of the booking and using schedules.
+        '''
+        self.booking = ScheduleDF(self.booking.path)
+        self.using = ScheduleDF(self.using.path)
+        return ScheduleDF.concat(self.booking.df, self.using.df)  # get the latest booked_df
+
     def __find_book_time_csv(self, booking_time: BookingTime) -> pd.DataFrame:
         # sort Dataframe by 'start'
         # find the first value >= booking_time.start
         # drop earlier
         # repeat for 'end'
 
-        if hasattr(self, 'user_booking_time'):
-            if (
-                hasattr(self, 'user_booking_range_df')
-                and booking_time.end == self.user_booking_time.end
-                and booking_time.start == self.user_booking_time.start
-            ):
-                return self.user_booking_range_df
+        self.booked_df = self.__get_booked_df()  # update it, get the latest booked_df
 
         df = self.booked_df
         # sort data
@@ -133,10 +175,7 @@ class Checker(HostInfo):
         df = df.sort_values(by='end')
         df = df.loc[df['end'] > booking_time.start]  # keep which is not end when book start # end time bigger then my start time
 
-        self.user_booking_range_df = df.reset_index(drop=True, inplace=False)
-        self.user_booking_time = booking_time
-
-        return self.user_booking_range_df
+        return df.reset_index(drop=True, inplace=False)
 
     def __booking_to_gpu_nparray(self, booking_time: BookingTime) -> np.ndarray:
         # this func turn booking information into gpus-time(30min) list
