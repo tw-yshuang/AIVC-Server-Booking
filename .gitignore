@@ -1,3 +1,4 @@
 *test*
 jobs/
+cfg/*.yaml
 __pycache__/
