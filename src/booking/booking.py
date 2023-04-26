@@ -3,12 +3,11 @@ import sys
 import random
 import getpass
 from copy import copy
-from typing import List, Union
+from typing import List
 from pathlib import Path
 from datetime import datetime
 
 import click
-import numpy as np
 import pandas as pd
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]

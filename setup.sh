@@ -5,7 +5,7 @@
 #====================================================
 monitor_files=('jobs/monitor_exec' 'jobs/monitor.log')
 schedule_files=('jobs/booking.csv' 'jobs/using.csv' 'jobs/used.csv')
-cfg_files=('cfg/capability_config.yaml' 'cfg/host_deploy.yaml' 'cfg/users_config.yaml')
+cfg_files=('capability_config.yaml' 'host_deploy.yaml' 'users_config.yaml')
 monitor_program_file="$(pwd)/src/monitor/Monitor.py"
 
 mkdir jobs
@@ -25,8 +25,8 @@ done
 
 # check and copy
 for key in ${!cfg_files[*]}; do
-    if ! [ -f "${cfg_files[$key]}" ]; then
-        git restore --source origin/release -- "${cfg_files[$key]}"
+    if ! [ -f "cfg/${cfg_files[$key]}" ]; then
+        cp "cfg/templates/${cfg_files[$key]}" cfg
     fi
 done
 

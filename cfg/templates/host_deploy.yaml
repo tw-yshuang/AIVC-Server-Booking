@@ -1,0 +1,13 @@
+volume_work_dir: /mnt/Users # users work_dir
+volume_dataset_dir: /mnt/Dataset # data_dir
+volume_backup_dir: /mnt/Backup # backup_dir
+
+users_config_yaml: ./cfg/users_config.yaml
+capability_config_yaml: ./cfg/capability_config.yaml
+
+images:
+  - rober5566a/aivc-server:latest
+  - rober5566a/aivc-server:cuda12.0.1-cudnn8-devel-ubuntu20.04
+  - rober5566a/aivc-server:cuda11.8.0-cudnn8-devel-ubuntu20.04
+  - rober5566a/aivc-server:cuda11.7.1-cudnn8-devel-ubuntu20.04
+  - rober5566a/aivc-server:cuda11.4.2-cudnn8-devel-ubuntu20.04
