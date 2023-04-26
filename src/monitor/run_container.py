@@ -120,8 +120,6 @@ def run(
         len_gpus = len(gpus)
         if len_gpus == 0:
             gpus = '"device=none"'
-        elif len_gpus == 1:
-            gpus = gpus[0]
         else:
             gpus = ','.join(str(gpu) for gpu in gpus)
             gpus = f'"device={gpus}"'
