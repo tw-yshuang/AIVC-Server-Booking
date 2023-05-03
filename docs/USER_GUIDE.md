@@ -6,9 +6,9 @@ AIVC-Server-Booking aims to let users easily get required computing resources su
 
 * **RAM**  
 * **GPU**  
-* **CPU**.  
+* **CPU**
 
-Simultaneously, this system will efficiently manage the server's resources between different users without conflicts.  
+Simultaneously, this system will efficiently manage the server's resources between different users without conflicts.
 
 Our team uses the package, **Docker**, as an important tool to help us distribute resources. Why we use Docker  because it has some characteristics that will be briefly introduced in the following article :  
 
@@ -18,12 +18,12 @@ Our team uses the package, **Docker**, as an important tool to help us distribut
 >  
 > After running the docker file, you can get the container you want. The last and important property is that Docker allows different containers to operate simultaneously without affecting  other containers.
 
-Because of those properties, when a user wants to take advantage of the server's computing capability, you can no more worry about problems caused by different environments and you can focus on the project.  
+Because of those properties, when a user wants to take advantage of the server's computing capability, you can no more worry about problems caused by different environments and you can focus on the project.
 
 Besides integrating Docker, our team is trying to make this system more usable so we add some additional functions to it as follows :
 
 1. User can customize their required resources with CLI.
-2. The host maintainer can supervise the state of the server easily.  
+2. The host maintainer can supervise the state of the server easily.
 
 Now, let's start with the instructions of AIVC-Server-Booking system.
 
@@ -42,7 +42,9 @@ Before booking AIVC's server, there is something you should know ......
 4. There are three main directories in each container,  and those directories will be volumed to corresponding ones in the host. Let's take a look at their purposes :  
 
     `backup_dir`  
-    Aims to store the configs customized by the user. Because a container will be removed when it runs out of time, all environmental configures such as *zshrc*, *pyenv*, also will be deleted. This system helps you back up your environmental setting so you don't need to reset all environment configs in next time.
+    Aims to store the configuration files & directories customized by the user. Because the container will be removed when it runs out of time, all environment configuration files & directories, such as *~/.zshrc*, *~/.pyenv*, also will be deleted. This system helps you back up your environmental setting, so you don't need to reset all environment configs next time.
+
+    **NOTE**: The limited size of this directory is set by the host maintainer(MLOps).
 
     When you want to backup files or directories, you should write down your needs in `backup.yaml` and follow the form shown below :  
 
@@ -69,11 +71,13 @@ Before booking AIVC's server, there is something you should know ......
     ```
 
     `work_dir`  
-    Store user's projects and personal datasets. Because the booking system will automatically remove containers with an empty `work_dir`, you should ensure the `work_dir` has projects in it to avoid your container from being removed.
+    Store users' projects and personal datasets. Because the booking system will automatically remove the container, the `work_dir` is one of the main directories that can save the data to the host. You should ensure that all the projects in the container are all located under the `work_dir`.
+
+    **NOTE**: The limited size of this directory is set by the host maintainer(MLOps).
 
     `dataset_dir`  
     It is a read-only folder and supports standard datasets for every user such as COCO datasets. If you have demands about the public datasets, you can ask the host maintainer for them. The host maintainer will add them to the directory. With the management, all users can access the public datasets without downloading again.
-5. We recommend you to install the font , [Sauce Code Pro Medium Nerd Font Complete](../fonts/Sauce%20Code%20Pro%20Medium%20Nerd%20Font%20Complete.ttf), which supports to avoid broken pictures in the terminal with [powerlevel10k](https://github.com/romkatv/powerlevel10k).  
+5. We recommend you to install the font, [Sauce Code Pro Medium Nerd Font Complete](../fonts/Sauce%20Code%20Pro%20Medium%20Nerd%20Font%20Complete.ttf), which supports to avoid broken pictures in the terminal with [powerlevel10k](https://github.com/romkatv/powerlevel10k).
 The following steps show that how to change the terminal's font in Vscode :
 
     1. Use "` Ctrl + , `" to open the Settings of Vscode, and search "terminal integrated font".
@@ -90,12 +94,11 @@ The following steps show that how to change the terminal's font in Vscode :
 
 In this topic, I will instruct the operations of booking step by step including the booking method, and describe extra options.
 
-### **SSH to the Booking Interface**
+### SSH to the Booking Interface
 
 ```bash
 ssh booking@XXX.XXX.XXX.XXX -p 10000
 
-# Ask Host Maintainer(MLOps) the password
 # booking@XXX.XXX.XXX.XXX's password:
 ```
 
@@ -148,6 +151,10 @@ After that, describe how many resources the container requires :
 Your Maximum Capability Information: 
 cpus=xx, memory=xx, gpus=xx
 Please enter the capability information 'cpus(float) memory(int) gpus(int)': 
+
+# ===== e.g. =====
+# cpus=32.0, memory=192, gpus=4
+# Please enter the capability information 'cpus(float) memory(int) gpus(int)': 24.5 128 1
 ```
 
 As shown above, the first line shows the maximum limitations of **CPUs**, **Memory**, and **GPUs**.
@@ -155,13 +162,23 @@ As shown above, the first line shows the maximum limitations of **CPUs**, **Memo
 
 The final step is to select when you want to run the container and its end time. There are some limits you should know :
 
-* The input value should follow the `datetime format` or use `Time_Flags`.  
+* The input value should follow the `datetime format` or use `Time_Flags`.
 * `mm` format must be `"00"` or `"30"`.
-* `Time_Flags` only can be used for `end time`.
+* `Time_Flags: now` can only be used for `start time`.
 
 ```bash
 Please enter the start time 'YYYY MM DD hh mm': XXXX XX XX XX
 Please enter the end time 'YYYY MM DD hh mm': XXXX XX XX XX
+
+# ===== e.g. =====
+# Please enter the start time, the form is YYYY MM DD hh mm: 2023 05 08 12 30
+# Please enter the end time, the form is YYYY MM DD hh mm: 2023 05 20 16 00
+       # or
+# Please enter the start time, the form is YYYY MM DD hh mm: now
+# Please enter the end time, the form is YYYY MM DD hh mm: 10-day
+       # or
+# Please enter the start time, the form is YYYY MM DD hh mm: 1-week 2-day
+# Please enter the end time, the form is YYYY MM DD hh mm: 2023 05 20 16 00
 ```
 
 Usable `Time_Flags` are shown in the below form :
@@ -175,7 +192,7 @@ After the system has already checked that the computing resources are affordable
 
 #### **II. Update Account Setting**
 
-The system will prompt you to confirm  whether you want to modify the `forward_port`. The `forward_port` must be assigned a value between **10001** and **11000**. Why we choose this range because the `forward_port` in this range isn't related to critical features.  Additionally, the system will automatically check whether the `forward_port` you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
+The system will prompt you to confirm  whether you want to modify the `forward_port`. The `forward_port` must be assigned a value between **10001** and **11000**. Why we choose this range because the `forward_port` in this range isn't related to critical features.Additionally, the system will automatically check whether the `forward_port` you want is duplicated. For more details, go to check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
 
 ```zsh
 Please enter the forward port(default: xxxxx, none by default):
@@ -193,23 +210,50 @@ You can customize your extra commands which will be executed when the system is 
 Please enter the extra command when running the image. (default: None, none by default):
 ```
 
-In this part, the system will ask you whether you want to update your password.  
+In this part, the system will ask you whether you want to update your password.
 
 ```zsh
-Do you want to update the password?
+Do you want to update the password? [y/n]: 
 ```
 
 Double-check your changes. Make sure you want to update the config.
 
 ```zsh
-The previous setting is for the once, do you want to update the default config?
+The previous setting is for the once, do you want to update the default config? [y/n]: 
 ```
 
 ---
 
-## **4. Extra Useful Packages Introduction**  
+## **4. Container Access**  
 
-After instructions, I recommend some packages and commands to you, which are useful for development.  
+### SSH to the Container
+
+Before do this, please ensure the following information:
+
+1. The IP address, same as the [Booking Interface](#3-booking-usage) used.
+2. Go back to the [Booking Interface](#3-booking-usage) and use `booking -ls` to check the booking information.
+3. Check if you are already in the right time intervals.
+4. The `forward_port` in this time intervals for your user_id.
+
+```bash
+ssh root@XXX.XXX.XXX.XXX -p <forward_port>
+
+# root@XXX.XXX.XXX.XXX's password:
+```
+
+### First time to Access
+
+If you are a novices to use the [rober5566a/aive-server](https://hub.docker.com/repository/docker/rober5566a/aivc-server/general) series's container, there are serval things we suggest you to follow:
+
+1. Install New Font for your terminal
+We recommend you to install the font, [Sauce Code Pro Medium Nerd Font Complete](../fonts/Sauce%20Code%20Pro%20Medium%20Nerd%20Font%20Complete.ttf), which supports to avoid broken pictures in the terminal with [powerlevel10k](https://github.com/romkatv/powerlevel10k).
+2. Become familiar with [Extra Useful Packages](#5-extra-useful-packages-introduction), especially with [pipenv & pyenv](#pipenv--pyenv), [tmux](#tmux), and [Vscode Extensions - Remote Development](#remote-development).
+
+---
+
+## **5. Extra Useful Packages Introduction**  
+
+After instructions, I recommend some packages and commands to you, which are useful for development.
 *( Here's a briefly introduction. If you want to realize more, you can click the package name to view the detail.)*
 
 ### Environment Setting
@@ -219,7 +263,7 @@ Here are some packages which can help you manage the environment :
 
 #### [*pipenv & pyenv*](https://medium.com/ntust-aivc/how-to-install-pyenv-pipenv-in-ubuntu-and-use-multiple-versions-of-python-and-its-suites-3514099a6e05)
 
-With *pyenv*, you can install different versions of python in the host and select the certain version which meets the project's needs. After that, use *pipenv* to create a clean virtual environment which is the developed environment. You can download the needed packages in a virtual environment without messing up the host.  
+With *pyenv*, you can install different versions of python in the host and select the certain version which meets the project's needs. After that, use *pipenv* to create a clean virtual environment which is the developed environment. You can download the needed packages in a virtual environment without messing up the host.
 
 #### [*docker*](https://tw-yshuang.notion.site/Docker-Basic-Introduction-657f817e15a3490d83b84c8a143d6207)
 
@@ -240,7 +284,7 @@ With *pyenv*, you can install different versions of python in the host and selec
 **`tmux` is a terminal multiplexer.**  
 It lets you switch easily between several programs in one terminal. When you detach a session, the programs are still running in the background. You can re-access the old programs after retaching. Because of this property, you can run programs in the background of the remote service even though you have detached from it. If you want to access old programs, you can connect to the service with `ssh` and retach the programs by means of `tmux`. That is one of `tmux`'s benefits.
 
-`tmux` assists to open multiple **windows** and **panes** in one terminal. Each **pane** contains its own, independently running shell instance (`bash`, `zsh`, ...). You can operate multiple terminal commands and run applications side by side without creating multiple terminals.  
+`tmux` assists to open multiple **windows** and **panes** in one terminal. Each **pane** contains its own, independently running shell instance (`bash`, `zsh`, ...). You can operate multiple terminal commands and run applications side by side without creating multiple terminals.
 
 Conclude that `tmux` basically offers two major features:
 
@@ -308,7 +352,7 @@ This extension supports user-friendly methods to give comments in a code file. C
 
 #### [Remote Development](https://code.visualstudio.com/docs/remote/remote-overview)
 
-It allows you to use a **container**, **remote machine**, or the **Windows Subsystem for Linux** as a full-featured development environment. You can remotely work on the deployed operating system.  
+It allows you to use a **container**, **remote machine**, or the **Windows Subsystem for Linux** as a full-featured development environment. You can remotely work on the deployed operating system.
 The following pictures show the steps of using *Remote Development*.
 
 Click the bottom-left blue button as shown :
