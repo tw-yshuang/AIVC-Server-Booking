@@ -144,11 +144,11 @@ class Monitor(HostInfo):
             backup_capacity = round(
                 self.__get_dir_size(path=self.users_config.ids[user_id].volume_backup_dir) / (1000**3),
                 2,
-            )  # Gb
+            )  # GB
             work_capacity = round(
                 self.__get_dir_size(path=self.users_config.ids[user_id].volume_work_dir) / (1000**3),
                 2,
-            )
+            )  # GB
             backup_over_used = backup_capacity - user_backup_capacity
             work_over_used = work_capacity - user_work_capacity
         except Exception as e:
@@ -156,7 +156,7 @@ class Monitor(HostInfo):
             self.msg.error(sign="PathError", msg=send_msg)
             return False
 
-        # print(f'backup:{backup_over_used}Gb, work:{work_over_used}Gb')
+        # print(f'backup:{backup_over_used}Gb, work:{work_over_used}GB')
         if (work_over_used > 0) and (backup_over_used > 0):
             send_msg = f"{user_id} is over-use the work_dir {work_over_used}GB, and backup_dir {backup_over_used}GB."
         elif work_over_used < 0 and backup_over_used > 0:
