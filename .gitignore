@@ -3,4 +3,5 @@
 jobs/
 cfg/*.yaml
 docs/FUTURE_WORK.md
+docs/DEV_DOCUMENT.md
 __pycache__/
