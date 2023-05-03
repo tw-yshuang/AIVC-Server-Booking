@@ -357,6 +357,7 @@ def __setting_user_options(user_id: str, user_config: UserConfig):
             print(str_format("UpdatePasswordError: Two input passwords are not the same!!", fore='r'))
             continue
         else:
+            user_config.password = new_password
             checker.users_config.ids[user_id].password = new_password
             __update_users_config_and_yaml(user_id, checker.users_config.ids[user_id])
             print(str_format("Update default Password!", fore='g'))

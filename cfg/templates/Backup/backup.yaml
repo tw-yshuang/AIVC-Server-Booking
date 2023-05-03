@@ -20,3 +20,5 @@ File:
     - /root/.p10k.zsh
   - - .default/.X11-unix
     - /tmp/.X11-unix
+  - - .default/.gitacc
+    - /root/.gitacc
