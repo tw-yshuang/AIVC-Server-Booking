@@ -56,4 +56,5 @@ docker pull --all-tags rober5566a/aivc-server
 #====================================================
 # Deploy booking container
 #====================================================
+docker container stop booking && docker container rm booking
 bash run_booking.sh
