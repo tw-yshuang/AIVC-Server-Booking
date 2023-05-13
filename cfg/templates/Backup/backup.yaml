@@ -14,8 +14,8 @@ Dir:
     - /root/.ssh
 
 File:
-  - - .default/.zshrc # Backup's dir_path, must be a related path
-    - /root/.zshrc # container's dir_path, must be a absolute path
+  - - .default/.zshrc # Backup's file_path, must be a related path
+    - /root/.zshrc # container's file_path, must be a absolute path
   - - .default/.zsh_history
     - /root/.zsh_history
   - - .default/.p10k.zsh
