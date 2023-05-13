@@ -10,6 +10,8 @@ Dir:
     - /root/.vscode-server
   - - .default/ssh
     - /etc/ssh
+  - - .default/.ssh
+    - /root/.ssh
 
 File:
   - - .default/.zshrc # Backup's dir_path, must be a related path

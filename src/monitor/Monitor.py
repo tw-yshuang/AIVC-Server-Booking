@@ -10,7 +10,9 @@ from typing import List, NamedTuple
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
     sys.path.append(str(PROJECT_DIR))
+
 from lib.WordOperator import str_format
+from lib.FileOperator import get_dir_size_unix
 from src.HostInfo import HostInfo, ScheduleColumnNames
 from src.monitor.run_container import run_container
 
@@ -89,22 +91,6 @@ class Monitor(HostInfo):
         super(Monitor, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv, *args, **kwargs)
         self.msg = MonitorMassage(log_path)
 
-    def __get_dir_size(self, path: str, size: float = 0.0):
-        total_size = 0.0
-
-        for root, dirs, files in os.walk(path, onerror=StopIteration):
-            if len(files) == 0:
-                continue
-
-            for file in files:
-                fp = os.path.join(root, file)
-                # skip if it is symbolic link
-                if os.path.islink(fp):
-                    total_size += os.lstat(fp).st_size
-                else:
-                    total_size += os.path.getsize(fp)
-        return total_size
-
     def check_gpus_duplicate(self, run_df):
         count = []
         for i in range(len(run_df)):
@@ -140,34 +126,26 @@ class Monitor(HostInfo):
         if isNotExist:
             return True
 
-        try:
-            backup_capacity = round(
-                self.__get_dir_size(path=self.users_config.ids[user_id].volume_backup_dir) / (1000**3),
-                2,
-            )  # GB
-            work_capacity = round(
-                self.__get_dir_size(path=self.users_config.ids[user_id].volume_work_dir) / (1000**3),
-                2,
-            )  # GB
-            backup_over_used = backup_capacity - user_backup_capacity
-            work_over_used = work_capacity - user_work_capacity
-        except Exception as e:
-            send_msg = f"Fail to calculate the storage space of backup_dir or work_dir used by {user_id}, {e}"
-            self.msg.error(sign="PathError", msg=send_msg)
+        backup_size = round(get_dir_size_unix(self.users_config.ids[user_id].volume_backup_dir) / (1024**2), 2)  # GB
+        work_size = round(get_dir_size_unix(path=self.users_config.ids[user_id].volume_work_dir) / (1024**2), 2)  # GB
+
+        backup_over_used = backup_size - user_backup_capacity
+        work_over_used = work_size - user_work_capacity
+
+        msg_ls = []
+        if backup_over_used > 0:
+            msg_ls.append(f"backup_dir {backup_over_used}GB")
+        if work_over_used > 0:
+            msg_ls.append(f"work_dir {work_over_used}GB")
+
+        if len(msg_ls) != 0:
+            print(f"ys-huang is over-use the {', and the '.join(msg_ls)}.")
+
+        if len(msg_ls) != 0:
+            self.msg.warning(sign=SpaceWarning.__name__, msg=f"{user_id} is over-use the {', and the '.join(msg_ls)}.")
             return False
 
-        # print(f'backup:{backup_over_used}Gb, work:{work_over_used}GB')
-        if (work_over_used > 0) and (backup_over_used > 0):
-            send_msg = f"{user_id} is over-use the work_dir {work_over_used}GB, and backup_dir {backup_over_used}GB."
-        elif work_over_used < 0 and backup_over_used > 0:
-            send_msg = f"{user_id} is over-use the backup_dir {backup_over_used}GB."
-        elif work_over_used > 0 and backup_over_used < 0:
-            send_msg = f"{user_id} is over-use the work_dir {work_over_used}GB."
-        else:
-            return True
-
-        self.msg.warning(sign=SpaceWarning.__name__, msg=send_msg)
-        return False
+        return True
 
     def close_containers(self, user_ids: List) -> List:
         result_ls = []
@@ -282,7 +260,7 @@ class Monitor(HostInfo):
 
 if __name__ == '__main__':
     monitor = Monitor(
-        deploy_yaml=PROJECT_DIR / 'cfg/example/host_deploy.yaml',
+        deploy_yaml=PROJECT_DIR / 'cfg/test/host_deploy.yaml',
         booking_csv=PROJECT_DIR / 'jobs/booking.csv',
         using_csv=PROJECT_DIR / 'jobs/using.csv',
         used_csv=PROJECT_DIR / 'jobs/used.csv',
