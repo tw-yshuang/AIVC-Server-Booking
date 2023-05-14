@@ -48,7 +48,7 @@ def get_dir_size_unix(path: str = '.'):  # faster way
     Returns:
         the size of the directory in kilobytes as an integer.
     '''
-    return int(subprocess.check_output(['du', '-sk', path]).split()[0].decode('utf-8'))
+    return int(subprocess.run(['du', '-sk', path], stdout=subprocess.PIPE).stdout.split()[0].decode('utf-8'))
 
 
 get_dir_size = get_dir_size_py  # general used but slow than get_dir_size_unix

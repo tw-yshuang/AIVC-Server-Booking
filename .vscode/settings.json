@@ -1,7 +1,10 @@
 {
   "editor.tabSize": 4,
   "editor.wordWrapColumn": 135,
-  "python.formatting.provider": "black",
+  "python.formatting.provider": "none",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
   "python.formatting.blackArgs": [
     "--line-length",
     "135",
