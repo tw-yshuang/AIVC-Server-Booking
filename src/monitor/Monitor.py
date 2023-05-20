@@ -1,14 +1,15 @@
-import sys
-import time
-import os
-import pandas as pd
-import numpy as np
-from datetime import datetime
+import os, time
 from pathlib import Path
+from datetime import datetime
 from typing import List, NamedTuple
+
+import numpy as np
+import pandas as pd
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
+    import sys
+
     sys.path.append(str(PROJECT_DIR))
 
 from lib.WordOperator import str_format
@@ -126,8 +127,8 @@ class Monitor(HostInfo):
         if isNotExist:
             return True
 
-        backup_size = round(get_dir_size_unix(self.users_config.ids[user_id].volume_backup_dir) / (1024**2), 2)  # GB
-        work_size = round(get_dir_size_unix(path=self.users_config.ids[user_id].volume_work_dir) / (1024**2), 2)  # GB
+        backup_size = round(get_dir_size_unix(self.users_config.ids[user_id].volume_backup_dir) / (2**20), 2)  # GB
+        work_size = round(get_dir_size_unix(path=self.users_config.ids[user_id].volume_work_dir) / (2**20), 2)  # GB
 
         backup_over_used = backup_size - user_backup_capacity
         work_over_used = work_size - user_work_capacity
@@ -139,14 +140,12 @@ class Monitor(HostInfo):
             msg_ls.append(f"work_dir {work_over_used}GB")
 
         if len(msg_ls) != 0:
-            print(f"ys-huang is over-use the {', and the '.join(msg_ls)}.")
-
-        if len(msg_ls) != 0:
             self.msg.warning(sign=SpaceWarning.__name__, msg=f"{user_id} is over-use the {', and the '.join(msg_ls)}.")
             return False
 
         return True
 
+    # TODO: os.system -> subprocess.run()
     def close_containers(self, user_ids: List) -> List:
         result_ls = []
         for id in user_ids:  # user_ids is a list which contains ids need to be remove
@@ -171,23 +170,24 @@ class Monitor(HostInfo):
         for task in run_df.itertuples(index=False, name=None):
             user_id, cpus, memory, gpus, forward_port, image, extra_command = task[2:]
             user_id = user_id.lower()
-            try:
-                result = run_container(
-                    user_id=user_id,
-                    cpus=cpus,
-                    memory=memory,
-                    gpus=gpus,
-                    forward_port=forward_port,
-                    image=image,
-                    extra_command=extra_command,
-                    cap_max=self.cap_config.max,
-                    user_config=self.users_config.ids[user_id],
-                )
+            result = run_container(
+                user_id=user_id,
+                cpus=cpus,
+                memory=memory,
+                gpus=gpus,
+                forward_port=forward_port,
+                image=image,
+                extra_command=extra_command,
+                cap_max=self.cap_config.max,
+                user_config=self.users_config.ids[user_id],
+            )
+            if result == '':
                 result_ls.append(True)
                 self.msg.info(msg=f"Container {user_id} have been run successfully")
-            except Exception as e:
-                self.msg.error(sign="ContainerError", msg=f"Fail to run container {user_id}, {e}")
+            else:
                 result_ls.append(False)
+                self.msg.error(sign="ContainerError", msg=f"Fail to run container {user_id}, {result}")
+
         return result_ls
 
     def update_tasks(self) -> List[str] and pd.DataFrame:
