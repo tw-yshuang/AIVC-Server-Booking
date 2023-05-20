@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, shutil, math
+import os, subprocess, shutil, math
 from pathlib import Path
 from typing import List, Tuple
 
@@ -8,6 +8,8 @@ from pandas import isna
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
+    import sys
+
     sys.path.append(str(PROJECT_DIR))
 
 from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig, MaxCapability
@@ -116,17 +118,13 @@ def run(
 
     volume_info = ' -v '.join(':'.join(volume_ls) for volume_ls in volumes_ls)
 
-    if type(gpus) is list:
-        len_gpus = len(gpus)
-        if len_gpus == 0:
-            gpus = '"device=none"'
-        else:
-            gpus = ','.join(str(gpu) for gpu in gpus)
-            gpus = f'"device={gpus}"'
+    if isinstance(gpus, (int, str)):
+        gpus = [gpu for gpu in range(0, int(gpus))]
+
+    gpus = ','.join(str(gpu) for gpu in gpus) if len(gpus) != 0 else 'none'
 
     # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
-    os.system(
-        f'docker run\
+    exec_str = f'docker run\
                 -dit\
                 --restart=always\
                 --pid=host\
@@ -134,7 +132,7 @@ def run(
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
                 --shm-size={memory-ram_size}G\
-                --gpus \'{gpus}\'\
+                --gpus "device={gpus}"\
                 --name={user_id}\
                 -p {forward_port}:22\
                 -v {volume_info}\
@@ -142,7 +140,13 @@ def run(
                 {image}\
                 {exec_command}\
                 '
-    )
+
+    return subprocess.run(
+        exec_str.split(),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        encoding='utf-8',
+    ).stderr
 
 
 def run_container(
@@ -158,7 +162,6 @@ def run_container(
     *args,
     **kwargs,
 ) -> None:
-
     # the value of image & extra_command maybe is nan, pd.NA, np.nan ..., use this method to convert it first.
     image = None if isna(image) else image
     extra_command = None if isna(extra_command) else extra_command
@@ -191,7 +194,8 @@ def cli(
 ) -> None:
     '''Repository: https://github.com/tw-yshuang/AIVC-Server-Booking
     Examples:
-    >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10001'''
+    >>> python3 ./run_container.py --user-id tw-yshuang -pw IamNo1handsome! -fp 10001
+    '''
 
     user_config = UserConfig(
         password=password,
@@ -217,6 +221,7 @@ def cli(
 if __name__ == '__main__':
     # sys.argv = ['run-container', '--user-id', 'm11007s05', '-pw', '0000', '-fp', '2225', '-cpus', '12', '-gpus', '1', '-mem', '24']
     # sys.argv = ['run-container', '--user-id', 'ml', '-pw', '0000', '-fp', '2225', '-cpus', '12', '-gpus', '1', '-mem', '24']
+
     HostDI = HostDeployInfo(PROJECT_DIR / 'cfg/test/host_deploy.yaml')
     cli()
 
