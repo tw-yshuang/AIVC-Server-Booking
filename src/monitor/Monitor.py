@@ -80,6 +80,17 @@ class GPUDuplicateWarning(Warning):
         return 'GPUDuplicateWarning'
 
 
+class ContainerWarning(Warning):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return 'ContainerWarning'
+
+
 class ContainerError(Exception):
     def __init__(self) -> None:
         super().__init__()
@@ -173,20 +184,26 @@ class Monitor(HostInfo):
             id = id.lower()
 
             exec_str_ls = [
-                f'docker exec {id} python3 /root/Backup/.container_backup.py',
-                f'docker container stop {id}',
-                f'docker container rm {id}',
+                f'docker exec {id} python3 /root/Backup/.container_backup.py',  # Execute backup
+                f'docker container stop {id}',  # Container stop
+                f'docker container rm {id}',  # Container remove
             ]
 
-            for exec_str in exec_str_ls:
+            for exec_str, stage in zip(exec_str_ls[:-1], ['Exec', 'Stop']):
                 result = subprocess.run(
                     exec_str.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8'
                 ).stderr.split('\n')[0]
                 if result != '':
-                    self.msg.error(sign=ContainerError(), msg=f"Close {id}, {result}")
-                    result_ls.append(False)
+                    self.msg.warning(sign=ContainerWarning(), msg=f"Close-{stage} {id}, {result}")
 
-            if result == '':
+            result = subprocess.run(
+                exec_str_ls[-1].split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8'
+            ).stderr.split('\n')[0]
+
+            if result != '':
+                self.msg.error(sign=ContainerError(), msg=f"Close-Remove {id}, {result}")
+                result_ls.append(False)
+            else:
                 self.msg.info(msg=f"Container {id} have been closed successfully")
                 result_ls.append(True)
 
@@ -277,13 +294,15 @@ class Monitor(HostInfo):
         # TODO: csv update after run_containers( )
 
         close_ls, task_df = self.update_tasks()
-        self.close_containers(close_ls)
+        close_results = self.close_containers(close_ls)
+
         check_ls = [self.check_space(user_id) for user_id in task_df[ScheduleColumnNames.user_id]]
         for i in range(len(task_df)):
             if check_ls[i] == True:
                 run_df.loc[len(run_df.index)] = task_df.iloc[i]
-        self.run_containers(run_df)
-        # os.system(f'docker exec {user_id} echo 'info' > N/run_echo')
+
+        run_results = self.run_containers(run_df)
+
         self.check_gpus_duplicate(run_df)
 
 
