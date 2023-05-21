@@ -1,4 +1,4 @@
-import os, time
+import os, time, subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import List, NamedTuple
@@ -59,14 +59,36 @@ class MonitorMassage:
 
 
 class SpaceWarning(Warning):
-    def __init__(self, path: Path = PROJECT_DIR / 'jobs/monitor.log') -> None:
-        super().__init__(path)
-        self.__name__ = "SpaceWarning"
+    def __init__(self) -> None:
+        super().__init__()
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return 'SpaceWarning'
 
 
 class GPUDuplicateWarning(Warning):
     def __init__(self) -> None:
-        self.__name__ = "GPUDuplicateWarning"
+        super().__init__()
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return 'GPUDuplicateWarning'
+
+
+class ContainerError(Exception):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def __str__(self) -> str:
+        return 'ContainerError'
 
 
 class Monitor(HostInfo):
@@ -145,21 +167,28 @@ class Monitor(HostInfo):
 
         return True
 
-    # TODO: os.system -> subprocess.run()
-    def close_containers(self, user_ids: List) -> List:
+    def close_containers(self, user_ids: List) -> List[bool]:
         result_ls = []
         for id in user_ids:  # user_ids is a list which contains ids need to be remove
             id = id.lower()
-            os.system(f'docker exec {id} python3 /root/Backup/.container_backup.py')
-            os.system(f'docker container stop {id}')
-            cmdInfo = os.system(f'docker container rm {id}')
-            if cmdInfo == 0:  # success
+
+            exec_str_ls = [
+                f'docker exec {id} python3 /root/Backup/.container_backup.py',
+                f'docker container stop {id}',
+                f'docker container rm {id}',
+            ]
+
+            for exec_str in exec_str_ls:
+                result = subprocess.run(
+                    exec_str.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8'
+                ).stderr.split('\n')[0]
+                if result != '':
+                    self.msg.error(sign=ContainerError(), msg=f"Close {id}, {result}")
+                    result_ls.append(False)
+
+            if result == '':
                 self.msg.info(msg=f"Container {id} have been closed successfully")
                 result_ls.append(True)
-
-            else:
-                self.msg.error(sign="ContainerError", msg=f"Fail to close container {id}")
-                result_ls.append(False)
 
         return result_ls
 
@@ -186,7 +215,7 @@ class Monitor(HostInfo):
                 self.msg.info(msg=f"Container {user_id} have been run successfully")
             else:
                 result_ls.append(False)
-                self.msg.error(sign="ContainerError", msg=f"Fail to run container {user_id}, {result}")
+                self.msg.error(sign=ContainerError(), msg=f"Run {user_id}, {result}")
 
         return result_ls
 

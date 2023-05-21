@@ -19,7 +19,7 @@ from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, d
 from src.HostInfo import ScheduleColumnNames as SC
 from src.booking.Checker import Checker
 
-checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/example/host_deploy.yaml')
+checker = Checker(deploy_yaml=PROJECT_DIR / 'cfg/test/host_deploy.yaml')
 MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/monitor_exec'
 
 MIN_CPUS: float = 1
@@ -164,7 +164,6 @@ def __filter_time_flags(input_time_args: List[str], time_flag: str) -> int:
 
 
 def __get_bookingtime(user_id: str) -> BasicCapability:
-
     sec2day = 86400
     sec2week = sec2day * 7
     start2end_float = [0.0, 0.0]
@@ -409,7 +408,7 @@ def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, 
 
 if __name__ == '__main__':
     # sys.argv = ['booking.py', '-id', 'm11007s05-2', '-use-opt']
-    sys.argv = ['booking.py', '-use-opt']
+    # sys.argv = ['booking.py', '-use-opt']
     cli()
 
     # cap_info = __get_caps_info('m11007s05-3')

@@ -141,12 +141,7 @@ def run(
                 {exec_command}\
                 '
 
-    return subprocess.run(
-        exec_str.split(),
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        encoding='utf-8',
-    ).stderr
+    return subprocess.run(exec_str.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8').stderr.split('\n')[0]
 
 
 def run_container(
@@ -168,7 +163,7 @@ def run_container(
 
     image, exec_command, ram_size, volumes_ls = prepare_deploy(user_config, cap_max, memory, image, extra_command)
 
-    run(user_id, forward_port, cpus, memory, gpus, image, exec_command, ram_size, volumes_ls)
+    return run(user_id, forward_port, cpus, memory, gpus, image, exec_command, ram_size, volumes_ls)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
