@@ -164,7 +164,6 @@ def __filter_time_flags(input_time_args: List[str], time_flag: str) -> int:
 
 
 def __get_bookingtime(user_id: str) -> BasicCapability:
-
     sec2day = 86400
     sec2week = sec2day * 7
     start2end_float = [0.0, 0.0]
