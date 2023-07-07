@@ -14,7 +14,8 @@ if __name__ == '__main__':
 
 from lib.WordOperator import str_format
 from lib.FileOperator import get_dir_size_unix
-from src.HostInfo import HostInfo, ScheduleColumnNames
+from src.HostInfo import HostInfo
+from src.HostInfo import ScheduleColumnNames as SC
 from src.monitor.run_container import run_container
 
 
@@ -103,7 +104,7 @@ class ContainerError(Exception):
 
 
 class Monitor(HostInfo):
-    # deploy_info: HostInfo.deploy_info】
+    # deploy_info: HostInfo.deploy_info
     # cap_config : HostInfo.cap_config
     # users_config: HostInfo.users_config
 
@@ -123,19 +124,25 @@ class Monitor(HostInfo):
         **kwargs,
     ) -> None:
         super(Monitor, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv, *args, **kwargs)
+
+        self.move2used: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
+        self.now_using: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
+        self.move2using: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
+        self.now_booking: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
+
         self.msg = MonitorMassage(log_path)
 
     def check_gpus_duplicate(self, run_df):
         count = []
         for i in range(len(run_df)):
-            count.extend(run_df['gpus'].iloc[i])
+            count.extend(run_df[SC.gpus].iloc[i])
         u, c = np.unique(count, return_counts=True)
         dup = u[c > 1]
         dup_ids = []
         for k in range(len(run_df)):
             for ele in dup:
-                if ele in run_df['gpus'].iloc[k]:
-                    dup_ids.append(run_df['user_id'].iloc[k])
+                if ele in run_df[SC.gpus].iloc[k]:
+                    dup_ids.append(run_df[SC.user_id].iloc[k])
         dup_ids = list(set(dup_ids))
         if dup_ids != []:
             self.msg.warning(
@@ -143,7 +150,7 @@ class Monitor(HostInfo):
                 msg=f"{dup_ids} containers encounter GPU duplicate",
             )
 
-    def check_space(self, user_id) -> bool:
+    def check_space(self, user_id: str) -> bool:
         user_id = user_id.lower()
         if self.cap_config.max_custom_capability.get(user_id) == None:  # user is not in custom config
             user_backup_capacity = self.cap_config.max_default_capability.backup_space
@@ -237,71 +244,57 @@ class Monitor(HostInfo):
         return result_ls
 
     def update_tasks(self) -> List[str] and pd.DataFrame:
-        remove_ids = []
-        sorted_using = self.using.df.sort_values(by='end', ascending=False)  # sort by the ending time from big to small
-        sorted_using.reset_index(drop=True, inplace=True)  # reset the index
-        using_end_dates = sorted_using['end']
         t_now = datetime.now()
-        try:
-            for i in range(0, len(using_end_dates), 1):  # find the
-                time_delta = pd.Timedelta.total_seconds(t_now - using_end_dates[i])
-                if time_delta >= 0:
-                    move_to_used = sorted_using[i:]
-                    self.used.df = pd.concat([self.used.df, move_to_used])
-                    self.used.update_csv()
-                    self.using.df = sorted_using.loc[sorted_using[0:i].index].copy()
-                    self.using.update_csv()
-                    remove_ids = move_to_used['user_id'].tolist()
-                    self.msg.info(msg=f"Successfully update {remove_ids} from using to used")
-                    break
-        except:
-            self.msg.error(
-                sign="UpdateError",
-                msg=f"Fail to update {remove_ids} from using to used",
-            )
-        move_to_using = pd.DataFrame(columns=self.used.df.columns)
-        sorted_booking = self.booking.df.sort_values(by='start', ascending=False)  # sort by the starting time from big to small
-        sorted_booking.reset_index(drop=True, inplace=True)  # reset the index
-        booking_start_dates = sorted_booking['start']
-        t_now = datetime.now()
-        try:
-            for i in range(0, len(booking_start_dates), 1):
-                time_delta = pd.Timedelta.total_seconds(t_now - booking_start_dates[i])
-                if time_delta >= 0:
-                    move_to_using = sorted_booking[i:]
-                    self.using.df = pd.concat([self.using.df, move_to_using])
-                    self.using.update_csv()
-                    self.booking.df = sorted_booking.loc[sorted_booking[0:i].index].copy()
-                    self.booking.update_csv()
-                    move_to_using_ids = move_to_using['user_id'].to_list()
-                    self.msg.info(msg=f"Successfully update {move_to_using_ids} from booking to using")
-                    break
-        except:
-            self.msg.error(
-                sign="UpdateError",
-                msg=f"Fail to update {move_to_using_ids} from booking to using",
-            )
 
-        return (remove_ids, move_to_using)
+        sorted_using = self.using.df.sort_values(by=SC.end, ascending=False)  # sort by the ending time from big to small
+        sorted_using.reset_index(drop=True, inplace=True)  # reset the index
+        using_end_dates = sorted_using[SC.end]
+        for i in range(len(using_end_dates)):  # find the
+            if pd.Timedelta.total_seconds(t_now - using_end_dates[i]) >= 0:
+                self.move2used = sorted_using[i:]
+                self.now_using = sorted_using.loc[sorted_using[:i].index].copy()
+                break
+
+        sorted_booking = self.booking.df.sort_values(by=SC.start, ascending=False)  # sort by the starting time from big to small
+        sorted_booking.reset_index(drop=True, inplace=True)  # reset the index
+        booking_start_dates = sorted_booking[SC.start]
+        for i in range(len(booking_start_dates)):  # find the
+            if pd.Timedelta.total_seconds(t_now - booking_start_dates[i]) >= 0:
+                self.move2using = sorted_booking[i:]
+                self.now_booking = sorted_booking.loc[sorted_booking[:i].index].copy()
+                break
 
     def exec(self) -> None:
-        close_ls: List[str]
-        check_ls: List[bool]
-        task_df: pd.DataFrame
-        run_df: pd.DataFrame
-        run_df = pd.DataFrame(columns=self.using.df.columns)
+        self.update_tasks()
 
-        close_ls, task_df = self.update_tasks()
-        close_results = self.close_containers(close_ls)
+        close_results = np.array(self.close_containers(self.move2used[SC.user_id].tolist()), dtype=np.bool_)
+        self.using.df = self.using.concat(self.now_using, self.move2used[np.invert(close_results)])
+        self.used.df = self.used.concat(self.used.df, self.move2used[close_results])
+        self.using.update_csv()
+        self.used.update_csv()
+        if close_results.any() == True:
+            self.msg.info(msg=f"Successfully update {self.move2used.loc[close_results, SC.user_id].tolist()} from using to used")
+        if close_results.any() == False:
+            self.msg.error(
+                sign="UpdateError",
+                msg=f"Fail to update {self.move2used.loc[np.invert(close_results), SC.user_id].tolist()} from using to used",
+            )
 
-        check_ls = [self.check_space(user_id) for user_id in task_df[ScheduleColumnNames.user_id]]
-        for i in range(len(task_df)):
-            if check_ls[i] == True:
-                run_df.loc[len(run_df.index)] = task_df.iloc[i]
+        run_results = np.array([self.check_space(user_id) for user_id in self.move2using[SC.user_id]], dtype=np.bool_)
+        run_results[run_results] = self.run_containers(self.move2using[run_results])
+        self.booking.df = self.booking.concat(self.now_booking, self.move2using[np.invert(run_results)])
+        self.using.df = self.using.concat(self.using.df, self.move2using[run_results])
+        self.booking.update_csv()
+        self.using.update_csv()
+        if run_results.any() == True:
+            self.msg.info(msg=f"Successfully update {self.move2using.loc[run_results, SC.user_id].tolist()} from booking to using")
+        if run_results.any() == False:
+            self.msg.error(
+                sign="UpdateError",
+                msg=f"Fail to update {self.move2using.loc[np.invert(run_results), SC.user_id].tolist()} from booking to using",
+            )
 
-        run_results = self.run_containers(run_df)
-
-        self.check_gpus_duplicate(run_df)
+        self.check_gpus_duplicate(self.using.df)
 
 
 if __name__ == '__main__':
