@@ -123,7 +123,7 @@ Options:
 booking -ls
 ```
 
-`id` or `--user-id`: Log in the system to book the server.
+`-id` or `--user-id`: Log in the system to book the server.
 
 ```zsh
 booking -id <user_id>

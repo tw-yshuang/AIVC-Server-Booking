@@ -703,10 +703,12 @@ def __init__(
     log_path: Path = Path('jobs/monitor.log'),
 ) -> None:
     super(Monitor, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv)
-    
-    self.msg = MonitorMessage(log_path)
+    self.move2used: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
+    self.now_using: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
+    self.move2using: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
+    self.now_booking: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
 
-    self.exec()
+    self.msg = MonitorMessage(log_path)
 ```
 
 ### *`Monitor.update_tasks()`*
@@ -719,8 +721,6 @@ Detect all the tasks status, this function will do 4 things:
 
 1. Find containers that are due on the *`self.using`* from `column:end`.
 2. Find tasks that are time up on the *`self.booking`* from the `column:start`.
-3. Move the information that time up on each data frame, `self.using` → `self.booking` → `self.used`.
-4. Update csv, using *`self.booking.update_csv()`* & *`self.using.update_csv()`* & *`self.used.update_csv()`*.
 
 #### **Parameters**
 
@@ -728,8 +728,7 @@ Detect all the tasks status, this function will do 4 things:
 
 #### **Return**
 
-- `List[str]`: close_ls, the containers name(user_id) that need to stop & remove.
-- `pd.DataFrame`: task_df, the `pd.DataFrame` saves the tasks that need to be enabled.
+- `None`
 
 ### *`Monitor.check_space()`*
 
@@ -829,6 +828,7 @@ Execute the monitoring, use methods that are in the `self`, this method will exe
 2. Use *`self.close_containers()`* to close containers form close_ls.
 3. Use *`self.check_space()`* from close_ls & task_df. The run_df is from task_df that is passed *`self.check_space()`*.
 4. Use *`self.run_containers()`* from task_df.
+5. Update csv, using *`self.booking.update_csv()`* & *`self.using.update_csv()`* & *`self.used.update_csv()`*.
 
 #### **Parameters**
 
