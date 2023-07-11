@@ -274,7 +274,7 @@ class Monitor(HostInfo):
         self.used.update_csv()
         if close_results.any() == True:
             self.msg.info(msg=f"Successfully update {self.move2used.loc[close_results, SC.user_id].tolist()} from using to used")
-        if close_results.any() == False:
+        if close_results.any() == False and close_results.size != 0:
             self.msg.error(
                 sign="UpdateError",
                 msg=f"Fail to update {self.move2used.loc[np.invert(close_results), SC.user_id].tolist()} from using to used",
@@ -288,7 +288,7 @@ class Monitor(HostInfo):
         self.using.update_csv()
         if run_results.any() == True:
             self.msg.info(msg=f"Successfully update {self.move2using.loc[run_results, SC.user_id].tolist()} from booking to using")
-        if run_results.any() == False:
+        if run_results.any() == False and run_results.size != 0:
             self.msg.error(
                 sign="UpdateError",
                 msg=f"Fail to update {self.move2using.loc[np.invert(run_results), SC.user_id].tolist()} from booking to using",
