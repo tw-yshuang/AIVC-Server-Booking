@@ -265,18 +265,24 @@ class Monitor(HostInfo):
         return move2used, now_using, move2using, now_booking
 
     def update_sdf(
-        self, from_sdf: ScheduleDF, to_sdf: ScheduleDF, now_df: pd.DataFrame, move2next_df: pd.DataFrame, results: NDArray[np.bool_]
+        self,
+        from_sdf: ScheduleDF,
+        to_sdf: ScheduleDF,
+        now_df: pd.DataFrame,
+        move2next_df: pd.DataFrame,
+        results: NDArray[np.bool_],
+        msg: str,
     ):
         from_sdf.df = ScheduleDF.concat(now_df, move2next_df[np.invert(results)])
         to_sdf.df = ScheduleDF.concat(to_sdf.df, move2next_df[results])
         from_sdf.update_csv()
         to_sdf.update_csv()
         if results.any() == True:
-            self.msg.info(msg=f"Successfully update {move2next_df.loc[results, SC.user_id].tolist()} from using to used")
+            self.msg.info(msg=f"Successfully update {move2next_df.loc[results, SC.user_id].tolist()} from {msg}")
         if results.any() == False:
             self.msg.error(
                 sign="UpdateError",
-                msg=f"Fail to update {move2next_df.loc[np.invert(results), SC.user_id].tolist()} from using to used",
+                msg=f"Fail to update {move2next_df.loc[np.invert(results), SC.user_id].tolist()} from {msg}",
             )
 
     def exec(self) -> None:
@@ -284,12 +290,12 @@ class Monitor(HostInfo):
 
         if not (move2used is None or move2used.empty):
             close_results = np.array(self.close_containers(move2used[SC.user_id].tolist()), dtype=np.bool_)
-            self.update_sdf(self.using, self.used, now_using, move2used, close_results)
+            self.update_sdf(self.using, self.used, now_using, move2used, close_results, msg="using to used")
 
         if not (move2using is None or move2using.empty):
             run_results = np.array([self.check_space(user_id) for user_id in move2using[SC.user_id]], dtype=np.bool_)
             run_results[run_results] = self.run_containers(move2using[run_results])
-            self.update_sdf(self.booking, self.using, now_booking, move2using, run_results)
+            self.update_sdf(self.booking, self.using, now_booking, move2using, run_results, msg="booking to using")
 
         self.check_gpus_duplicate(self.using.df)
 
