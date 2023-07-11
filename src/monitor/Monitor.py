@@ -212,7 +212,7 @@ class Monitor(HostInfo):
 
         return result_ls
 
-    def run_containers(self, run_df: pd.DataFrame) -> List:
+    def run_containers(self, run_df: pd.DataFrame) -> List[bool]:
         result_ls: List
         task: NamedTuple
         result_ls = []
@@ -270,19 +270,19 @@ class Monitor(HostInfo):
         to_sdf: ScheduleDF,
         now_df: pd.DataFrame,
         move2next_df: pd.DataFrame,
-        results: NDArray[np.bool_],
+        status_arr: NDArray[np.bool_],
         msg: str,
-    ):
-        from_sdf.df = ScheduleDF.concat(now_df, move2next_df[np.invert(results)])
-        to_sdf.df = ScheduleDF.concat(to_sdf.df, move2next_df[results])
+    ) -> None:
+        from_sdf.df = ScheduleDF.concat(now_df, move2next_df[np.invert(status_arr)])
+        to_sdf.df = ScheduleDF.concat(to_sdf.df, move2next_df[status_arr])
         from_sdf.update_csv()
         to_sdf.update_csv()
-        if results.any() == True:
-            self.msg.info(msg=f"Successfully update {move2next_df.loc[results, SC.user_id].tolist()} from {msg}")
-        if results.any() == False:
+        if status_arr.any() == True:
+            self.msg.info(msg=f"Successfully update {move2next_df.loc[status_arr, SC.user_id].tolist()} from {msg}")
+        if status_arr.any() == False:
             self.msg.error(
                 sign="UpdateError",
-                msg=f"Fail to update {move2next_df.loc[np.invert(results), SC.user_id].tolist()} from {msg}",
+                msg=f"Fail to update {move2next_df.loc[np.invert(status_arr), SC.user_id].tolist()} from {msg}",
             )
 
     def exec(self) -> None:
