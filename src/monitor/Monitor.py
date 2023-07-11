@@ -1,10 +1,11 @@
 import os, time, subprocess
 from pathlib import Path
 from datetime import datetime
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Union
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 
 PROJECT_DIR = Path(__file__).resolve().parents[2]
 if __name__ == '__main__':
@@ -14,7 +15,7 @@ if __name__ == '__main__':
 
 from lib.WordOperator import str_format
 from lib.FileOperator import get_dir_size_unix
-from src.HostInfo import HostInfo
+from src.HostInfo import HostInfo, ScheduleDF
 from src.HostInfo import ScheduleColumnNames as SC
 from src.monitor.run_container import run_container
 
@@ -124,11 +125,6 @@ class Monitor(HostInfo):
         **kwargs,
     ) -> None:
         super(Monitor, self).__init__(deploy_yaml, booking_csv, using_csv, used_csv, *args, **kwargs)
-
-        self.move2used: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
-        self.now_using: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
-        self.move2using: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
-        self.now_booking: pd.DataFrame = pd.DataFrame(data=None, columns=self.booking.df.columns)
 
         self.msg = MonitorMassage(log_path)
 
@@ -243,16 +239,18 @@ class Monitor(HostInfo):
 
         return result_ls
 
-    def update_tasks(self) -> List[str] and pd.DataFrame:
+    def update_tasks(self) -> List[Union[pd.DataFrame, None]]:
         t_now = datetime.now()
+
+        move2used, now_using, move2using, now_booking = [None] * 4
 
         sorted_using = self.using.df.sort_values(by=SC.end, ascending=False)  # sort by the ending time from big to small
         sorted_using.reset_index(drop=True, inplace=True)  # reset the index
         using_end_dates = sorted_using[SC.end]
         for i in range(len(using_end_dates)):  # find the
             if pd.Timedelta.total_seconds(t_now - using_end_dates[i]) >= 0:
-                self.move2used = sorted_using[i:]
-                self.now_using = sorted_using.loc[sorted_using[:i].index].copy()
+                move2used = sorted_using[i:]
+                now_using = sorted_using.loc[sorted_using[:i].index].copy()
                 break
 
         sorted_booking = self.booking.df.sort_values(by=SC.start, ascending=False)  # sort by the starting time from big to small
@@ -260,39 +258,38 @@ class Monitor(HostInfo):
         booking_start_dates = sorted_booking[SC.start]
         for i in range(len(booking_start_dates)):  # find the
             if pd.Timedelta.total_seconds(t_now - booking_start_dates[i]) >= 0:
-                self.move2using = sorted_booking[i:]
-                self.now_booking = sorted_booking.loc[sorted_booking[:i].index].copy()
+                move2using = sorted_booking[i:]
+                now_booking = sorted_booking.loc[sorted_booking[:i].index].copy()
                 break
 
+        return move2used, now_using, move2using, now_booking
+
+    def update_sdf(
+        self, from_sdf: ScheduleDF, to_sdf: ScheduleDF, now_df: pd.DataFrame, move2next_df: pd.DataFrame, results: NDArray[np.bool_]
+    ):
+        from_sdf.df = ScheduleDF.concat(now_df, move2next_df[np.invert(results)])
+        to_sdf.df = ScheduleDF.concat(to_sdf.df, move2next_df[results])
+        from_sdf.update_csv()
+        to_sdf.update_csv()
+        if results.any() == True:
+            self.msg.info(msg=f"Successfully update {move2next_df.loc[results, SC.user_id].tolist()} from using to used")
+        if results.any() == False:
+            self.msg.error(
+                sign="UpdateError",
+                msg=f"Fail to update {move2next_df.loc[np.invert(results), SC.user_id].tolist()} from using to used",
+            )
+
     def exec(self) -> None:
-        self.update_tasks()
+        move2used, now_using, move2using, now_booking = self.update_tasks()
 
-        close_results = np.array(self.close_containers(self.move2used[SC.user_id].tolist()), dtype=np.bool_)
-        self.using.df = self.using.concat(self.now_using, self.move2used[np.invert(close_results)])
-        self.used.df = self.used.concat(self.used.df, self.move2used[close_results])
-        self.using.update_csv()
-        self.used.update_csv()
-        if close_results.any() == True:
-            self.msg.info(msg=f"Successfully update {self.move2used.loc[close_results, SC.user_id].tolist()} from using to used")
-        if close_results.any() == False and close_results.size != 0:
-            self.msg.error(
-                sign="UpdateError",
-                msg=f"Fail to update {self.move2used.loc[np.invert(close_results), SC.user_id].tolist()} from using to used",
-            )
+        if not (move2used is None or move2used.empty):
+            close_results = np.array(self.close_containers(move2used[SC.user_id].tolist()), dtype=np.bool_)
+            self.update_sdf(self.using, self.used, now_using, move2used, close_results)
 
-        run_results = np.array([self.check_space(user_id) for user_id in self.move2using[SC.user_id]], dtype=np.bool_)
-        run_results[run_results] = self.run_containers(self.move2using[run_results])
-        self.booking.df = self.booking.concat(self.now_booking, self.move2using[np.invert(run_results)])
-        self.using.df = self.using.concat(self.using.df, self.move2using[run_results])
-        self.booking.update_csv()
-        self.using.update_csv()
-        if run_results.any() == True:
-            self.msg.info(msg=f"Successfully update {self.move2using.loc[run_results, SC.user_id].tolist()} from booking to using")
-        if run_results.any() == False and run_results.size != 0:
-            self.msg.error(
-                sign="UpdateError",
-                msg=f"Fail to update {self.move2using.loc[np.invert(run_results), SC.user_id].tolist()} from booking to using",
-            )
+        if not (move2using is None or move2using.empty):
+            run_results = np.array([self.check_space(user_id) for user_id in move2using[SC.user_id]], dtype=np.bool_)
+            run_results[run_results] = self.run_containers(move2using[run_results])
+            self.update_sdf(self.booking, self.using, now_booking, move2using, run_results)
 
         self.check_gpus_duplicate(self.using.df)
 
