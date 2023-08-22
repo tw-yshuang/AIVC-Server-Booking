@@ -164,7 +164,7 @@ class Monitor(HostInfo):
             return True
 
         backup_size = round(get_dir_size_unix(self.users_config.ids[user_id].volume_backup_dir) / (2**20), 2)  # GB
-        work_size = round(get_dir_size_unix(path=self.users_config.ids[user_id].volume_work_dir) / (2**20), 2)  # GB
+        work_size = round(get_dir_size_unix(path=self.users_config.ids[user_id].volume_work_dir, timeout=600.0) / (2**20), 2)  # GB
 
         backup_over_used = backup_size - user_backup_capacity
         work_over_used = work_size - user_work_capacity
@@ -181,7 +181,7 @@ class Monitor(HostInfo):
 
         return True
 
-    def close_containers(self, user_ids: List) -> List[bool]:
+    def close_containers(self, user_ids: List[str]) -> List[bool]:
         result_ls = []
         for id in user_ids:  # user_ids is a list which contains ids need to be remove
             id = id.lower()
