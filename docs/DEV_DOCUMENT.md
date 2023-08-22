@@ -19,15 +19,16 @@ This Data-Flow Chart shows that `HostInfo.py` control all the `*.yaml` & `*.csv`
 
 ## **`*.csv`**
 
-The structure of all the *.csv in the `jobs` directory, also can check it from [cfg/template/schedule.csv](../cfg/template/schedule.csv).
+The structure of all the \*.csv in the `jobs` directory, also can check it from [cfg/template/schedule.csv](../cfg/template/schedule.csv).
 
 Example:
 
- | start    | end      | user_id | cpus | memory | gpus | forward_port | image | extra_command |
-  | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-  | 2023-01-01 13:30:00.000000 | 2023-01-04 13:30:00.000000 | m11007s05 | 60 | 128 | "[0, 1, 2, 3, 4, 5, 6, 7]" | 10000 | null | null |
+| start                      | end                        | user_id   | cpus | memory | gpus                       | forward_port | image | extra_command |
+| -------------------------- | -------------------------- | --------- | ---- | ------ | -------------------------- | ------------ | ----- | ------------- |
+| 2023-01-01 13:30:00.000000 | 2023-01-04 13:30:00.000000 | m11007s05 | 60   | 128    | "[0, 1, 2, 3, 4, 5, 6, 7]" | 10000        | null  | null          |
 
 ---
+
 ---
 
 ## **`src/booking`**
@@ -152,6 +153,7 @@ if use_options is True:
 
   - The start time must not in the past, and during 2 weeks.
   - If is wrong, send the message (red-font)<font color=#CE9178>"Wrong Input!"</font>, back to the [Q.3.start](#3-booking_time).
+
 - `end`, <font color=#CE9178>"Please enter the end time 'YYYY MM DD hh mm': "</font>.
   - The maximum end time is 2 weeks from the start time.
   - If is wrong, send the message (red-font)<font color=#CE9178>"Wrong Input!"</font>, back to the [Q.3.end](#3-booking_time).
@@ -170,8 +172,8 @@ if use_options is True:
   | Flag                                  | Description                                                                                                                                                  |
   | ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
   | <font color=#CE9178>now</font>        | `start` use, the booking information will be active immediately if the usage is available, and the "mm" will discard unconditionally record to the schedule. |
-  | <font color=#CE9178>{num}-day</font>  | The range of the <font color=#CE9178>num</font> is `1~14`, 24 hrs for a unit, and the "mm" will discard unconditionally record to the schedule.                                                                     |
-  | <font color=#CE9178>{num}-week</font> | The range of the <font color=#CE9178>num</font> is `1~2`, 7 days for a unit, and the "mm" will discard unconditionally record to the schedule.                                                                      |
+  | <font color=#CE9178>{num}-day</font>  | The range of the <font color=#CE9178>num</font> is `1~14`, 24 hrs for a unit, and the "mm" will discard unconditionally record to the schedule.              |
+  | <font color=#CE9178>{num}-week</font> | The range of the <font color=#CE9178>num</font> is `1~2`, 7 days for a unit, and the "mm" will discard unconditionally record to the schedule.               |
 
 #### 4. New User Config
 
@@ -184,7 +186,7 @@ if use_options is True:
   - Write the user's config to the `users_config.yaml` the format is like:
 
     ```yaml
-    {user_id}:
+    { user_id }:
       password: "0000"
       forward_port: XXXXX
       image: null
@@ -193,7 +195,7 @@ if use_options is True:
       volume_dataset_dir: "{`Checker.deploy_info.volume_dataset_dir`}/{user_id}"
       volume_backup_dir: "{`Checker.deploy_info.volume_backup_dir`}/{user_id}"
     ```
-  
+
   - Sent the message:
 
     ```bash
@@ -386,7 +388,7 @@ Check user_id that has in the *`self.cap_config.allow_userIDs`*.
 def check_forward_port_empty(self, forward_port: int) -> bool:
 ```
 
-Check forward_port that is not exists in *`self.users_config[*].forward_port`*.
+Check forward_port that is not exists in _`self.users_config[_].forward_port`\*.
 
 #### **Parameters**
 
@@ -456,7 +458,7 @@ This function checks if a user's booked time overlaps with a given time range.
 #### **Parameters**
 
 - `user_id` : The user ID is a string that identifies a specific user.
-- `start2end_datetime`: A list of start and end datetime objects  representing the time range for which the user wants to check if they have any overlapping bookings.
+- `start2end_datetime`: A list of start and end datetime objects representing the time range for which the user wants to check if they have any overlapping bookings.
 
 #### **Return**
 
@@ -497,6 +499,7 @@ Search the fewer usages gpu_ids from *`self.booked_df`* in the `booking_time`.
 - `List[int]`: the available gpu devices id list.
 
 ---
+
 ---
 
 ## **`src/monitor`**
@@ -538,12 +541,13 @@ class GPUDuplicateWarning(Warning):
 
 The GPU is being utilized by multiple users simultaneously.
 
-** Only design this warning, not complete!!
+\*\* Only design this warning, not complete!!
+
 <!-- TODO -->
 
 ### *`MonitorMessage`*
 
-** The better way is using `logging` module, but I don't know how to use it, it is welcome to change the API if result won't be change.
+\*\* The better way is using `logging` module, but I don't know how to use it, it is welcome to change the API if result won't be change.
 
 ```python
 class MonitorMessage():
@@ -572,7 +576,7 @@ class MonitorMessage():
 
 ```python
 def __init__(self, path: Path = Path('jobs/monitor.log')) -> None:
-    self.log_path = path 
+    self.log_path = path
 ```
 
 #### **Parameters**
@@ -608,7 +612,7 @@ e.g.
 ```log
 20230101 13:30 [WARNING] SpaceWarning, m11007s05 is over-use the work_dir 10GB, and backup_dir 2GB.
 
-20230101 13:30 [INFO] m11007s05 is successfully run the container. 
+20230101 13:30 [INFO] m11007s05 is successfully run the container.
 ```
 
 note: [INFO] has no SIGN.
@@ -711,25 +715,6 @@ def __init__(
     self.msg = MonitorMessage(log_path)
 ```
 
-### *`Monitor.update_tasks()`*
-
-```python
-def update_tasks(self) -> List[str], pd.DataFrame:
-```
-
-Detect all the tasks status, this function will do 4 things:
-
-1. Find containers that are due on the *`self.using`* from `column:end`.
-2. Find tasks that are time up on the *`self.booking`* from the `column:start`.
-
-#### **Parameters**
-
-- `None`
-
-#### **Return**
-
-- `None`
-
 ### *`Monitor.check_space()`*
 
 ```python
@@ -816,6 +801,62 @@ def run_containers(self, run_df: pd.DataFrame) -> List[bool or Error]:
     return result_ls
 ```
 
+### *`Monitor.update_tasks()`*
+
+```python
+def update_tasks(self) -> List[Union[pd.DataFrame, None]]:
+```
+
+Detect all the tasks status, this function will do 4 things:
+
+1. Find containers that are due on the *`self.using`* from `column:end`.
+2. Find tasks that are time up on the *`self.booking`* from `column:start`.
+
+#### **Parameters**
+
+- `None`
+
+#### **Return**
+
+- `List[Union[pd.DataFrame, None]]` there are 4 outputs:
+  - **move2used**, the dataframe information that needs to move from *`self.using`* to *`self.used`* by following `column:end`.
+  - **now_using**, the latest *`self.using`* by following `column:end`.
+  - **move2using**, the dataframe information that needs to move from *`self.booking`* to *`self.using`* by following `column:start`.
+  - **now_booking**, the latest *`self.booking`* by following `column:start`.
+
+### *`Monitor.update_sdf()`*
+
+```python
+def update_sdf(
+    self,
+    from_sdf: ScheduleDF,
+    to_sdf: ScheduleDF,
+    now_df: pd.DataFrame,
+    move2next_df: pd.DataFrame,
+    status_arr: NDArray[np.bool_],
+    msg: str,
+) -> None:
+```
+
+Update 2 ScheduleDF objects by using **now_df**, **move2next_df**, **status_arr**.
+| situation | from_sdf       | to_sdf       | now_df      | move2next_df | status_arr      | msg                |
+| --------- | -------------- | ------------ | ----------- | ------------ | --------------- | ------------------ |
+| 1         | `self.using`   | `self.used`  | now_using   | move2used    | close -> `True` | "using to used"    |
+| 2         | `self.booking` | `self.using` | now_booking | move2using   | run -> `True`   | "booking to using" |
+
+#### **Parameters**
+
+- `from_sdf`, from previous `ScheduleDF` object.
+- `to_sdf`, to next `ScheduleDF` object.
+- `now_df`, the latest dataframe by reasonable time information.
+- `move2next_df`, the dataframe that should be moved to the next stage by time information.
+- `status_arr`, the status information from other operations result.
+- `msg`, the operation information for the `monitor.log`.
+
+#### **Return**
+
+- `None`
+
 ### *`Monitor.exec()`*
 
 ```python
@@ -850,7 +891,7 @@ def exec(self) -> None:
 
     ...
     check_ls = [self.check_space() for user_id in task_df[ScheduleColumnNames.user_id]]
-    
+
     run_df = ... # use check_ls to select it.
 
     self.run_containers(run_df)
@@ -914,7 +955,7 @@ Setting & generate the related dirs/files and information; prepared for the `run
 - `cap_max`: The `MaxCapability` object, it contains the maximum capability setting for this computing device.
 - `memory`: The memory size you want to used for this time, unit: GB.
 - `image`: The image/tag name for the docker image.
-- `extra_command`: The extra command that user want to execute  for this time.
+- `extra_command`: The extra command that user want to execute for this time.
 
 #### **Return**
 
@@ -1007,7 +1048,7 @@ def run_container(
 - `memory`: The memory size you want to used for this time, unit: GB.
 - `gpus`: List of gpu id used for the container.
 - `image`: The image/tag name for the docker image.
-- `extra_command`: The extra command that user want to execute  for this time.
+- `extra_command`: The extra command that user want to execute for this time.
 - `user_config`: The `UserConfig` object, it contains the user default setting.
 - `cap_max`: The `MaxCapability` object, it contains the maximum capability setting for this computing device.
 
