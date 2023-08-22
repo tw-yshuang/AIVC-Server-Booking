@@ -388,7 +388,7 @@ Check user_id that has in the *`self.cap_config.allow_userIDs`*.
 def check_forward_port_empty(self, forward_port: int) -> bool:
 ```
 
-Check forward_port that is not exists in _`self.users_config[_].forward_port`\*.
+Check forward_port that is not exists in *`self.users_config[*].forward_port`*.
 
 #### **Parameters**
 
@@ -541,13 +541,13 @@ class GPUDuplicateWarning(Warning):
 
 The GPU is being utilized by multiple users simultaneously.
 
-\*\* Only design this warning, not complete!!
+** Only design this warning, not complete!!
 
 <!-- TODO -->
 
 ### *`MonitorMessage`*
 
-\*\* The better way is using `logging` module, but I don't know how to use it, it is welcome to change the API if result won't be change.
+** The better way is using `logging` module, but I don't know how to use it, it is welcome to change the API if result won't be change.
 
 ```python
 class MonitorMessage():
