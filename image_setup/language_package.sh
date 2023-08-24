@@ -152,6 +152,7 @@ if [ $result = 1 ]; then
     else
         # config profile
         printf "\n# pipenv setting\n$pipenv_Keyword\n" >> $profile
+        printf 'eval "$(_PIPENV_COMPLETE=zsh_source pipenv)"\n' >> $profile
     fi
 fi
 # Echo_Color g "exec $shell !! $0"

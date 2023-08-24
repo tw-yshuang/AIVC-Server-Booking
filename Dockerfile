@@ -1,6 +1,6 @@
 FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
 
-LABEL author="tw-yshuang" version="1.1" description="I'm writing server image!"
+LABEL author="tw-yshuang" version="1.2" description="pyenv & pipenv will upgrade every time run the image"
 
 # Localtime
 ENV TZ=Asia/Taipei

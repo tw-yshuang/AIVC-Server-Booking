@@ -4,4 +4,8 @@
 
 bash /.script/fix_conflict.sh
 
+# pyenv & pipenv upgrade
+cd ~/.pyenv && git pull && cd ~
+pip3 install --upgrade pipenv
+
 exec "$@"
