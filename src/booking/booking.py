@@ -339,7 +339,7 @@ def __setting_forward_port(user_id: str, default_forward_port: int):
     return forward_port
 
 
-def __setting_user_options(user_id: str, user_config: UsersConfig):
+def __setting_user_options(user_id: str, user_config: UserConfig):
     # Update Password
     if ask_yn("Do you want to update the password?"):
         user_config.password = __create_new_password()
