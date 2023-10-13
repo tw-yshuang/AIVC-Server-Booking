@@ -24,8 +24,15 @@ def load_yaml(filename: str) -> dict:
         return yaml.load(f, Loader=yaml.SafeLoader)
 
 
-def dump_yaml(info_dict: dict, filename: str):
+def write_yaml(info_dict: dict, filename: str):
     with open(filename, 'w') as f:
+        yaml.dump(info_dict, f, Dumper=CustomDumper, sort_keys=False)
+    return True
+
+
+def append_yaml(info_dict: dict, filename: str):
+    with open(filename, 'a') as f:
+        f.writelines('\n')
         yaml.dump(info_dict, f, Dumper=CustomDumper, sort_keys=False)
     return True
 

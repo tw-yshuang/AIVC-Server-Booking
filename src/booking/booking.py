@@ -15,7 +15,7 @@ if __name__ == '__main__':
     sys.path.append(str(PROJECT_DIR))
 
 from lib.WordOperator import str_format, ask_yn
-from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml
+from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, write_yaml, append_yaml
 from src.HostInfo import ScheduleColumnNames as SC
 from src.booking.Checker import Checker
 
@@ -266,7 +266,12 @@ def __update_users_config_and_yaml(user_id: str, user_config: UserConfig):
     # TODO: a better method is to append this user_config to the end of the yaml file, next time load it, it will get the latest info., and create a mechanism use a period of time to update all of it, like monitor mechanism.
     checker.users_config.ids[user_id] = user_config
 
-    dump_yaml(checker.users_config.to_dict(), PROJECT_DIR / checker.deploy_info.users_config_yaml)
+    write_yaml(checker.users_config.to_dict(), PROJECT_DIR / checker.deploy_info.users_config_yaml)
+
+
+def __increase_user_config_and_yaml(user_id: str, user_config: UserConfig):
+    checker.users_config.ids[user_id] = user_config
+    append_yaml({user_id: user_config.to_dict()}, PROJECT_DIR / checker.deploy_info.users_config_yaml)
 
 
 def __add_new_user_config(user_id: str) -> UserConfig:
@@ -285,7 +290,7 @@ def __add_new_user_config(user_id: str) -> UserConfig:
         volume_backup_dir=f"{checker.deploy_info.volume_backup_dir}/{user_id}",
     )
 
-    __update_users_config_and_yaml(user_id, user_config)
+    __increase_user_config_and_yaml(user_id, user_config)
     print(str_format(f"{user_id}'s profile:", fore='y'))
     for k, v in user_config.dict.items():
         if 'volume' not in k:
@@ -360,13 +365,13 @@ def __setting_user_options(user_id: str, user_config: UserConfig):
         else:
             user_config.password = new_password
             checker.users_config.ids[user_id].password = new_password
-            __update_users_config_and_yaml(user_id, checker.users_config.ids[user_id])
+            __increase_user_config_and_yaml(user_id, checker.users_config.ids[user_id])
             print(str_format("Update default Password!", fore='g'))
             break
 
     # Update users_config.yaml
     if ask_yn("The previous setting is for the once, do you want to update the default config?"):
-        __update_users_config_and_yaml(user_id, user_config)
+        __increase_user_config_and_yaml(user_id, user_config)
         print(str_format("Update your user_config!", fore='g'))
 
     return user_config
