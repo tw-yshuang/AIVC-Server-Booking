@@ -1,5 +1,15 @@
 # Future Work
 
+---
+
+## `booking.csv`, `using.csv`, `used.csv`
+
+Convert it to the database(suggest use `sqlite`), more efficient, more easy to manipulate.
+
+Another reason is that `pandas` is a slow tool.
+
+---
+
 ## `src/booking/booking.py`
 
 1. Add new CLI feature

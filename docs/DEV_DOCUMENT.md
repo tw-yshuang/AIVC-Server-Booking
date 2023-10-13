@@ -208,33 +208,33 @@ if use_options is True:
 
 #### 5. Optional(use_options=True)
 
-#### 5.1. `forward_port`
+#### 5.1. Update Password
+
+- <font color=#CE9178>"Do you want to update the password?"</font>, using `ask_yn()` to ask, return:
+  - `False`, pass it.
+  - `True`, <font color=#CE9178>"Please enter the new password: "</font>, after entering, <font color=#CE9178>"Please enter the new password again: "</font>, both new_password must be same.
+    - If there are not the same, (red-font)<font color=#CE9178>"Incorrect!!"</font>, back to [Q.5.1.](#51-update-password)
+    - Only update the password in `users_config.yaml`, (green-font)<font color=#CE9178>"Update default Password!"</font>
+
+#### 5.2. `forward_port`
 
 - <font color=#CE9178>"Please enter the forward port(default: xxxxx, none by default): "</font>, the default forward_port can find it from *`Checker.users_config.ids[user_id].forward_port`*.
 - The forward port only can assign port: `10000~11000`, due to application service port. please check [List of TCP and UDP port numbers](https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers).
 <!-- - The forward port can not duplicate assigned with other users. -->
 - Use *`Checker.check_forward_port_empty()`* to check the forward port is not duplicated.
-  - `False`, sent message (red-font)<font color=#CE9178>"Forward Port Duplicated!!"</font>, back to [Q.5.1.](#51-forward_port).
+  - `False`, sent message (red-font)<font color=#CE9178>"Forward Port Duplicated!!"</font>, back to [Q.5.2](#52-forward_port).
 
-#### 5.2. `image`
+#### 5.3. `image`
 
 - Using *`Checker.deploy_info.images`* to show the docker images first.
 - <font color=#CE9178>"Please enter the image 'repository/tag'(default: xxx, none by default): "</font>, the default image can find it from *`Checker.users_config.ids[user_id].image`*, if is `None`, then show the image <font color=#CE9178>"rober5566a/aivc-server:latest"</font>.
 - If the response is <font color=#CE9178>""</font>, then `Checker.users_config.ids[user_id].image = None`.
 - Using *`Checker.check_image_isexists()`* to check image is exists.
 
-#### 5.3. `extra_command`
+#### 5.4. `extra_command`
 
 - <font color=#CE9178>"Please enter the extra command when running the image. (default: None, none by default): "</font>, no need to check.
 - Note: if the image repository is <font color=#CE9178>"rober5566a/aivc-server"</font> actually it has an extra command: `/.script/ssh_start.sh {password}`, see [monitor/run_container.py](#run_containerpy).
-
-#### 5.4. Update Password
-
-- <font color=#CE9178>"Do you want to update the password?"</font>, using `ask_yn()` to ask, return:
-  - `False`, pass it.
-  - `True`, <font color=#CE9178>"Please enter the new password: "</font>, after entering, <font color=#CE9178>"Please enter the new password again: "</font>, both new_password must be same.
-    - If there are not the same, (red-font)<font color=#CE9178>"Incorrect!!"</font>, back to [Q.5.4.](#54-update-password)
-    - Only update the password in `users_config.yaml`, (green-font)<font color=#CE9178>"Update default Password!"</font>
 
 #### 5.5. Update `users_config.yaml`
 

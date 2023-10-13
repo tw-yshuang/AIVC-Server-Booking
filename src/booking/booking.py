@@ -15,7 +15,7 @@ if __name__ == '__main__':
     sys.path.append(str(PROJECT_DIR))
 
 from lib.WordOperator import str_format, ask_yn
-from src.HostInfo import BookingTime, BasicCapability, UserConfig, ScheduleDF, dump_yaml
+from src.HostInfo import BookingTime, BasicCapability, UserConfig, UsersConfig, ScheduleDF, write_yaml, append_yaml
 from src.HostInfo import ScheduleColumnNames as SC
 from src.booking.Checker import Checker
 
@@ -26,7 +26,7 @@ MIN_CPUS: float = 1
 MIN_MEMORY: int = 1
 MIN_GPUS: int = 0
 
-DEFAULT_PASSWORD: str = '0000'
+PASSWORD_LEAST_LEN: int = 4
 FORWARD_PORT_BEGIN: int = 10001
 FORWARD_PORT_END: int = 11000
 
@@ -51,29 +51,26 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         print(str_format("InputError: Unknown account! Check your user account or connect to the Host Maintainer(MLOps).", fore='r'))
         return False
 
-    # check user_id is new user
-    if user_id not in checker.users_config.ids:
-        password = DEFAULT_PASSWORD
-        print(f"The password for the new user: {DEFAULT_PASSWORD}")
-    else:
+    # check old user_id password
+    if user_id in checker.users_config.ids:
         password = checker.users_config.ids[user_id].password
-
-    isWrong = True  # a flag for checking if tne login success
-    for _ in range(3):  # There are three times chances for user to enter password correctly
-        input_password = getpass.getpass(prompt="Please enter the password: ")
-        if input_password == password:
-            isWrong = False  # login successfully
-            print(str_format(f"Login Successfully!!", fore='g'))
-            break
-        else:
-            print("Wrong password!!")
-    if isWrong:
-        print("ByeBye~~")  # login failed
-        return False
+        isWrong = True  # a flag for checking if tne login success
+        for _ in range(3):  # There are three times chances for user to enter password correctly
+            input_password = getpass.getpass(prompt="Please enter the password: ")
+            if input_password == password:
+                isWrong = False  # login successfully
+                print(str_format(f"Login Successfully!!", fore='g'))
+                break
+            else:
+                print("Wrong password!!")
+        if isWrong:
+            print("ByeBye~~")  # login failed
+            return False
 
     if user_id in checker.users_config.ids:
         user_config = copy(checker.users_config.ids[user_id])
     else:
+        print(str_format("New User, Welcome~~~", fore='g'))
         user_config = __add_new_user_config(user_id)
 
     if use_options:
@@ -96,6 +93,8 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         user_config.forward_port = __setting_forward_port(user_id, checker.users_config.ids[user_id].forward_port)
 
     booking(user_id, cap_info, booking_time, user_config)
+
+    __update_users_config2yaml(UsersConfig(yaml_file=checker.deploy_info.users_config_yaml))
 
 
 def __get_caps_info(user_id: str) -> BasicCapability:
@@ -261,10 +260,32 @@ def __get_bookingtime(user_id: str) -> BasicCapability:
     return BookingTime(*start2end_datetime)
 
 
-def __update_users_config_and_yaml(user_id: str, user_config: UserConfig):
-    checker.users_config.ids[user_id] = user_config
+def __update_users_config2yaml(users_config: UsersConfig):
+    write_yaml(users_config.to_dict(), PROJECT_DIR / checker.deploy_info.users_config_yaml)
 
-    dump_yaml(checker.users_config.to_dict(), PROJECT_DIR / checker.deploy_info.users_config_yaml)
+
+def __increase_user_config_and_yaml(user_id: str, user_config: UserConfig):
+    checker.users_config.ids[user_id] = user_config
+    append_yaml({user_id: user_config.to_dict()}, PROJECT_DIR / checker.deploy_info.users_config_yaml)
+
+
+def __create_new_password() -> str:
+    while True:
+        new_password = getpass.getpass(prompt="Please enter the new Password: ")
+        if new_password == '':
+            print(str_format("Incorrect!! The password can't be empty!!", fore='r'))
+            continue
+        elif len(new_password) < PASSWORD_LEAST_LEN:
+            print(str_format(f"Incorrect!! The length of the password at least {PASSWORD_LEAST_LEN}!!", fore='r'))
+            continue
+        else:
+            check_new_password = getpass.getpass(prompt="Please enter the new password again: ")
+
+        if new_password != check_new_password:
+            print(str_format("UpdatePasswordError: Two input passwords are not the same!!", fore='r'))
+            continue
+        break
+    return new_password
 
 
 def __add_new_user_config(user_id: str) -> UserConfig:
@@ -274,7 +295,7 @@ def __add_new_user_config(user_id: str) -> UserConfig:
             break
 
     user_config = UserConfig(
-        password=DEFAULT_PASSWORD,
+        password=__create_new_password(),
         forward_port=random_forward_ports,
         image=None,
         extra_command=None,
@@ -283,7 +304,7 @@ def __add_new_user_config(user_id: str) -> UserConfig:
         volume_backup_dir=f"{checker.deploy_info.volume_backup_dir}/{user_id}",
     )
 
-    __update_users_config_and_yaml(user_id, user_config)
+    __increase_user_config_and_yaml(user_id, user_config)
     print(str_format(f"{user_id}'s profile:", fore='y'))
     for k, v in user_config.dict.items():
         if 'volume' not in k:
@@ -311,7 +332,13 @@ def __setting_forward_port(user_id: str, default_forward_port: int):
     return forward_port
 
 
-def __setting_user_options(user_id: str, user_config: UserConfig):
+def __setting_user_options(user_id: str, user_config: UsersConfig):
+    # Update Password
+    if ask_yn("Do you want to update the password?"):
+        user_config.password = __create_new_password()
+        __increase_user_config_and_yaml(user_id, user_config)
+        print(str_format("Update default Password!", fore='g'))
+
     # Forward Port
     user_config.forward_port = __setting_forward_port(user_id, user_config.forward_port)
 
@@ -342,29 +369,9 @@ def __setting_user_options(user_id: str, user_config: UserConfig):
     extra_command = input("Please enter the extra command when running the image. (default: None, none by default): ")
     user_config.extra_command = extra_command if extra_command != '' else None
 
-    # Update Password
-    isUpdate = ask_yn("Do you want to update the password?")
-    while isUpdate:
-        new_password = getpass.getpass(prompt="Please enter the new Password: ")
-        if new_password == '':
-            print(str_format("Incorrect!! The password can't be empty!!", fore='r'))
-            continue
-        else:
-            check_new_password = getpass.getpass(prompt="Please enter the new password again: ")
-
-        if new_password != check_new_password:
-            print(str_format("UpdatePasswordError: Two input passwords are not the same!!", fore='r'))
-            continue
-        else:
-            user_config.password = new_password
-            checker.users_config.ids[user_id].password = new_password
-            __update_users_config_and_yaml(user_id, checker.users_config.ids[user_id])
-            print(str_format("Update default Password!", fore='g'))
-            break
-
     # Update users_config.yaml
     if ask_yn("The previous setting is for the once, do you want to update the default config?"):
-        __update_users_config_and_yaml(user_id, user_config)
+        __increase_user_config_and_yaml(user_id, user_config)
         print(str_format("Update your user_config!", fore='g'))
 
     return user_config
