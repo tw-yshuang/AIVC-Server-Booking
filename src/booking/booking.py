@@ -262,6 +262,8 @@ def __get_bookingtime(user_id: str) -> BasicCapability:
 
 
 def __update_users_config_and_yaml(user_id: str, user_config: UserConfig):
+    # ! bug: someone use booking at the same time, it will be cover it, the user_config you want to update maybe loss.
+    # TODO: a better method is to append this user_config to the end of the yaml file, next time load it, it will get the latest info., and create a mechanism use a period of time to update all of it, like monitor mechanism.
     checker.users_config.ids[user_id] = user_config
 
     dump_yaml(checker.users_config.to_dict(), PROJECT_DIR / checker.deploy_info.users_config_yaml)
