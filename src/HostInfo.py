@@ -173,11 +173,13 @@ class HostDeployInfo:
     volume_dataset_dir: Path
     volume_backup_dir: Path
 
+    deploy_config_yaml: Path
     capability_config_yaml: Path
     users_config_yaml: Path
     images: List[str]
 
     def __init__(self, yaml: Path = PROJECT_DIR / 'host_deploy.yaml') -> None:
+        self.deploy_config_yaml = yaml
         for k, v in load_yaml(yaml).items():
             setattr(self, k, v)
 
