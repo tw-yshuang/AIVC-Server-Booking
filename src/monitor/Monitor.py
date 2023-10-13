@@ -293,8 +293,6 @@ class Monitor(HostInfo):
             self.update_sdf(self.using, self.used, now_using, move2used, close_results, msg="using to used")
 
         if not (move2using is None or move2using.empty):
-            #! issue: When booking.py has someone write the data to the booking.csv during the Monitor.py running, Monitor.py will recover the action of booking.py
-            # TODO: add the hash-table for the booking.csv to check the write time, make sure the information can integrate!
             run_results = np.array([self.check_space(user_id) for user_id in move2using[SC.user_id]], dtype=np.bool_)
             run_results[run_results] = self.run_containers(move2using[run_results])
             self.update_sdf(self.booking, self.using, now_booking, move2using, run_results, msg="booking to using")

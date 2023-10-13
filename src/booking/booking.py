@@ -51,7 +51,7 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         print(str_format("InputError: Unknown account! Check your user account or connect to the Host Maintainer(MLOps).", fore='r'))
         return False
 
-    # check old user_id password
+    # check old user_id's password
     if user_id in checker.users_config.ids:
         password = checker.users_config.ids[user_id].password
         isWrong = True  # a flag for checking if tne login success
