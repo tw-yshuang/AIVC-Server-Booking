@@ -36,6 +36,7 @@ FORWARD_PORT_BEGIN: int = 10001
 FORWARD_PORT_END: int = 11000
 
 MAX_DAY: int = 14
+REFRESH_USERS_CONFIG_YAML = False
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
@@ -56,7 +57,7 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         print(str_format("InputError: Unknown account! Check your user account or connect to the Host Maintainer(MLOps).", fore='r'))
         return False
 
-    # check old user_id password
+    # check old user_id's password
     if user_id in checker.users_config.ids:
         password = checker.users_config.ids[user_id].password
         isWrong = True  # a flag for checking if tne login success
@@ -99,9 +100,10 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
 
     booking(user_id, cap_info, booking_time, user_config)
 
-    # * refresh users_config.yaml and save it.
-    # ? another mechanism is to use a period of time to update all of it, like monitor mechanism.
-    __update_users_config2yaml(UsersConfig(yaml_file=checker.deploy_info.users_config_yaml))
+    if REFRESH_USERS_CONFIG_YAML:
+        # * refresh users_config.yaml and save it.
+        # ? another mechanism is to use a period of time to update all of it, like monitor mechanism.
+        __update_users_config2yaml(UsersConfig(yaml_file=checker.deploy_info.users_config_yaml))
 
 
 def __get_caps_info(user_id: str) -> BasicCapability:
@@ -274,6 +276,9 @@ def __update_users_config2yaml(users_config: UsersConfig):
 def __increase_user_config_and_yaml(user_id: str, user_config: UserConfig):
     checker.users_config.ids[user_id] = user_config
     append_yaml({user_id: user_config.to_dict()}, PROJECT_DIR / checker.deploy_info.users_config_yaml)
+
+    global REFRESH_USERS_CONFIG_YAML
+    REFRESH_USERS_CONFIG_YAML = True
 
 
 def __create_new_password() -> str:
