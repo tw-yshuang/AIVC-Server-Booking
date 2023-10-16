@@ -37,6 +37,7 @@ FORWARD_PORT_END: int = 11000
 
 MAX_DAY: int = 14
 REFRESH_USERS_CONFIG_YAML = False
+ILLEGAL_PASSWORD_LS = ['1234', '4321', '1qaz', '=0-9']
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
@@ -289,6 +290,9 @@ def __create_new_password() -> str:
             continue
         elif len(new_password) < PASSWORD_LEAST_LEN:
             print(str_format(f"Incorrect!! The length of the password at least {PASSWORD_LEAST_LEN}!!", fore='r'))
+            continue
+        elif new_password in ILLEGAL_PASSWORD_LS or len(set(new_password)) == 1:
+            print(str_format(f"Illegal Password!! This combination is not allow!!", fore='r'))
             continue
         else:
             check_new_password = getpass.getpass(prompt="Please enter the new password again: ")
