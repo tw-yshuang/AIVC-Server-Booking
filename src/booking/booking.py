@@ -31,6 +31,7 @@ FORWARD_PORT_BEGIN: int = 10001
 FORWARD_PORT_END: int = 11000
 
 MAX_DAY: int = 14
+REFRESH_USERS_CONFIG_YAML = False
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
@@ -94,7 +95,8 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
 
     booking(user_id, cap_info, booking_time, user_config)
 
-    __update_users_config2yaml(UsersConfig(yaml_file=checker.deploy_info.users_config_yaml))
+    if REFRESH_USERS_CONFIG_YAML:
+        __update_users_config2yaml(UsersConfig(yaml_file=checker.deploy_info.users_config_yaml))
 
 
 def __get_caps_info(user_id: str) -> BasicCapability:
@@ -268,6 +270,9 @@ def __increase_user_config_and_yaml(user_id: str, user_config: UserConfig):
     checker.users_config.ids[user_id] = user_config
     append_yaml({user_id: user_config.to_dict()}, PROJECT_DIR / checker.deploy_info.users_config_yaml)
 
+    global REFRESH_USERS_CONFIG_YAML
+    REFRESH_USERS_CONFIG_YAML = True
+
 
 def __create_new_password() -> str:
     while True:
@@ -332,7 +337,7 @@ def __setting_forward_port(user_id: str, default_forward_port: int):
     return forward_port
 
 
-def __setting_user_options(user_id: str, user_config: UsersConfig):
+def __setting_user_options(user_id: str, user_config: UserConfig):
     # Update Password
     if ask_yn("Do you want to update the password?"):
         user_config.password = __create_new_password()
