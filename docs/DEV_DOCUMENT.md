@@ -136,7 +136,7 @@ if use_options is True:
 
 #### 1. `password`
 
-- <font color=#CE9178>"If you are a new user, the default password: 0000"</font>
+- If is a new user, let user manually  create it by using `__create_new_password()`.
 - <font color=#CE9178>"Password: "</font>, the entry must be secret.
 - If the user types the wrong password, show this: <font color=#CE9178>"Wrong password, please enter the password: "</font>, the user will have 2 times changes, over that send <font color=#CE9178>"ByeBye~~"</font>, end the program.
 
@@ -241,6 +241,34 @@ if use_options is True:
 - <font color=#CE9178>"The previous setting is for the once, do you want to update the default config?"</font>, using `ask_yn()` to ask, return:
   - `False`, pass it.
   - `True`, update the user's config for the `users_config.yaml`.
+
+### *`__create_new_password()`*
+
+```python
+PASSWORD_LEAST_LEN = 4
+ILLEGAL_PASSWORD_LS = ['1234', '4321', '1qaz', '=0-9']
+
+def __create_new_password() -> str:
+    while True:
+        new_password = getpass.getpass(prompt="Please enter the new Password: ")
+        if new_password == '':
+            print(str_format("Incorrect!! The password can't be empty!!", fore='r'))
+            continue
+        elif len(new_password) < PASSWORD_LEAST_LEN:
+            print(str_format(f"Incorrect!! The length of the password at least {PASSWORD_LEAST_LEN}!!", fore='r'))
+            continue
+        elif new_password in ILLEGAL_PASSWORD_LS or len(set(new_password)) == 1:
+            print(str_format(f"Illegal Password!! This combination is not allow!!", fore='r'))
+            continue
+        else:
+            check_new_password = getpass.getpass(prompt="Please enter the new password again: ")
+
+        if new_password != check_new_password:
+            print(str_format("UpdatePasswordError: Two input passwords are not the same!!", fore='r'))
+            continue
+        break
+    return new_password
+```
 
 ### *`booking()`*
 
