@@ -123,7 +123,6 @@ def run(
 
     gpus = ','.join(str(gpu) for gpu in gpus) if len(gpus) != 0 else 'none'
 
-    # add '--pid=host' is not a good idea but nvidia-docker is still not solve this issue, https://github.com/NVIDIA/nvidia-docker/issues/1460
     exec_str = f'docker run\
                 -dit\
                 --restart=always\
