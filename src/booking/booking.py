@@ -104,7 +104,7 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
     if REFRESH_USERS_CONFIG_YAML:
         # * refresh users_config.yaml and save it.
         # ? another mechanism is to use a period of time to update all of it, like monitor mechanism.
-        __update_users_config2yaml(UsersConfig(yaml_file=checker.deploy_info.users_config_yaml))
+        __update_users_config2yaml(UsersConfig(yaml_file=PROJECT_DIR / checker.deploy_info.users_config_yaml))
 
 
 def __get_caps_info(user_id: str) -> BasicCapability:
