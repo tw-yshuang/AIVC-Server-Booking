@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.7.1-cudnn8-devel-ubuntu20.04
+FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
 
 LABEL author="tw-yshuang" version="1.2" description="pyenv & pipenv will upgrade every time run the image"
 
@@ -14,17 +14,17 @@ RUN echo 'export LANG="C.UTF-8"' >> /etc/profile \
     # deb http://ftp.tku.edu.tw/ubuntu/ focal-updates main restricted universe multiverse\n \
     # deb http://ftp.tku.edu.tw/ubuntu/ focal-backports main restricted universe multiverse\n \
     # deb http://ftp.tku.edu.tw/ubuntu/ focal-security main restricted universe multiverse" > /etc/apt/sources.list
-    && echo "deb http://free.nchc.org.tw/ubuntu/ focal main restricted universe multiverse\n \
-    deb http://free.nchc.org.tw/ubuntu/ focal-updates main restricted universe multiverse\n \
-    deb http://free.nchc.org.tw/ubuntu/ focal-backports main restricted universe multiverse\n \
-    deb http://free.nchc.org.tw/ubuntu/ focal-security main restricted universe multiverse" > /etc/apt/sources.list
+    && echo "deb http://free.nchc.org.tw/ubuntu/ jammy main restricted universe multiverse\n \
+    deb http://free.nchc.org.tw/ubuntu/ jammy-updates main restricted universe multiverse\n \
+    deb http://free.nchc.org.tw/ubuntu/ jammy-backports main restricted universe multiverse\n \
+    deb http://free.nchc.org.tw/ubuntu/ jammy-security main restricted universe multiverse" > /etc/apt/sources.list
 
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install apt-utils locales vim wget curl git-all htop tmux -y
+RUN apt update \
+    && apt upgrade -y \
+    && apt install apt-utils locales vim wget curl git-all htop tmux -y
 
 # ssh-server & allow X11 forwarding use.
-RUN apt-get install openssh-server iputils-ping -y \
+RUN apt install openssh-server iputils-ping -y \
     && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config \
     && sed -i 's/#X11UseLocalhost yes/X11UseLocalhost no/g' /etc/ssh/sshd_config \
     && echo "root:ys-huang" | chpasswd
@@ -42,7 +42,7 @@ RUN chmod +x ./*.sh \
 # welcome message
 ADD fonts/*.flf /usr/share/figlet/
 ADD image_setup/11-logo.sh /etc/profile.d/11-logo.sh
-RUN apt-get install figlet lolcat -y \
+RUN apt install figlet lolcat -y \
     && chmod +x /etc/profile.d/11-logo.sh \
     && echo 'bash /etc/profile.d/11-logo.sh' >> ~/.zlogin
 
