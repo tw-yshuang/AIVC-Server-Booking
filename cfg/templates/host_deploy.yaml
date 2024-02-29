@@ -8,6 +8,9 @@ capability_config_yaml: ./cfg/capability_config.yaml
 images:
   - rober5566a/aivc-server:latest # (cuda12.1.1-cudnn8-devel-ubuntu20.04)
   - rober5566a/aivc-server:cuda12.1.1-cudnn8-devel-ubuntu22.04
+  - rober5566a/aivc-server:cuda12.0.1-cudnn8-devel-ubuntu22.04
+  - rober5566a/aivc-server:cuda11.8.0-cudnn8-devel-ubuntu22.04
+  - rober5566a/aivc-server:cuda11.7.1-cudnn8-devel-ubuntu22.04
   - rober5566a/aivc-server:cuda12.1.1-cudnn8-devel-ubuntu20.04
   - rober5566a/aivc-server:cuda12.0.1-cudnn8-devel-ubuntu20.04
   - rober5566a/aivc-server:cuda11.8.0-cudnn8-devel-ubuntu20.04
