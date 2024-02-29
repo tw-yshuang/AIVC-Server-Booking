@@ -200,7 +200,8 @@ class ScheduleColumnNames:
     def get_column_types():
         column_types = {
             ScheduleColumnNames.user_id: str,
-            ScheduleColumnNames.cpus: int,
+            ScheduleColumnNames.cpus: float,
+            ScheduleColumnNames.memory: int,
             ScheduleColumnNames.gpus: object,
             ScheduleColumnNames.forward_port: int,
             ScheduleColumnNames.image: str,
