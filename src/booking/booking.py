@@ -51,7 +51,7 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
         return False
 
     if user_id == '':
-        user_id = input("Please enter the user_id: ")
+        user_id = input("Please enter the user_id: ").lower()
 
     # check user_id
     if user_id not in checker.cap_config.allow_userIDs:
