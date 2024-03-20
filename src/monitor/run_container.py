@@ -139,10 +139,12 @@ def run(
                 -v {volume_info}\
                 -e DISPLAY=$DISPLAY\
                 {image}\
-                {exec_command}\
+                bash -c\
                 '
 
-    return subprocess.run(exec_str.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8').stderr.split('\n')[0]
+    return subprocess.run(
+        [*exec_str.split(), exec_command], stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8'
+    ).stderr.split('\n')[0]
 
 
 def run_container(
