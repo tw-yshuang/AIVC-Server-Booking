@@ -61,7 +61,7 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
 
 #### **Parameters**
 
-- `user_id`: user's account.
+- `user_id`: user's account. Always lower case font.
 - `use_options`: use extra options.
 - `list_schedule`: list schedule that already booking.
 
@@ -278,7 +278,7 @@ def booking(user_id:str, cap_info: BasicCapability, booking_time: BookingTime, u
 
 #### **Parameters**
 
-- `user_id`: user's account.
+- `user_id`: user's account. Always lower case font.
 - `cap_info`: cpus, memory, gpus.
 - `booking_time`: checked available times.
 - `user_config`: the config for this user_id.
