@@ -44,7 +44,23 @@ ILLEGAL_PASSWORD_LS = ['1234', '4321', '1qaz', '=0-9']
 @click.option('-id', '--user-id', default='', help="user's account.")
 @click.option('-use-opt', '--use-options', default=False, is_flag=True, help="use extra options.")
 @click.option('-ls', '--list-schedule', default=False, is_flag=True, help="list schedule that already booking.")
-def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False) -> bool:
+@click.option('-rst', '--restart_container', default=False, is_flag=True, help="restart the container.")
+def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False, restart_container: bool = False) -> bool:
+    
+    if restart_container:
+        user_id = input("Please enter the user_id: ").lower()
+        try:
+            isPass = __check_user_passward(user_id)
+        except:
+            isPass = False
+        
+        if isPass:
+            with open(MONITOR_EXEC_PATH, 'a') as f:
+                f.write(f'{user_id}\n')
+            print(str_format(f"Your container:{user_id} has been restarted.", fore='g'))
+
+        else: print(str_format("Your container is not using.", fore='r'))
+        return False
     # if user input -ls True
     if list_schedule:
         print(checker.booked_df.sort_values(by='start', ignore_index=True).to_string())
@@ -60,20 +76,8 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
 
     # check old user_id's password
     if user_id in checker.users_config.ids:
-        password = checker.users_config.ids[user_id].password
-        isWrong = True  # a flag for checking if tne login success
-        for _ in range(3):  # There are three times chances for user to enter password correctly
-            input_password = getpass.getpass(prompt="Please enter the password: ")
-            if input_password == password:
-                isWrong = False  # login successfully
-                print(str_format(f"Login Successfully!!", fore='g'))
-                break
-            else:
-                print("Wrong password!!")
-        if isWrong:
-            print("ByeBye~~")  # login failed
-            return False
-
+        __check_user_passward(user_id)
+        
     if user_id in checker.users_config.ids:
         user_config = copy(checker.users_config.ids[user_id])
     else:
@@ -392,6 +396,22 @@ def __setting_user_options(user_id: str, user_config: UserConfig):
 
     return user_config
 
+
+def __check_user_passward(user_id) -> bool:
+    password = checker.users_config.ids[user_id].password
+    isWrong = True  # a flag for checking if tne login success
+    for _ in range(3):  # There are three times chances for user to enter password correctly
+        input_password = getpass.getpass(prompt="Please enter the password: ")
+        if input_password == password:
+            isWrong = False  # login successfully
+            print(str_format(f"Login Successfully!!", fore='g'))
+            break
+        else:
+            print("Wrong password!!")
+    if isWrong:
+        print("ByeBye~~")  # login failed
+        return False
+    return True
 
 def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
     '''
