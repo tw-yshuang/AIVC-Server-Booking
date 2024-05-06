@@ -7,6 +7,7 @@ monitor_files=('jobs/monitor_exec' 'jobs/monitor.log')
 schedule_files=('jobs/booking.csv' 'jobs/using.csv' 'jobs/used.csv')
 cfg_files=('capability_config.yaml' 'host_deploy.yaml' 'users_config.yaml')
 monitor_program_file="$(pwd)/src/monitor/Monitor.py"
+check_restart_file="$(pwd)/src/monitor/check_restart.py"
 
 mkdir jobs
 # check and create
@@ -39,12 +40,14 @@ crontab -l > temp_crontab
 #echo new cron into cron file
 if [ "$(grep "${monitor_program_file}" temp_crontab)" == "" ]; then
     echo "*/30 * * * * python3 ${monitor_program_file}" >> temp_crontab
-    
-    #install new cron file
-    crontab temp_crontab
 fi
-rm temp_crontab
 
+if [ "$(grep "${check_restart_file}" temp_crontab)" == "" ]; then
+    echo "@reboot python3 ${check_restart_file}" >> temp_crontab
+fi
+
+crontab temp_crontab
+rm temp_crontab
 
 #====================================================
 # Install package and images 
