@@ -44,7 +44,7 @@ ILLEGAL_PASSWORD_LS = ['1234', '4321', '1qaz', '=0-9']
 @click.option('-id', '--user-id', default='', help="user's account.")
 @click.option('-use-opt', '--use-options', default=False, is_flag=True, help="use extra options.")
 @click.option('-ls', '--list-schedule', default=False, is_flag=True, help="list schedule that already booking.")
-@click.option('-rst', '--restart_container', default=False, is_flag=True, help="restart the container.")
+@click.option('-rst', '--restart-container', default=False, is_flag=True, help="restart the container.")
 def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False, restart_container: bool = False) -> bool:
     # if user input -ls True
     if list_schedule:
