@@ -20,10 +20,10 @@ from src.HostInfo import ScheduleColumnNames as SC
 from src.booking.Checker import Checker
 
 checker = Checker(
-    deploy_yaml=PROJECT_DIR / 'cfg/test/host_deploy.yaml',
-    booking_csv=PROJECT_DIR / 'jobs/test/booking.csv',
-    using_csv=PROJECT_DIR / 'jobs/test/using.csv',
-    used_csv=PROJECT_DIR / 'jobs/test/used.csv',
+    deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml',
+    booking_csv=PROJECT_DIR / 'jobs/booking.csv',
+    using_csv=PROJECT_DIR / 'jobs/using.csv',
+    used_csv=PROJECT_DIR / 'jobs/used.csv',
 )
 MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/monitor_exec'
 
@@ -46,21 +46,6 @@ ILLEGAL_PASSWORD_LS = ['1234', '4321', '1qaz', '=0-9']
 @click.option('-ls', '--list-schedule', default=False, is_flag=True, help="list schedule that already booking.")
 @click.option('-rst', '--restart_container', default=False, is_flag=True, help="restart the container.")
 def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = False, restart_container: bool = False) -> bool:
-    
-    if restart_container:
-        user_id = input("Please enter the user_id: ").lower()
-        try:
-            isPass = __check_user_passward(user_id)
-        except:
-            isPass = False
-        
-        if isPass:
-            with open(MONITOR_EXEC_PATH, 'a') as f:
-                f.write(f'{user_id}\n')
-            print(str_format(f"Your container:{user_id} has been restarted.", fore='g'))
-
-        else: print(str_format("Your container is not using.", fore='r'))
-        return False
     # if user input -ls True
     if list_schedule:
         print(checker.booked_df.sort_values(by='start', ignore_index=True).to_string())
@@ -77,7 +62,17 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
     # check old user_id's password
     if user_id in checker.users_config.ids:
         __check_user_passward(user_id)
-        
+
+    if restart_container:
+        using_ids = checker.using.df['user_id'].values
+        if user_id in using_ids:
+            with open(MONITOR_EXEC_PATH, 'a') as f:
+                f.write(f'{user_id}\n')
+            print(str_format(f"Your container:{user_id} has been restarted.", fore='g'))
+
+        else: print(str_format("Your container is not using.", fore='r'))
+        return False
+            
     if user_id in checker.users_config.ids:
         user_config = copy(checker.users_config.ids[user_id])
     else:

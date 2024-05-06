@@ -40,12 +40,14 @@ crontab -l > temp_crontab
 #echo new cron into cron file
 if [ "$(grep "${monitor_program_file}" temp_crontab)" == "" ]; then
     echo "*/30 * * * * python3 ${monitor_program_file}" >> temp_crontab
-    echo "@reboot python3 ${check_restart_file}" >> temp_crontab
-    #install new cron file
-    crontab temp_crontab
 fi
-rm temp_crontab
 
+if [ "$(grep "${check_restart_file}" temp_crontab)" == "" ]; then
+    echo "@reboot python3 ${check_restart_file}" >> temp_crontab
+fi
+
+crontab temp_crontab
+rm temp_crontab
 
 #====================================================
 # Install package and images 
