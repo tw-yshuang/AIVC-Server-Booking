@@ -20,12 +20,12 @@ from src.HostInfo import ScheduleColumnNames as SC
 from src.booking.Checker import Checker
 
 checker = Checker(
-    deploy_yaml=PROJECT_DIR / 'cfg/host_deploy.yaml',
-    booking_csv=PROJECT_DIR / 'jobs/booking.csv',
-    using_csv=PROJECT_DIR / 'jobs/using.csv',
-    used_csv=PROJECT_DIR / 'jobs/used.csv',
+    deploy_yaml=PROJECT_DIR / 'cfg/test/host_deploy.yaml',
+    booking_csv=PROJECT_DIR / 'jobs/test/booking.csv',
+    using_csv=PROJECT_DIR / 'jobs/test/using.csv',
+    used_csv=PROJECT_DIR / 'jobs/test/used.csv',
 )
-MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/monitor_exec'
+MONITOR_EXEC_PATH: Path = PROJECT_DIR / 'jobs/test/monitor_exec'
 
 MIN_CPUS: float = 1
 MIN_MEMORY: int = 1
@@ -61,18 +61,18 @@ def cli(user_id: str = None, use_options: bool = False, list_schedule: bool = Fa
 
     # check old user_id's password
     if user_id in checker.users_config.ids:
-        __check_user_passward(user_id)
+        __check_user_password(user_id)
 
     if restart_container:
-        using_ids = checker.using.df['user_id'].values
-        if user_id in using_ids:
+        if user_id in checker.using.df[SC.user_id].values:
             with open(MONITOR_EXEC_PATH, 'a') as f:
                 f.write(f'{user_id}\n')
             print(str_format(f"Your container:{user_id} has been restarted.", fore='g'))
 
-        else: print(str_format("Your container is not using.", fore='r'))
+        else:
+            print(str_format("Your container is not using.", fore='r'))
         return False
-            
+
     if user_id in checker.users_config.ids:
         user_config = copy(checker.users_config.ids[user_id])
     else:
@@ -392,7 +392,7 @@ def __setting_user_options(user_id: str, user_config: UserConfig):
     return user_config
 
 
-def __check_user_passward(user_id) -> bool:
+def __check_user_password(user_id) -> bool:
     password = checker.users_config.ids[user_id].password
     isWrong = True  # a flag for checking if tne login success
     for _ in range(3):  # There are three times chances for user to enter password correctly
@@ -407,6 +407,7 @@ def __check_user_passward(user_id) -> bool:
         print("ByeBye~~")  # login failed
         return False
     return True
+
 
 def booking(user_id: str, cap_info: BasicCapability, booking_time: BookingTime, user_config: UserConfig) -> bool:
     '''
