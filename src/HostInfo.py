@@ -56,13 +56,13 @@ class BookingTime:
 
 @dataclass
 class UserConfig:
-    password: str = None
-    forward_port: int = None  # which forward port you want to connect to port: 22(SSH).
-    image: Path = None  # which image you want to use, default is use "rober5566a/aivc-server:latest"
-    extra_command: str = None  # the extra command you want to execute when the docker runs.
-    volume_work_dir: Path = None
-    volume_dataset_dir: Path = None
-    volume_backup_dir: Path = None
+    password: str | None = None
+    forward_port: int | None = None  # which forward port you want to connect to port: 22(SSH).
+    image: Path | None = None  # which image you want to use, default is use "rober5566a/aivc-server:latest"
+    extra_command: str | None = None  # the extra command you want to execute when the docker runs.
+    volume_work_dir: Path | None = None
+    volume_dataset_dir: Path | None = None
+    volume_backup_dir: Path | None = None
 
     def to_dict(self):
         if hasattr(self, 'dict'):
@@ -125,11 +125,11 @@ class BasicCapability:
 
     def __init__(
         self,
-        cpus: float or str = None,
-        memory: int or str = None,
-        gpus: int or str = None,
-        backup_space: int or str = None,
-        work_space: int or str = None,
+        cpus: float | str = None,
+        memory: int | str = None,
+        gpus: int | str = None,
+        backup_space: int | str = None,
+        work_space: int | str = None,
         defaultCap: object = None,
         maxCap: MaxCapability = None,
     ) -> None:

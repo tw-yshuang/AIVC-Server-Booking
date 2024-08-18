@@ -29,7 +29,7 @@ RUN echo "${ACCOUNT}" 'ALL=(ALL) NOPASSWD: /usr/sbin/booking' >> /etc/sudoers \
 WORKDIR ${ACCOUNT_HOME}
 # USER ${ACCOUNT}
 ADD requirements.txt ${ACCOUNT_HOME}/requirements.txt
-RUN pip3 install -r requirements.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
 
 # welcome message
 ADD fonts/*.flf /usr/share/figlet/
