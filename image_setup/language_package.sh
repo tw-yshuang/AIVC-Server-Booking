@@ -146,7 +146,7 @@ Ask_yn "Do you want to install pipenv?"; result=$?
 if [ $result = 1 ]; then
     # apt-get update
     # apt-get install pipenv -y
-    pip3 install pipenv
+    pip3 install --no-cache-dir pipenv
     if [ "$(grep -xn "$pipenv_Keyword" $profile)" != "" ]; then
         Echo_Color g "You have already added pipenv PATH in $profile !!"
     else

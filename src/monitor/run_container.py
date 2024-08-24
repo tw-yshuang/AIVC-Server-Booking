@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, subprocess, shutil, math
+import os, subprocess, shutil, math, shlex
 from pathlib import Path
 from typing import List, Tuple
 
@@ -14,11 +14,12 @@ if __name__ == '__main__':
 
 from src.HostInfo import load_yaml, HostDeployInfo, CapabilityConfig, UserConfig, MaxCapability
 
-DEFAULT_BACKUP_DIR = PROJECT_DIR / 'cfg/templates/Backup'
+DEFAULT_BACKUP_TEMPLATES = PROJECT_DIR / 'cfg/templates/Backup'
 DEFAULT_BACKUP_YAML_FILENAME = 'backup.yaml'
 DEFAULT_IMAGE = 'rober5566a/aivc-server'
 DEFAULT_IMAGE_TAG = 'latest'
 
+CONTAINER_LOGO = 'A I V C'
 CONTAINER_WORK_DIR = '/root/Work'
 CONTAINER_BACKUP_DIR = '/root/Backup'
 CONTAINER_DATASET_DIR = '/root/Dataset'
@@ -54,25 +55,16 @@ def prepare_deploy(
     user_config: UserConfig,
     cap_max: MaxCapability,
     memory: int,
-    image: str or None,
-    extra_command: str or None,
 ) -> Tuple[str, str, int, List[List[str]]]:
     '''
-    `user_config`: The user_config from users_config.yaml, for docker volume used.
+    `user_config`: The current user's configuration of the task.
     `cap_max`: The maximum capability information, for memory used.
-    `image`: The image from booking.csv.
-    `extra_command`: The extra_command from booking.csv.
     '''
 
-    if image is None:
-        image = f'{DEFAULT_IMAGE}:{DEFAULT_IMAGE_TAG}' if user_config.image is None else user_config.image
+    if user_config.image is None:
+        user_config.image = f'{DEFAULT_IMAGE}:{DEFAULT_IMAGE_TAG}' if user_config.image is None else user_config.image
 
-    exec_command = extra_command if extra_command is not None else ''
-    if DEFAULT_IMAGE in image:
-        if exec_command != '':
-            exec_command += ' && '
-        exec_command += f'/.script/ssh_start.sh {user_config.password}'
-        ram_size: int = math.ceil(memory * cap_max.shm_rate)
+    ram_size: int = math.ceil(memory * cap_max.shm_rate)
 
     # volumes_ls = [[host_path, container_path, operate_flag(Optional)]...]
     volumes_ls: List[List[str]] = [
@@ -82,7 +74,7 @@ def prepare_deploy(
     ]
 
     if not os.path.exists(user_config.volume_backup_dir):
-        shutil.copytree(DEFAULT_BACKUP_DIR, user_config.volume_backup_dir)
+        shutil.copytree(DEFAULT_BACKUP_TEMPLATES, user_config.volume_backup_dir)
     else:
         backup_info = BackupInfo(f'{user_config.volume_backup_dir}/{DEFAULT_BACKUP_YAML_FILENAME}')
         for backup_path, container_path in [*backup_info.Dir, *backup_info.File]:
@@ -90,28 +82,24 @@ def prepare_deploy(
             if os.path.exists(backup_path):
                 volumes_ls.append([backup_path, container_path])
 
-    return image, exec_command, ram_size, volumes_ls
+    return ram_size, volumes_ls
 
 
 def run(
     user_id: str,
-    forward_port: int,
+    user_config: UserConfig,
     cpus: float,
     memory: int,
-    gpus: List[int] or str,
-    image: str or None,
-    exec_command: str or None,
+    gpus: List[int] | str,
     ram_size: int,
     volumes_ls: List[List[str]],
 ):
     '''
     `user_id`: student ID.\n
-    `forward_port`: which forward port you want to connect to port: 2(SSH).\n
+    `user_config`: The current user's configuration of the task.\n
     `cpus`: Number of CPU utilities.\n
     `memory`: Number of memory utilities.\n
     `gpus`: List of gpu id used for the container.\n
-    `image`: Which image you want to use, new std_id will use "rober5566a/aivc-server:latest"\n
-    `exec_command`: The exec command you want to execute when the docker runs.\n
     `ram_size`: The DRAM size that you want to assign to this container,\n
     `volumes_ls`: List of volume information, format: [[host, container, ]...]
     '''
@@ -123,7 +111,7 @@ def run(
 
     gpus = ','.join(str(gpu) for gpu in gpus) if len(gpus) != 0 else 'none'
 
-    exec_str = f'docker run\
+    exec_str = f'''docker run\
                 -dit\
                 --restart=always\
                 --pid=host\
@@ -131,40 +119,46 @@ def run(
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
                 --shm-size={memory-ram_size}G\
-                --gpus "device={gpus}"\
+                --gpus 'device={gpus}'\
                 --name={user_id}\
-                -p {forward_port}:22\
+                -p {user_config.forward_port}:22\
                 -v {volume_info}\
                 -e DISPLAY=$DISPLAY\
-                {image}\
-                bash -c\
-                '
+                -e LOGO="{CONTAINER_LOGO}"\
+                -e PASSWORD={user_config.password}\
+                {user_config.image}\
+                '''
 
-    return subprocess.run(
-        [*exec_str.split(), exec_command], stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8'
-    ).stderr.split('\n')[0]
+    exec_str_ls = shlex.split(exec_str)
+    if user_config.extra_command is not None:
+        exec_str_ls.extend(['bash -c', user_config.extra_command])
+
+    # print("\n".join(exec_str_ls))
+
+    return subprocess.run(exec_str_ls, stdout=subprocess.PIPE, stderr=subprocess.PIPE, encoding='utf-8').stderr.split('\n')[0]
 
 
 def run_container(
     user_id: str,
+    user_config: UserConfig,
     forward_port: int,
     cpus: float = 2,
     memory: int = 8,
     gpus: List[int] = 1,
-    image: str or None = None,
+    image: str | None = None,
     extra_command: str = '',
-    user_config: UserConfig = None,
     cap_max: MaxCapability = None,
     *args,
     **kwargs,
 ) -> None:
-    # the value of image & extra_command maybe is nan, pd.NA, np.nan ..., use this method to convert it first.
-    image = None if isna(image) else image
-    extra_command = None if isna(extra_command) else extra_command
 
-    image, exec_command, ram_size, volumes_ls = prepare_deploy(user_config, cap_max, memory, image, extra_command)
+    user_config.forward_port = forward_port
+    user_config.image = None if isna(image) else image  # the value maybe is nan, pd.NA, np.nan ...
+    user_config.extra_command = None if isna(extra_command) else extra_command  # the value maybe is nan, pd.NA, np.nan ...
 
-    return run(user_id, forward_port, cpus, memory, gpus, image, exec_command, ram_size, volumes_ls)
+    ram_size, volumes_ls = prepare_deploy(user_config, cap_max, memory)
+
+    return run(user_id, user_config, cpus, memory, gpus, ram_size, volumes_ls)
 
 
 @click.command(context_settings=dict(help_option_names=['-h', '--help'], max_content_width=120))
@@ -182,9 +176,9 @@ def cli(
     forward_port: int,
     cpus: float = 2,
     memory: int = 8,
-    gpus: int or str = '0',
+    gpus: int | str = '0',
     image: str = None,
-    extra_command: str = '',
+    extra_command: str | None = None,
     *args,
     **kwargs,
 ) -> None:

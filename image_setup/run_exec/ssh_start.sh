@@ -15,4 +15,3 @@ fi
 echo "$target_user:"$password | chpasswd  # set password for target_user
 
 service ssh start
-/bin/bash

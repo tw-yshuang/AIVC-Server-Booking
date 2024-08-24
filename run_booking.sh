@@ -52,8 +52,9 @@ fi
 # Part 2. Main
 #====================================================
 
-DOCKER_PATH=/root
-PROJ_PATH=$(dirname $(realpath $0))
+LOGO="A I V C"
+CONTAINER_DIR=/root
+PROJ_DIR=$(dirname $(realpath $0))
 if [ "$password" = "" ]; then
     printf "Please enter a password for booking account: "
     read password
@@ -66,10 +67,12 @@ docker run \
 --restart=always \
 -p 10000:22 \
 --name=booking \
--v $PROJ_PATH/cfg/:$DOCKER_PATH/cfg \
--v $PROJ_PATH/jobs/:$DOCKER_PATH/jobs \
--v $PROJ_PATH/lib/:$DOCKER_PATH/lib \
--v $PROJ_PATH/src/:$DOCKER_PATH/src \
--v $DOCKER_PATH/src/monitor/ \
-rober5566a/aivc-server:booking-v1.1.1 \
-/bin/bash -c "( ln -s $DOCKER_PATH/src/booking/booking.py /usr/sbin/booking || true ) && /.script/ssh_start.sh $password"
+-v $PROJ_DIR/cfg/:$CONTAINER_DIR/cfg \
+-v $PROJ_DIR/jobs/:$CONTAINER_DIR/jobs \
+-v $PROJ_DIR/lib/:$CONTAINER_DIR/lib \
+-v $PROJ_DIR/src/:$CONTAINER_DIR/src \
+-v $CONTAINER_DIR/src/monitor/ \
+-e CONTAINER_DIR="$CONTAINER_DIR" \
+-e LOGO="$LOGO" \
+-e PASSWORD="$password" \
+rober5566a/aivc-server:booking-v1.2.0

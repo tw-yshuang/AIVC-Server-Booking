@@ -1,6 +1,6 @@
-FROM nvidia/cuda:12.1.1-cudnn8-devel-ubuntu22.04
+FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
-LABEL author="tw-yshuang" version="1.2" description="pyenv & pipenv will upgrade every time run the image"
+LABEL author="tw-yshuang" version="1.3" description="The user password & weclome logo can be change via environment variable `PASSWORD` & `LOGO`."
 
 # Localtime
 ENV TZ=Asia/Taipei
@@ -32,8 +32,8 @@ ADD image_setup/run_exec /.script/
 RUN chmod +x /.script/*
 
 # shell setup
-ADD image_setup/ ~/image_setup
-WORKDIR ~/image_setup
+ADD image_setup/ /image_setup
+WORKDIR /image_setup
 RUN chmod +x ./*.sh \
     && ./zsh_ohmyzsh_setup.sh \
     && ./ohmyzsh_config.sh -y \
@@ -44,7 +44,8 @@ ADD fonts/*.flf /usr/share/figlet/
 ADD image_setup/11-logo.sh /etc/profile.d/11-logo.sh
 RUN apt install figlet lolcat -y \
     && chmod +x /etc/profile.d/11-logo.sh \
-    && echo 'bash /etc/profile.d/11-logo.sh' >> ~/.zlogin
+    && echo 'bash /etc/profile.d/11-logo.sh' >> ~/.zlogin\
+    && echo "LOGO='Go Go'" >> /etc/environment
 
 # install python env tool & some dotfile
 RUN ./language_package.sh -y \
@@ -57,11 +58,14 @@ RUN ./cuda_path.sh
 
 # git-acc tool
 RUN git clone https://github.com/tw-yshuang/Git_SSH-Account_Switch.git
-WORKDIR Git_SSH-Account_Switch
+WORKDIR /image_setup/Git_SSH-Account_Switch
 RUN chmod +x ./*.sh && ./setup.sh
 
+WORKDIR /root
+RUN rm -rf /image_setup
+
 # install package for AIVC-Server-Booking used.
-RUN pip3 install pyyaml
+RUN pip3 install pyyaml --no-cache-dir
 
 ENTRYPOINT ["/.script/entrypoint.sh"]
 
