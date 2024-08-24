@@ -1,6 +1,6 @@
-FROM python:3.10.10-slim
+FROM python:3.12.5-slim
 
-LABEL author="tw-yshuang" version="1.1.1" description="I'm writing server image!"
+LABEL author="tw-yshuang" version="1.2.0" description="The password & weclome logo can be change via environment variable `PASSWORD` & `LOGO`.!"
 
 # Localtime
 ENV TZ=Asia/Taipei
@@ -37,7 +37,8 @@ ADD image_setup/11-logo.sh ${ACCOUNT_HOME}/.11-logo.sh
 RUN apt-get install figlet lolcat -y \
     && echo 'export LANG="C.UTF-8"' >> /etc/profile \
     && chmod +x ${ACCOUNT_HOME}/.11-logo.sh \
-    && echo "bash ${ACCOUNT_HOME}/.11-logo.sh" >> ${ACCOUNT_HOME}/.bashrc
+    && echo "bash ${ACCOUNT_HOME}/.11-logo.sh" >> ${ACCOUNT_HOME}/.bashrc \
+    && echo "LOGO='Go Go'" >> /etc/environment
 
 USER root
 
