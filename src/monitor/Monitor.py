@@ -221,6 +221,7 @@ class Monitor(HostInfo):
             user_id = user_id.lower()
             result = run_container(
                 user_id=user_id,
+                user_config=self.users_config.ids[user_id],
                 cpus=cpus,
                 memory=memory,
                 gpus=gpus,
@@ -228,7 +229,6 @@ class Monitor(HostInfo):
                 image=image,
                 extra_command=extra_command,
                 cap_max=self.cap_config.max,
-                user_config=self.users_config.ids[user_id],
             )
             if result == '':
                 result_ls.append(True)

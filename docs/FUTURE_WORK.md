@@ -10,6 +10,40 @@ Another reason is that `pandas` is a slow tool.
 
 ---
 
+## Password exposure issue
+
+Password needs to encode!!!
+
+1. Save password with a encode method, e.g. `base64`.
+2. Create a class `PasswordCoder` in the `HostInfo.py` to decode it.
+
+    ```python
+    import os
+    import random
+    import string
+
+    class PasswordCoder:
+        ...
+        def __init__(self):
+            self.__env_var = 'PWD_' + ''.join(string.ascii_letters(letters, 5))
+
+        def set_os_env(self, user_password: str):
+            pwd = ... # decode method
+            os.environ[self.__env_var] = pwd
+        
+        def delete_os_env(self):
+            del os.environ[self.__env_var]
+            ...
+
+        def __repr__(self):
+            ... # maybe set a method that access serval time it will reset the self.__env_var ??
+            return self.__env_var
+    ```
+
+3. When running the container, immediately execute `PasswordCoder.delete_os_env()`
+
+---
+
 ## `src/booking/booking.py`
 
 1. Add new CLI feature
