@@ -14,5 +14,5 @@ if ! [ -z "${CONTAINER_DIR}" ]; then
     ln -s $CONTAINER_DIR/src/booking/booking.py /usr/sbin/booking
 fi
 
-exec "$@"
+"$@"
 /bin/bash
