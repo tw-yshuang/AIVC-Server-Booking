@@ -121,7 +121,7 @@ def run(
                 --memory={ram_size}G\
                 --memory-swap={memory}G\
                 --shm-size={memory-ram_size}G\
-                --gpus 'device={gpus}'\
+                --gpus '"device={gpus}"'\
                 --name={user_id}\
                 -p {user_config.forward_port}:22\
                 -v {volume_info}\
